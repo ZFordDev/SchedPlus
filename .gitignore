@@ -1,0 +1,71 @@
+# ----------------------------------------
+# Python
+# ----------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Bytecode cache
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# ----------------------------------------
+# Editor / IDE
+# ----------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ----------------------------------------
+# OS Files
+# ----------------------------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------
+# Packaging (future versions)
+# ----------------------------------------
+
+# Snapcraft build output
+snap/.snapcraft/
+parts/
+prime/
+stage/
+
+# Debian packaging
+packaging/deb/usr/
+packaging/deb/DEBIAN/
+
+# Windows builds (PyInstaller)
+dist/
+build/
+*.spec
+*.exe
+
+# ----------------------------------------
+# App Data
+# ----------------------------------------
+
+# Local task storage (future versions)
+tasks.json
+
+# Logs (if added later)
+*.log
+
+# ----------------------------------------
+# Python tooling
+# ----------------------------------------
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
