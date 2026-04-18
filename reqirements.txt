@@ -1,0 +1,8 @@
+# SchedPlus v0.1 dependencies
+# ---------------------------
+# No pip packages required for this version.
+# Tkinter is required for the UI, but it is NOT installable via pip.
+# On Linux, install it via your package manager:
+#   sudo apt install python3-tk
+# Windows has tkinter included by default with Python, so no additional installation is needed.
+# ---------------------------
