@@ -17,9 +17,9 @@ Later versions will:
 - Add save/load
 - Add PyQt alternative UI
 """
-
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
+from datetime import datetime
 
 
 def run_ui(scheduler):
@@ -50,19 +50,36 @@ def run_ui(scheduler):
     task_list.grid(row=4, column=0, columnspan=2, padx=5, pady=10)
 
     # --- Add Task button ---
+     # --- Add Task button ---
     def add_task():
-        date = date_entry.get()
-        time = time_entry.get()
-        text = task_entry.get()
+        date = date_entry.get().strip()
+        time = time_entry.get().strip()
+        text = task_entry.get().strip()
 
-        if date and time and text:
-            scheduler.add_task(date, time, text)
-            task_list.insert(tk.END, f"{date} {time} - {text}")
+        # Check empty fields
+        if not date or not time or not text:
+            messagebox.showerror("Input Error", "All fields are required.")
+            return
 
-            # Clear fields
-            task_entry.delete(0, tk.END)
+        # Validate date and time format
+        if not validate_datetime(date, time):
+            messagebox.showerror(
+                "Invalid Format",
+                "Date must be YYYY-MM-DD\nTime must be HH:MM (24-hour format)"
+            )
+            return
+
+        # If valid → add task
+        scheduler.add_task(date, time, text)
+        task_list.insert(tk.END, f"{date} {time} - {text}")
+
+        # Clear fields
+        date_entry.delete(0, tk.END)
+        time_entry.delete(0, tk.END)
+        task_entry.delete(0, tk.END)
 
     add_button = ttk.Button(root, text="Add Task", command=add_task)
     add_button.grid(row=3, column=0, columnspan=2, pady=5)
 
     root.mainloop()
+    
