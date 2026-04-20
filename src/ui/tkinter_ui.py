@@ -20,6 +20,7 @@ Later versions will:
 
 import tkinter as tk
 from tkinter import ttk
+from ui.shortcuts import bind_enter_key
 
 
 def run_ui(scheduler):
@@ -64,5 +65,7 @@ def run_ui(scheduler):
 
     add_button = ttk.Button(root, text="Add Task", command=add_task)
     add_button.grid(row=3, column=0, columnspan=2, pady=5)
-
+    
+    bind_enter_key([date_entry, time_entry, task_entry], add_task)  
+    
     root.mainloop()
