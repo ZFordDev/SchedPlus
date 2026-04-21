@@ -1,0 +1,20 @@
+[
+    {
+        "id": "task1",
+        "name": "Task 1",
+        "description": "This is the first task.",
+        "status": "pending"
+    },
+    {
+        "id": "task2",
+        "name": "Task 2",
+        "description": "This is the second task.",
+        "status": "in_progress"
+    },
+    {
+        "id": "task3",
+        "name": "Task 3",
+        "description": "This is the third task.",
+        "status": "completed"
+    }
+]
