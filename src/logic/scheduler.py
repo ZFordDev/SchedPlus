@@ -20,11 +20,6 @@ import uuid
 from dataclasses import dataclass
 from typing import List
 from datetime import datetime
-<<<<<<< HEAD
-
-=======
-import uuid
->>>>>>> 264caa2 (Add Task class with to_dict and from_dict helpers)
 
 @dataclass
 class Task:
