@@ -46,6 +46,9 @@ SchedPlus is a step‑by‑step journey through:
 - Tkinter GUI programming  
 - PyQt GUI programming (later)  
 - JSON storage  
+- JSON schema design  
+- basic persistence layer  
+- safe file handling  
 - clean project structure  
 - refactoring techniques  
 - cross‑platform packaging  
@@ -65,6 +68,9 @@ SchedPlus will evolve through these stages:
 
 1. **v0.1 — Basic Tkinter UI**  
 2. **v0.2 — Save & Load (JSON)**  
+    - Added tasks.json persistence  
+    - Defined official task schema  
+    - Implemented save/load with error handling  
 3. **v0.3 — Logic Layer Separation**  
 4. **v0.4 — Prepare for PyQt Migration**  
 5. **v0.5 — PyQt UI Added**  
