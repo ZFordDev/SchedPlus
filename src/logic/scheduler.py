@@ -16,16 +16,41 @@ Later versions will:
 - Support PyQt UI
 """
 
+import uuid
 from dataclasses import dataclass
 from typing import List
-
+from datetime import datetime
 
 @dataclass
 class Task:
-    """A simple data structure to hold a scheduled task."""
-    date: str   # e.g. "2026-04-19"
-    time: str   # e.g. "06:45"
-    text: str   # e.g. "Deliver paperwork"
+    def __init__(self, date, time, text, id=None, createdAt=None, updatedAt=None):
+        self.id = id or str(uuid.uuid4())
+        self.date = date
+        self.time = time
+        self.text = text
+        self.createdAt = createdAt or datetime.now()
+        self.updatedAt = updatedAt or datetime.now()
+
+
+    def to_dict(self):
+        return {"id": self.id, 
+                "date": self.date,
+                "time": self.time, 
+                "text": self.text, 
+                "createdAt": self.createdAt, 
+                "updatedAt": self.updatedAt}
+    
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+        id=data["id"],
+        text=data["text"],
+        date=data["date"],
+        time=data["time"],
+        createdAt=data["createdAt"],
+        updatedAt=data["updatedAt"]
+    )
 
 
 class Scheduler:
