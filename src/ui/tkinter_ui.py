@@ -21,6 +21,7 @@ Later versions will:
 import tkinter as tk
 from tkinter import ttk
 from ui.shortcuts import bind_enter_key
+from logic.storage import save_tasks
 
 
 def run_ui(scheduler):
@@ -48,7 +49,11 @@ def run_ui(scheduler):
 
     # --- Task list ---
     task_list = tk.Listbox(root, width=50, height=10)
+        # Populate listbox with existing tasks from scheduler.tasks
     task_list.grid(row=4, column=0, columnspan=2, padx=5, pady=10)
+    
+    for task in scheduler.get_tasks():
+        task_list.insert(tk.END, f"{task.date} {task.time} - {task.text}")
 
     # --- Add Task button ---
     def add_task():
@@ -58,7 +63,13 @@ def run_ui(scheduler):
 
         if date and time and text:
             scheduler.add_task(date, time, text)
-            task_list.insert(tk.END, f"{date} {time} - {text}")
+
+            # Inside add_task()
+            new_task = scheduler.get_tasks()[-1]  # last added task
+            task_list.insert(tk.END, f"{new_task.date} {new_task.time} - {new_task.text}")
+            # Save tasks to JSON immediately
+            save_tasks(scheduler.get_tasks())
+
 
             # Clear fields
             task_entry.delete(0, tk.END)

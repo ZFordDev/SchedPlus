@@ -15,11 +15,16 @@ Later versions will:
 
 from logic.scheduler import Scheduler
 from ui.tkinter_ui import run_ui
+from logic.storage import load_tasks
 
 
 def main():
     scheduler = Scheduler()
+    # Load tasks from JSON into Scheduler
+    scheduler.tasks = load_tasks()
+    print("Tasks loaded at startup:", scheduler.get_tasks())
     run_ui(scheduler)
+    
 
 
 if __name__ == "__main__":
