@@ -17,42 +17,39 @@ Later versions will:
 """
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from datetime import datetime
 
 @dataclass
 class Task:
-    def __init__(self, date, time, text, id=None, createdAt=None, updatedAt=None):
-        self.id = id or str(uuid.uuid4())
-        self.date = date
-        self.time = time
-        self.text = text
-        self.createdAt = createdAt or datetime.now()
-        self.updatedAt = updatedAt or datetime.now()
-
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    date: str = ""
+    time: str = ""
+    text: str = ""
+    createdAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    updatedAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
     def to_dict(self):
-        return {"id": self.id, 
-                "date": self.date,
-                "time": self.time, 
-                "text": self.text, 
-                "createdAt": self.createdAt, 
-                "updatedAt": self.updatedAt}
-    
+        return {
+            "id": self.id,
+            "date": self.date,
+            "time": self.time,
+            "text": self.text,
+            "createdAt": self.createdAt,
+            "updatedAt": self.updatedAt,
+        }
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: dict):
         return cls(
-        id=data["id"],
-        text=data["text"],
-        date=data["date"],
-        time=data["time"],
-        createdAt=data["createdAt"],
-        updatedAt=data["updatedAt"]
-    )
-
-
+            id=data.get("id", str(uuid.uuid4())),
+            date=data.get("date", ""),
+            time=data.get("time", ""),
+            text=data.get("text", ""),
+            createdAt=data.get("createdAt", datetime.utcnow().isoformat()),
+            updatedAt=data.get("updatedAt", datetime.utcnow().isoformat()),
+        )
 class Scheduler:
     """
     The Scheduler class manages a list of tasks.
