@@ -1,92 +1,106 @@
-[![Website](https://img.shields.io/badge/Website-zford.dev-000000?style=flat-square)](https://zford.dev)
-[![Ko‑Fi](https://img.shields.io/badge/Support-KoFi-FF5E5B?style=flat-square)](https://ko-fi.com/zforddev)
+# **SchedPlus — A Clean, Evolving Desktop Scheduler**
 
-# **SchedPlus**
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/zforddev/schedplus?style=for-the-badge&color=78C2AD" alt="Version">
+  <img src="https://img.shields.io/github/license/zforddev/schedplus?style=for-the-badge&color=blue" alt="License">
+  <img src="https://img.shields.io/github/stars/zforddev/schedplus?style=for-the-badge&color=FFD700" alt="Stars">
+</p>
 
-_A small Python app that teaches you how real software evolves._
-
-Build a simple scheduler.  
-Then improve it.  
-Then refactor it.  
-Then migrate the UI.  
-Then package it.  
-Then ship it.
-
-SchedPlus isn’t a one-off tutorial — it’s a **step-by-step evolution of a real project**.
-
-You can start at the first commit and follow every decision, every mistake, and every improvement along the way.
+SchedPlus is a simple, modern task scheduler built in the open — evolving from a tiny Tkinter script into a structured, cross‑platform desktop app.  
+It’s both a **real tool** and a **transparent learning journey**, showing how software grows version by version.
 
 ---
 
-## **Why SchedPlus Exists**
+## 💡 Why SchedPlus Exists
 
 Most tutorials show you how to build something once.
 
-SchedPlus shows you how software actually grows.
+SchedPlus shows you how real software evolves:
 
-You’ll go from a basic Tkinter script to a structured, cross-platform desktop app — learning how to:
+- from a basic UI  
+- to a structured logic layer  
+- to a PyQt migration  
+- to a packaged, cross‑platform application  
 
-- change code without breaking it
-- separate UI from logic
-- migrate frameworks (Tkinter → PyQt)
-- package apps for real users
-- ship a complete release
+It’s a practical, real‑world example of how to grow a project without throwing everything away each time.
 
-This is the part most tutorials skip.
-
-**Version history:**  
-https://github.com/zforddev/schedplus/commits/main  
-_Recommended: start at the earliest commit and work forward._
+SchedPlus is intentionally simple — not a calendar replacement, not a productivity suite — just a clean, predictable scheduler that teaches you how real apps are built.
 
 ---
 
-## **What You’ll Learn**
+## ✨ Philosophy
 
-SchedPlus is a step‑by‑step journey through:
+SchedPlus follows a few core principles:
 
-- Python basics
-- Tkinter GUI programming
-- PyQt GUI programming (later)
-- JSON storage
-- JSON schema design
-- basic persistence layer
-- safe file handling
-- clean project structure
-- refactoring techniques
-- cross‑platform packaging
-  - Snap (Linux)
-  - .deb (Debian/Ubuntu)
-  - Windows .exe
-- versioning and release workflow
-
-**Full learning documents:**  
-https://docs.zford.dev/docs/schedplus/
+- **Clarity over complexity** — simple UI, simple logic, simple storage  
+- **Local‑first** — your tasks stay on your machine  
+- **Transparent evolution** — every version teaches something  
+- **Refactor‑friendly** — clean structure, no hidden magic  
+- **Cross‑platform mindset** — built to run everywhere  
 
 ---
 
-## **Project Roadmap (Learning Journey)**
+## 🛠 Current State
 
-SchedPlus will evolve through these stages:
+| Version | Status | Focus |
+|--------|--------|--------|
+| **v0.1** | Stable | Basic Tkinter UI |
+| **v0.2** | Stable | JSON save/load |
+| **v0.3** | Stable | Logic layer separation |
+| **v0.4** | In Dev | PyQt preparation (UI selector, skeleton UI) |
+| **v0.5+** | Planned | Full PyQt UI, packaging, multi‑platform release |
 
-1. **v0.1 — Basic Tkinter UI**
-2. **v0.2 — Save & Load (JSON)**
-   - Added tasks.json persistence
-   - Defined official task schema
-   - Implemented save/load with error handling
-3. **v0.3 — Logic Layer Separation**
-4. **v0.4 — Prepare for PyQt Migration**
-5. **v0.5 — PyQt UI Added**
-6. **v0.6 — UI Switching (Tkinter ↔ PyQt)**
-7. **v0.7 — Snap Packaging**
-8. **v0.8 — .deb Packaging**
-9. **v0.9 — Windows Packaging**
+---
+
+## 📦 Installation
+
+For now:
+
+```
+python3 src/main.py
+```
+
+Future versions will include:
+
+- Snap package  
+- .deb package  
+- Windows installer  
+
+---
+
+## 📖 Documentation & Links
+
+**Learning Docs:**  
+[https://docs.zford.dev/docs/schedplus/](https://docs.zford.dev/docs/schedplus/)
+
+**Version History:**  
+[https://github.com/zforddev/schedplus/commits/main](https://github.com/zforddev/schedplus/commits/main)
+
+---
+
+## 🧭 Project Roadmap
+
+SchedPlus evolves through these stages:
+
+1. **v0.1 — Basic Tkinter UI**  
+2. **v0.2 — Save & Load (JSON)**  
+3. **v0.3 — Logic Layer Separation**  
+4. **v0.4 — Prepare for PyQt Migration**  
+   - UI selector (Tkinter ↔ PyQt)  
+   - PyQt UI skeleton  
+   - Shared logic cleanup (if needed)  
+5. **v0.5 — PyQt UI Added**  
+6. **v0.6 — UI Switching (Tkinter ↔ PyQt)**  
+7. **v0.7 — Snap Packaging**  
+8. **v0.8 — .deb Packaging**  
+9. **v0.9 — Windows Packaging**  
 10. **v1.0 — Multi‑Platform Release**
 
 Each version teaches something new.
 
 ---
 
-## **Project Structure (v0.1)**
+## 🗂 Project Structure
 
 ```
 schedplus/
@@ -111,29 +125,14 @@ schedplus/
 └── README.md
 ```
 
-This structure is designed for growth.  
-UI and logic are separate so we can migrate toolkits without rewriting the app.
-
 ---
 
-## **Running SchedPlus (v0.1)**
+## 👥 Contributing
 
-```
-python3 src/main.py
-```
-
-Later versions will include:
-
-- Snap installation
-- .deb installation
-- Windows installer
+SchedPlus welcomes contributors of all skill levels.  
+Whether you're learning Python or helping shape the PyQt UI, PRs are always appreciated.
 
 ---
-
-## **Contributing**
-
-SchedPlus is designed to be forked, modified, and experimented with.  
-If you’re learning Python, GUI programming, or packaging — this project is for you.
 
 ## Recent Improvements: Task Class & JSON Integration
 
@@ -150,16 +149,22 @@ This PR (#12) adds the following enhancements:
   - Save tasks immediately to JSON after adding
 - `main.py` now **loads tasks from JSON before launching UI**
 
+## ❤️ Support the Project
+
+If SchedPlus helps you learn or stay organized, consider supporting the work:
+
+- ⭐ **Star the repo** to help others discover it  
+- ☕ **Ko‑Fi**: [https://ko-fi.com/zforddev](https://ko-fi.com/zforddev)  
+
 ---
 
-## **License**
+## 👤 Credits
 
-MIT License — free to use, modify, and learn from.
+Created and maintained by **ZFordDev**.  
+
+**Contrabiutors:**  
+- @shivmodi - #12
+- @peetsboy - #11
+- @Zeaforx - #5
 
 ---
-
-## **Explore More**
-
-🌐 **zford.dev** — https://zford.dev  
-🎮 **Itch.io** — https://zforddev.itch.io  
-❤️ **Ko‑Fi** — https://ko-fi.com/zforddev
