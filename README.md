@@ -86,14 +86,12 @@ SchedPlus evolves through these stages:
 2. **v0.2 — Save & Load (JSON)**  
 3. **v0.3 — Logic Layer Separation**  
 4. **v0.4 — Prepare for PyQt Migration**  
-   - UI selector (Tkinter ↔ PyQt)  
-   - PyQt UI skeleton  
-   - Shared logic cleanup (if needed)  
 5. **v0.5 — PyQt UI Added**  
+   - we are here
 6. **v0.6 — UI Switching (Tkinter ↔ PyQt)**  
 7. **v0.7 — Snap Packaging**  
 8. **v0.8 — .deb Packaging**  
-9. **v0.9 — Windows Packaging**  
+9.  **v0.9 — Windows Packaging**  
 10. **v1.0 — Multi‑Platform Release**
 
 Each version teaches something new.
