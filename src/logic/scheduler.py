@@ -1,19 +1,12 @@
 """
-scheduler.py (v0.1)
+scheduler.py (v0.4)
 -------------------
-This file contains the core logic for SchedPlus.
+Core scheduler logic for SchedPlus (v0.4).
 
-In v0.1, the scheduler is intentionally simple:
-- It stores tasks in memory
-- It provides a function to add a new task
-- It returns the current list of tasks
-
-Later versions will:
-- Add validation
-- Add sorting
-- Add editing/removal
-- Move storage to a dedicated storage.py file
-- Support PyQt UI
+This module provides the `Task` dataclass and the `Scheduler` class.
+The `Scheduler` is responsible for in-memory task management and
+exposes small wrapper methods to persist/load tasks via the storage
+layer so UIs (Tkinter/PyQt) do not need to know storage paths.
 """
 
 import uuid
@@ -53,7 +46,9 @@ class Task:
 class Scheduler:
     """
     The Scheduler class manages a list of tasks.
-    In v0.1, tasks are stored in memory only.
+    In v0.4, tasks are stored in memory and the class exposes
+    simple `save_tasks`/`load_tasks` helpers that delegate to the
+    storage layer. This keeps UIs decoupled from storage details.
     """
 
     def __init__(self):
@@ -66,6 +61,35 @@ class Scheduler:
         """
         task = Task(date=date, time=time, text=text)
         self.tasks.append(task)
+
+    def save_tasks(self, filepath: str = None):
+        """
+        Persist current tasks using the storage layer.
+
+        This method performs a local import to avoid import cycles
+        between `logic.storage` and `logic.scheduler`.
+        """
+        try:
+            from . import storage as _storage
+
+            _storage.save_tasks(self.tasks, filepath) if filepath else _storage.save_tasks(self.tasks)
+        except Exception:
+            # Intentionally swallow errors here; storage will log on failure.
+            pass
+
+    def load_tasks(self, filepath: str = None):
+        """
+        Load tasks from the storage layer into `self.tasks`.
+        Returns the loaded list of tasks.
+        """
+        try:
+            from . import storage as _storage
+
+            self.tasks = _storage.load_tasks(filepath)
+        except Exception:
+            self.tasks = []
+
+        return self.tasks
 
     def get_tasks(self) -> List[Task]:
         """Return the list of tasks."""

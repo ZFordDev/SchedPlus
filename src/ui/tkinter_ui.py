@@ -1,32 +1,22 @@
 """
-tkinter_ui.py (v0.1)
+tkinter_ui.py (v0.4)
 --------------------
-This is the first version of the Tkinter UI.
+Teaching Tkinter UI for SchedPlus (v0.4).
 
-It provides:
-- A window
-- Date input
-- Time input
-- Task text input
-- Add Task button
-- A listbox to display tasks
-
-Later versions will:
-- Improve layout
-- Add validation
-- Add save/load
-- Add PyQt alternative UI
+This UI is intentionally simple and acts as the "teaching" UI.
+It interacts only with the `Scheduler` API (no storage paths or
+storage module usage). It demonstrates inputs, a task list, and
+task addition in a minimal layout.
 """
 
 import tkinter as tk
 from tkinter import ttk
 from ui.shortcuts import bind_enter_key
-from logic.storage import save_tasks
 
 
 def run_ui(scheduler):
     root = tk.Tk()
-    root.title("SchedPlus v0.1")
+    root.title("SchedPlus v0.4")
 
     # --- Input fields ---
     date_label = ttk.Label(root, text="Date (YYYY-MM-DD):")
@@ -49,9 +39,8 @@ def run_ui(scheduler):
 
     # --- Task list ---
     task_list = tk.Listbox(root, width=50, height=10)
-        # Populate listbox with existing tasks from scheduler.tasks
     task_list.grid(row=4, column=0, columnspan=2, padx=5, pady=10)
-    
+
     for task in scheduler.get_tasks():
         task_list.insert(tk.END, f"{task.date} {task.time} - {task.text}")
 
@@ -64,19 +53,22 @@ def run_ui(scheduler):
         if date and time and text:
             scheduler.add_task(date, time, text)
 
-            # Inside add_task()
-            new_task = scheduler.get_tasks()[-1]  # last added task
+            # Append the newly added task to the listbox
+            new_task = scheduler.get_tasks()[-1]
             task_list.insert(tk.END, f"{new_task.date} {new_task.time} - {new_task.text}")
-            # Save tasks to JSON immediately
-            save_tasks(scheduler.get_tasks())
 
+            # Let the scheduler handle persistence (UI does not import storage)
+            try:
+                scheduler.save_tasks()
+            except Exception:
+                pass
 
-            # Clear fields
+            # Clear input field
             task_entry.delete(0, tk.END)
 
     add_button = ttk.Button(root, text="Add Task", command=add_task)
     add_button.grid(row=3, column=0, columnspan=2, pady=5)
     
-    bind_enter_key([date_entry, time_entry, task_entry], add_task)  
+    bind_enter_key([date_entry, time_entry, task_entry], add_task)
     
     root.mainloop()
