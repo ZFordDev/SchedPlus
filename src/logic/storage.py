@@ -34,9 +34,7 @@ def load_tasks(filepath=DATA_FILE):
     """
     Load JSON file → return list of Task objects
     """
-    print("Loading JSON from:", filepath)  # debug
     if not os.path.exists(filepath):
-        print("[DEBUG] JSON file does not exist!")
         return []
 
     try:
