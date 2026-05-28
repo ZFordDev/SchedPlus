@@ -24,7 +24,7 @@ def main():
     scheduler.load_tasks()
 
     if choose_ui():
-        run_pyqt_ui()
+        run_pyqt_ui(scheduler)
     else:
         run_ui(scheduler)
 
