@@ -1,12 +1,12 @@
 name: Feature Request
-description: Suggest an improvement or new feature for MathPlus
+description: Suggest an improvement or new feature for SchedPlus
 labels: [enhancement]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for your idea!  
-        MathPlus aims to stay minimal, stable, and math‑focused.  
+        SchedPlus aims to stay simple, predictable, and local‑first.  
         Please describe the problem your feature solves.
 
   - type: textarea
