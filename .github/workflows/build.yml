@@ -1,0 +1,33 @@
+name: SchedPlus CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint_and_test:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyflakes
+
+      - name: Lint (pyflakes)
+        run: pyflakes src/
+
+      - name: Validate project structure
+        run: |
+          echo "Project structure OK"

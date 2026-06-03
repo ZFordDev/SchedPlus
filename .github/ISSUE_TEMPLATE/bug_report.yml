@@ -1,0 +1,51 @@
+name: Bug Report
+description: Report a reproducible issue in SchedPlus
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve SchedPlus!  
+        Please provide as much detail as possible so we can reproduce the issue.
+
+  - type: input
+    id: version
+    attributes:
+      label: SchedPlus Version
+      placeholder: e.g., 0.1.0, 0.2.0-dev
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      placeholder: e.g., Windows 11, Ubuntu 22.04
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: List each step clearly.
+      placeholder: |
+        1. Open SchedPlus
+        2. Add a new task
+        3. Save the schedule
+        4. Reopen the app and load tasks
+        5. Error occurs
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: Describe what you expected to happen.
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: Describe what actually happened.
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots (optional)
+      description: Attach anything helpful.
