@@ -4,11 +4,11 @@
 # Mirrors the Tkinter UI but with a cleaner layout and modern widgets.
 
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout,
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem,
     QDialog, QDialogButtonBox, QFormLayout
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 
 
 class AddTaskDialog(QDialog):
@@ -44,14 +44,22 @@ class AddTaskDialog(QDialog):
         )
 
 
-class SchedPlusWindow(QWidget):
+class SchedPlusWindow(QMainWindow):
     def __init__(self, scheduler):
         super().__init__()
         self.scheduler = scheduler
 
         self.setWindowTitle("SchedPlus v0.5 (PyQt)")
 
-        main_layout = QVBoxLayout()
+        # --- Status Bar (initialize first) ---
+        self.statusBar().showMessage("")
+        self.status_timer = QTimer()
+        self.status_timer.setSingleShot(True)
+        self.status_timer.timeout.connect(self.clear_status_message)
+
+        # Create central widget and main layout
+        central_widget = QWidget()
+        main_layout = QVBoxLayout(central_widget)
 
         # --- Task List ---
         self.task_list = QListWidget()
@@ -62,12 +70,26 @@ class SchedPlusWindow(QWidget):
                 f"{task.date} {task.time} - {task.text}"
             )
 
+        # Display tasks loaded feedback
+        self.show_status_message("Tasks loaded")
+
         # --- Add Task Button ---
         add_btn = QPushButton("Add Task")
         add_btn.clicked.connect(self.open_add_dialog)
         main_layout.addWidget(add_btn)
 
-        self.setLayout(main_layout)
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
+
+    def show_status_message(self, message, duration_ms=3000):
+        """Display a status message that auto-clears after the specified duration."""
+        self.statusBar().showMessage(message)
+        self.status_timer.stop()
+        self.status_timer.start(duration_ms)
+
+    def clear_status_message(self):
+        """Clear the status bar message."""
+        self.statusBar().clearMessage()
 
     def open_add_dialog(self):
         dialog = AddTaskDialog()
@@ -84,8 +106,9 @@ class SchedPlusWindow(QWidget):
 
                 try:
                     self.scheduler.save_tasks()
-                except Exception:
-                    pass
+                    self.show_status_message("Task saved")
+                except Exception as e:
+                    self.show_status_message(f"Error saving task: {str(e)}")
 
 
 def run_pyqt_ui(scheduler):
