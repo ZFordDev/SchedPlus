@@ -143,6 +143,7 @@ schedplus/
 │   ├── assets/          # Icons and UI assets
 │   ├── data/            # Local task storage
 │   ├── logic/           # Core scheduling logic
+│   ├── startup/         # NEW — startup
 │   ├── ui/              # Tkinter + PyQt interfaces
 │   └── main.py          # Application entry point
 │
