@@ -10,6 +10,9 @@ and launches the selected UI. UIs interact only with the scheduler API.
 from logic.scheduler import Scheduler
 from ui.tkinter_ui import run_ui
 from ui.pyqt_ui import run_pyqt_ui
+from startup.flags import determine_startup_mode
+from startup.modes import StartupMode
+import sys
 
 
 def choose_ui():
@@ -28,6 +31,9 @@ def main():
     else:
         run_ui(scheduler)
 
+def main():
+    mode = determine_startup_mode(sys.argv[1:])
+    print(f"[DEBUG] Startup mode resolved: {mode}")  # Temporary for PR #41A
 
 if __name__ == "__main__":
     main()
