@@ -89,7 +89,7 @@ def _launch_mode(mode: StartupMode):
 
     if mode == StartupMode.TK:
         try:
-            from ui.tkinter_ui import run_ui
+            from ui.tk import run_ui
         except Exception:
             print("Tkinter UI is not available on this system.")
             return
