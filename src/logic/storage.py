@@ -1,48 +1,128 @@
-import json
-import os
-from .scheduler import Task  # import the dataclass Task
+"""
+scheduler.py
+------------
+The Scheduler is now a thin façade over the Repository.
 
-SCHEMA_VERSION = 1
+IMPORTANT:
+- All JSON save/load logic has been removed.
+- All persistence is now handled by the Repository (SQLite).
+- The old Task dataclass is deprecated and replaced by Entry.
+- Method names are preserved for UI compatibility.
 
-# Absolute / robust path relative to this file
-DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "tasks.json")
-os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+This module does NOT:
+- Read or write JSON
+- Manage file paths
+- Perform schema logic
+- Talk directly to SQLite
+
+It ONLY delegates to the Repository.
+"""
+
+from typing import Optional, List
+from storage.repository import Repository
+from storage.models import Entry, Comment, Tag
 
 
-
-def save_tasks(tasks, filepath=DATA_FILE):
+class Scheduler:
     """
-    Save list of Task objects to JSON file
+    Scheduler provides a UI-friendly API for task operations.
+
+    NOTE:
+    - This class used to manage JSON storage.
+    - It now depends entirely on the Repository for persistence.
+    - All CRUD operations are DB-backed.
     """
-    data = {
-        "version": SCHEMA_VERSION,
-        "tasks": [t.to_dict() for t in tasks],  # convert each Task → dict
-    }
 
-    try:
-        directory = os.path.dirname(filepath)
-        if directory:
-            os.makedirs(directory, exist_ok=True)
+    def __init__(self, repo: Repository):
+        # NEW RULE: Scheduler requires a Repository instance.
+        self.repo = repo
 
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-    except Exception as e:
-        print(f"[ERROR] Failed to save tasks: {e}")
+    # ---------------------------------------------------------
+    # Task CRUD (Entry CRUD)
+    # ---------------------------------------------------------
 
+    def add_task(
+        self,
+        title: str,
+        description: Optional[str] = None,
+        due_date: Optional[str] = None,
+    ) -> Entry:
+        """
+        Create a new task (Entry) in the database.
+        """
+        return self.repo.create_entry(
+            title=title,
+            description=description,
+            due_date=due_date,
+        )
 
-def load_tasks(filepath=DATA_FILE):
-    """
-    Load JSON file → return list of Task objects
-    """
-    if not os.path.exists(filepath):
-        return []
+    def update_task(
+        self,
+        task_id: int,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        due_date: Optional[str] = None,
+        completed: Optional[bool] = None,
+    ) -> Optional[Entry]:
+        """
+        Update an existing task.
+        Only fields provided will be updated.
+        """
+        return self.repo.update_entry(
+            entry_id=task_id,
+            title=title,
+            description=description,
+            due_date=due_date,
+            completed=completed,
+        )
 
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            data = json.load(f)
+    def delete_task(self, task_id: int) -> None:
+        """
+        Delete a task from the database.
+        """
+        self.repo.delete_entry(task_id)
 
-        tasks_data = data.get("tasks", [])
-        return [Task.from_dict(t) for t in tasks_data]  # convert dict → Task
-    except Exception as e:
-        print(f"[ERROR] Failed to load tasks: {e}")
-        return []
+    def get_task(self, task_id: int) -> Optional[Entry]:
+        """
+        Retrieve a single task by ID.
+        """
+        return self.repo.get_entry(task_id)
+
+    def list_tasks(self) -> List[Entry]:
+        """
+        Return all tasks, newest first.
+        """
+        return self.repo.list_entries()
+
+    # ---------------------------------------------------------
+    # Comments
+    # ---------------------------------------------------------
+
+    def add_comment(self, task_id: int, text: str) -> Comment:
+        """
+        Add a comment to a task.
+        """
+        return self.repo.add_comment(task_id, text)
+
+    def list_comments(self, task_id: int) -> List[Comment]:
+        """
+        List all comments for a task.
+        """
+        return self.repo.list_comments(task_id)
+
+    # ---------------------------------------------------------
+    # Tags
+    # ---------------------------------------------------------
+
+    def assign_tag(self, task_id: int, tag_name: str) -> Tag:
+        """
+        Assign a tag to a task.
+        Creates the tag if it does not exist.
+        """
+        return self.repo.assign_tag(task_id, tag_name)
+
+    def get_tags(self) -> List[Tag]:
+        """
+        Return all tags in the system.
+        """
+        return self.repo.get_tags()
