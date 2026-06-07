@@ -9,6 +9,11 @@ This module orchestrates the boot process:
 - Launches the correct UI
 - Handles missing dependencies gracefully
 
+NEW (DB-backed):
+- Initializes SQLite
+- Runs JSON → DB migration if needed
+- Injects Repository into Scheduler
+
 This file must not contain UI logic or storage logic.
 """
 
@@ -49,12 +54,37 @@ def _launch_mode(mode: StartupMode):
     """
     Launch the appropriate UI based on the resolved mode.
     Lazy imports ensure no heavy UI frameworks load unless needed.
+
+    NEW:
+    - DB initialization
+    - Migration
+    - Repository + Scheduler wiring
     """
 
-    # Create scheduler lazily (only if a UI is actually launching)
+    # ---------------------------------------------------------
+    # NEW: Initialize DB + Repository + Migration
+    # ---------------------------------------------------------
+    from storage.db import init_db
+    from storage.repository import Repository
+    from storage.migration import needs_migration, run_migration
     from logic.scheduler import Scheduler
-    scheduler = Scheduler()
-    scheduler.load_tasks()
+
+    # 1. Ensure DB + schema exist
+    init_db()
+
+    # 2. Create repository
+    repo = Repository()
+
+    # 3. Run migration if needed
+    if needs_migration(repo):
+        run_migration(repo)
+
+    # 4. Create DB-backed scheduler
+    scheduler = Scheduler(repo)
+
+    # ---------------------------------------------------------
+    # OLD UI routing (unchanged)
+    # ---------------------------------------------------------
 
     if mode == StartupMode.TK:
         try:
