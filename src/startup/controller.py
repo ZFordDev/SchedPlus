@@ -80,6 +80,7 @@ def _launch_mode(mode: StartupMode):
         run_migration(repo)
 
     # 4. Create DB-backed scheduler
+    #    NOTE: Scheduler now requires a Repository instance.
     scheduler = Scheduler(repo)
 
     # ---------------------------------------------------------

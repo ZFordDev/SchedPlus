@@ -1,96 +1,98 @@
 """
-scheduler.py (v0.4)
--------------------
-Core scheduler logic for SchedPlus (v0.4).
+scheduler.py
+------------
+DB-backed scheduler façade for SchedPlus.
 
-This module provides the `Task` dataclass and the `Scheduler` class.
-The `Scheduler` is responsible for in-memory task management and
-exposes small wrapper methods to persist/load tasks via the storage
-layer so UIs (Tkinter/PyQt) do not need to know storage paths.
+This class used to manage JSON storage.
+It now delegates all persistence to the Repository.
+
+UI-friendly method names are preserved for compatibility:
+- add_task
+- update_task
+- delete_task
+- list_tasks
+- get_task
+- add_comment
+- list_comments
+- assign_tag
+- get_tags
 """
 
-import uuid
-from dataclasses import dataclass, field
-from typing import List
-from datetime import datetime
+from typing import Optional, List
+from storage.repository import Repository
+from storage.models import Entry, Comment, Tag
 
-@dataclass
-class Task:
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    date: str = ""
-    time: str = ""
-    text: str = ""
-    createdAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    updatedAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "date": self.date,
-            "time": self.time,
-            "text": self.text,
-            "createdAt": self.createdAt,
-            "updatedAt": self.updatedAt,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(
-            id=data.get("id", str(uuid.uuid4())),
-            date=data.get("date", ""),
-            time=data.get("time", ""),
-            text=data.get("text", ""),
-            createdAt=data.get("createdAt", datetime.utcnow().isoformat()),
-            updatedAt=data.get("updatedAt", datetime.utcnow().isoformat()),
-        )
 class Scheduler:
     """
-    The Scheduler class manages a list of tasks.
-    In v0.4, tasks are stored in memory and the class exposes
-    simple `save_tasks`/`load_tasks` helpers that delegate to the
-    storage layer. This keeps UIs decoupled from storage details.
+    Scheduler provides a UI-friendly API for task operations.
+
+    NEW RULE:
+    - Scheduler now requires a Repository instance.
+    - No JSON loading or saving.
+    - No Task dataclass.
     """
 
-    def __init__(self):
-        self.tasks: List[Task] = []
+    def __init__(self, repo: Repository):
+        self.repo = repo
 
-    def add_task(self, date: str, time: str, text: str):
-        """
-        Add a new task to the scheduler.
-        No validation yet — this will be added in v0.2+.
-        """
-        task = Task(date=date, time=time, text=text)
-        self.tasks.append(task)
+    # ---------------------------------------------------------
+    # Task CRUD (Entry CRUD)
+    # ---------------------------------------------------------
 
-    def save_tasks(self, filepath: str = None):
-        """
-        Persist current tasks using the storage layer.
+    def add_task(
+        self,
+        title: str,
+        description: Optional[str] = None,
+        due_date: Optional[str] = None,
+    ) -> Entry:
+        return self.repo.create_entry(
+            title=title,
+            description=description,
+            due_date=due_date,
+        )
 
-        This method performs a local import to avoid import cycles
-        between `logic.storage` and `logic.scheduler`.
-        """
-        try:
-            from . import storage as _storage
+    def update_task(
+        self,
+        task_id: int,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        due_date: Optional[str] = None,
+        completed: Optional[bool] = None,
+    ) -> Optional[Entry]:
+        return self.repo.update_entry(
+            entry_id=task_id,
+            title=title,
+            description=description,
+            due_date=due_date,
+            completed=completed,
+        )
 
-            _storage.save_tasks(self.tasks, filepath) if filepath else _storage.save_tasks(self.tasks)
-        except Exception:
-            # Intentionally swallow errors here; storage will log on failure.
-            pass
+    def delete_task(self, task_id: int) -> None:
+        self.repo.delete_entry(task_id)
 
-    def load_tasks(self, filepath: str = None):
-        """
-        Load tasks from the storage layer into `self.tasks`.
-        Returns the loaded list of tasks.
-        """
-        try:
-            from . import storage as _storage
+    def get_task(self, task_id: int) -> Optional[Entry]:
+        return self.repo.get_entry(task_id)
 
-            self.tasks = _storage.load_tasks(filepath)
-        except Exception:
-            self.tasks = []
+    def list_tasks(self) -> List[Entry]:
+        return self.repo.list_entries()
 
-        return self.tasks
+    # ---------------------------------------------------------
+    # Comments
+    # ---------------------------------------------------------
 
-    def get_tasks(self) -> List[Task]:
-        """Return the list of tasks."""
-        return self.tasks
+    def add_comment(self, task_id: int, text: str) -> Comment:
+        return self.repo.add_comment(task_id, text)
+
+    def list_comments(self, task_id: int) -> List[Comment]:
+        return self.repo.list_comments(task_id)
+
+    # ---------------------------------------------------------
+    # Tags
+    # ---------------------------------------------------------
+
+    def assign_tag(self, task_id: int, tag_name: str) -> Tag:
+        return self.repo.assign_tag(task_id, tag_name)
+
+    def get_tags(self) -> List[Tag]:
+        return self.repo.get_tags()
