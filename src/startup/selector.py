@@ -2,10 +2,6 @@
 selector.py
 -----------
 Popup selector window for choosing the UI mode.
-
-This module must remain lightweight and must not import or initialize
-the full Tkinter or PyQt UI systems. It only provides a small modal
-window that returns a StartupMode value.
 """
 
 from .modes import StartupMode
@@ -31,7 +27,7 @@ class StartupSelector:
         self.result = None
         self.root = tk.Tk()
         self.root.title("Select Mode")
-        self.root.geometry("300x200")
+        self.root.geometry("300x240")
         self.root.resizable(False, False)
 
         # Center window
@@ -54,7 +50,8 @@ class StartupSelector:
         ttk.Button(frame, text="Advanced | PyQt",
                    command=lambda: self._select(StartupMode.PYQT)).pack(fill="x", pady=4)
 
-        ttk.Button(frame, text="RAW (coming soon)", state="disabled").pack(fill="x", pady=4)
+        ttk.Button(frame, text="RAW | CLI Mode",
+                   command=lambda: self._select(StartupMode.RAW)).pack(fill="x", pady=4)
 
         ttk.Button(frame, text="Close",
                    command=self._close).pack(fill="x", pady=(10, 0))

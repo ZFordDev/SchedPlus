@@ -76,7 +76,8 @@ def _launch_mode(mode: StartupMode):
         return
 
     elif mode == StartupMode.RAW:
-        print("[Startup] RAW mode not implemented yet.")
+        from cli.cli_main import run_cli
+        run_cli(scheduler)
         return
 
     else:
