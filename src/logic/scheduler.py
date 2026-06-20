@@ -85,7 +85,7 @@ class Scheduler:
         try:
             from . import storage as _storage
 
-            self.tasks = _storage.load_tasks(filepath)
+            self.tasks = _storage.load_tasks(filepath or _storage.DATA_FILE)
         except Exception:
             self.tasks = []
 

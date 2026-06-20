@@ -1,3 +1,4 @@
 # SchedPlus dependencies
 
 PyQt6
+tkcalendar
