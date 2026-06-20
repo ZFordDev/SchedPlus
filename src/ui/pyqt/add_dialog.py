@@ -1,4 +1,12 @@
-# src/ui/pyqt/add_dialog.py
+"""
+pyqt/add_dialog.py
+------------------
+
+This is the popup window to add a new entry.
+
+We will also add edit entry soon.
+
+"""
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, 
@@ -13,7 +21,7 @@ class AddTaskDialog(QDialog):
         self.setWindowTitle("Create New Task")
         self.setFixedSize(400, 360)
         
-        # Make the dialog background match a crisp, clean modal style
+        # Make the dialog background match
         self.setStyleSheet("""
             QDialog {
                 background-color: #FFFFFF;

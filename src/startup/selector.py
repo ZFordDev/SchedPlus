@@ -2,6 +2,8 @@
 selector.py
 -----------
 Popup selector window for choosing the UI mode.
+
+Bypass this with direct commands see modes.py
 """
 
 from .modes import StartupMode

@@ -1,4 +1,9 @@
-# src/ui/pyqt_ui.py
+"""
+pyqt_ui.py
+----------
+This is now just a entry point for pyqt/
+"""
+
 
 from PyQt6.QtWidgets import QApplication
 from ui.pyqt.window import SchedPlusWindow

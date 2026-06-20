@@ -1,6 +1,6 @@
 """
-scheduler.py (v0.6)
--------------------
+scheduler.py
+-------------
 SQLite-backed scheduler logic for SchedPlus.
 
 The Scheduler class now delegates all persistence to

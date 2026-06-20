@@ -1,4 +1,9 @@
-# src/ui/pyqt/window.py
+"""
+pyqt/window.py
+--------------
+Main Frame for the PyQt UI
+
+"""
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStatusBar
@@ -95,8 +100,7 @@ class SchedPlusWindow(QMainWindow):
         self.task_list = TaskListWidget(scheduler)
         layout.addWidget(self.task_list)
 
-        # CONNECT THE TASK LIST BUTTON:
-        # We hook the task list's internal add button directly to this controller method
+        # CONNECT THE TASK LIST BUTTON!
         self.task_list.add_button.clicked.connect(self.open_add_dialog)
 
         self.setCentralWidget(central)

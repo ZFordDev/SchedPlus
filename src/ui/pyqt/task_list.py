@@ -1,4 +1,8 @@
-# src/ui/pyqt/task_list.py
+"""
+pyqt/task_list.py
+-----------------
+The list window for the cards.
+"""
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QScrollArea, QLabel, QFrame

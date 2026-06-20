@@ -1,22 +1,18 @@
 """
 help.py
 -------
-Centralized help system for SchedPlus.
-Beautiful, aligned, colored CLI help output.
+Centralized help system for SchedPlus. colored CLI help output.
 """
 
-# ANSI colors (safe on all modern terminals)
+# ANSI colors
 C_RESET = "\033[0m"
 C_HEADER = "\033[95m"
 C_CMD = "\033[96m"
 C_DESC = "\033[90m"
 C_WARN = "\033[91m"
 
-
-def _fmt(cmd, desc):
-    """Format a command/description pair with alignment."""
+def _fmt(cmd, desc): # Format a command/description pair with alignment.
     return f"  {C_CMD}{cmd:<18}{C_RESET} {C_DESC}{desc}{C_RESET}"
-
 
 # ---------------------------------------------------------
 # STARTUP HELP
@@ -33,7 +29,6 @@ def show_startup_help():
 
 (no flags)   Show GUI startup selector
 """.rstrip())
-
 
 # ---------------------------------------------------------
 # RAW CLI HELP
@@ -52,7 +47,6 @@ def show_raw_help():
   - Type 'cancel' during add to abort
   - RAW mode is one-shot: command → action → exit
 """.rstrip())
-
 
 # ---------------------------------------------------------
 # GENERAL HELP
@@ -78,3 +72,4 @@ def show_general_help():
 Tip:
   Use {C_CMD}schedplus --raw help{C_RESET} for CLI-specific commands.
 """.rstrip())
+# we can expand this more later

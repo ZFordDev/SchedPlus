@@ -23,11 +23,11 @@ def boot():
     # 1. Determine mode from CLI flags
     mode = determine_startup_mode(sys.argv[1:])
 
-    # 2. If invalid flag → stop
+    # 2. If invalid flag -> stop
     if mode == StartupMode.INVALID:
         return
 
-    # 3. If no flags → show popup selector
+    # 3. If no flags -> show popup selector
     if mode == StartupMode.POPUP:
         from .selector import StartupSelector
         selector = StartupSelector()

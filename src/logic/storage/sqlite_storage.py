@@ -4,7 +4,7 @@ from datetime import datetime
 from ..scheduler import Task
 
 # ---------------------------------------------------------
-# Database location (local-first, user-owned)
+# Database location
 # ---------------------------------------------------------
 
 DB_FILE = os.path.abspath(
@@ -12,14 +12,12 @@ DB_FILE = os.path.abspath(
 )
 os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
 
-
 # ---------------------------------------------------------
 # Connection helper
 # ---------------------------------------------------------
 
 def _get_conn():
     return sqlite3.connect(DB_FILE)
-
 
 # ---------------------------------------------------------
 # Schema initialization
@@ -44,7 +42,6 @@ def init_db():
 
     conn.commit()
     conn.close()
-
 
 # ---------------------------------------------------------
 # Create
@@ -72,7 +69,6 @@ def create_entry(task: Task):
     conn.commit()
     conn.close()
 
-
 # ---------------------------------------------------------
 # Update
 # ---------------------------------------------------------
@@ -95,7 +91,6 @@ def update_entry(task: Task):
     conn.commit()
     conn.close()
 
-
 # ---------------------------------------------------------
 # Delete
 # ---------------------------------------------------------
@@ -108,7 +103,6 @@ def delete_entry(task_id: str):
 
     conn.commit()
     conn.close()
-
 
 # ---------------------------------------------------------
 # Read (single)
@@ -136,7 +130,6 @@ def get_entry(task_id: str):
         createdAt=row[4],
         updatedAt=row[5],
     )
-
 
 # ---------------------------------------------------------
 # Read (all)

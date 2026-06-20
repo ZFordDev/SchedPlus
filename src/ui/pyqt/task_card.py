@@ -1,4 +1,8 @@
-# src/ui/pyqt/task_card.py
+"""
+pyqt/task_card.py
+------------------
+Shows the individual cards in the list.
+"""
 
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFrame, QHBoxLayout
 from PyQt6.QtCore import Qt
@@ -34,7 +38,7 @@ class TaskCard(QWidget):
             }
         """)
 
-        # Task content (larger, dark off-black, readable line space feel)
+        # Task content (larger, readable line space feel)
         text = QLabel(task.text)
         text.setWordWrap(True)
         text.setStyleSheet("""

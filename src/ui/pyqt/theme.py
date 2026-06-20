@@ -1,4 +1,8 @@
-# src/ui/pyqt/theme.py
+"""
+pyqt/theme.py
+-------------
+Helper themes global
+"""
 
 BASE_QSS = """
 QWidget {

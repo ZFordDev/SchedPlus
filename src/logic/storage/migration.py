@@ -1,9 +1,7 @@
 """
 migration.py
 ------------
-Handles migration from legacy JSON storage → SQLite storage.
-
-This module is intentionally isolated so that:
+Handles migration from legacy JSON storage -> SQLite storage.
 - JSON logic remains untouched
 - SQLite logic remains clean
 - Scheduler and UIs do not need to know about migration
@@ -45,7 +43,7 @@ def needs_migration():
 
 def run_migration():
     """
-    Migrates tasks.json → tasks.db
+    Migrates tasks.json -> tasks.db
 
     Steps:
     1. Load JSON tasks
@@ -72,7 +70,7 @@ def run_migration():
 
     print(f"[MIGRATION] Found {len(tasks_data)} tasks in JSON")
 
-    # Convert dicts → Task objects
+    # Convert dicts -> Task objects
     tasks = [Task.from_dict(t) for t in tasks_data]
 
     # 2. Initialize SQLite DB
@@ -84,7 +82,7 @@ def run_migration():
 
     print("[MIGRATION] Inserted tasks into SQLite")
 
-    # 4. Rename JSON → backup
+    # 4. Rename JSON -> backup
     backup_path = LEGACY_JSON + ".bak"
 
     try:
