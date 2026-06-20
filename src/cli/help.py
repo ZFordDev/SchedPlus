@@ -1,7 +1,8 @@
 """
 help.py
 -------
-Centralized help system for SchedPlus. colored CLI help output.
+Centralized help system for SchedPlus. 
+NEW: colored CLI help output.
 """
 
 # ANSI colors

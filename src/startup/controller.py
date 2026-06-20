@@ -71,6 +71,7 @@ def _launch_mode(mode: StartupMode):
         print("[Startup] Launching PyQt UI...")
         run_pyqt_ui(scheduler)
 
+    # going to add this soon to avoid constant wiping.
     elif mode == StartupMode.DEV:
         print("[Startup] Developer mode not implemented yet.")
         return
