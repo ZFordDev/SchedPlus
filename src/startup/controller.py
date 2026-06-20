@@ -2,19 +2,12 @@
 controller.py
 -------------
 Startup controller for SchedPlus.
-
-This module orchestrates the boot process:
-- Reads CLI flags
-- Shows popup selector if needed
-- Launches the correct UI
-- Handles missing dependencies gracefully
-
-This file must not contain UI logic or storage logic.
 """
 
 import sys
 from .flags import determine_startup_mode
 from .modes import StartupMode
+from logic.storage.migration import needs_migration, run_migration
 
 
 def boot():
@@ -22,6 +15,10 @@ def boot():
     Main entrypoint for SchedPlus startup.
     Determines startup mode and launches the correct UI.
     """
+
+    # 0. Run migration BEFORE anything else
+    if needs_migration():
+        run_migration()
 
     # 1. Determine mode from CLI flags
     mode = determine_startup_mode(sys.argv[1:])
@@ -36,7 +33,6 @@ def boot():
         selector = StartupSelector()
         mode = selector.show()
 
-        # User closed popup
         if mode is None:
             print("Startup cancelled.")
             return
@@ -51,7 +47,6 @@ def _launch_mode(mode: StartupMode):
     Lazy imports ensure no heavy UI frameworks load unless needed.
     """
 
-    # Create scheduler lazily (only if a UI is actually launching)
     from logic.scheduler import Scheduler
     scheduler = Scheduler()
     scheduler.load_tasks()
