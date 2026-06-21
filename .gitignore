@@ -39,7 +39,7 @@ desktop.ini
 # ────────────────────────────────────────────────
 
 # Snapcraft
-snap/.snapcraft/
+
 parts/
 prime/
 stage/
