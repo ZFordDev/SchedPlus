@@ -2,19 +2,12 @@
 controller.py
 -------------
 Startup controller for SchedPlus.
-
-This module orchestrates the boot process:
-- Reads CLI flags
-- Shows popup selector if needed
-- Launches the correct UI
-- Handles missing dependencies gracefully
-
-This file must not contain UI logic or storage logic.
 """
 
 import sys
 from .flags import determine_startup_mode
 from .modes import StartupMode
+from logic.storage.migration import needs_migration, run_migration
 
 
 def boot():
@@ -23,20 +16,23 @@ def boot():
     Determines startup mode and launches the correct UI.
     """
 
+    # 0. Run migration BEFORE anything else
+    if needs_migration():
+        run_migration()
+
     # 1. Determine mode from CLI flags
     mode = determine_startup_mode(sys.argv[1:])
 
-    # 2. If invalid flag → stop
+    # 2. If invalid flag -> stop
     if mode == StartupMode.INVALID:
         return
 
-    # 3. If no flags → show popup selector
+    # 3. If no flags -> show popup selector
     if mode == StartupMode.POPUP:
         from .selector import StartupSelector
         selector = StartupSelector()
         mode = selector.show()
 
-        # User closed popup
         if mode is None:
             print("Startup cancelled.")
             return
@@ -51,7 +47,6 @@ def _launch_mode(mode: StartupMode):
     Lazy imports ensure no heavy UI frameworks load unless needed.
     """
 
-    # Create scheduler lazily (only if a UI is actually launching)
     from logic.scheduler import Scheduler
     scheduler = Scheduler()
     scheduler.load_tasks()
@@ -76,12 +71,14 @@ def _launch_mode(mode: StartupMode):
         print("[Startup] Launching PyQt UI...")
         run_pyqt_ui(scheduler)
 
+    # going to add this soon to avoid constant wiping.
     elif mode == StartupMode.DEV:
         print("[Startup] Developer mode not implemented yet.")
         return
 
     elif mode == StartupMode.RAW:
-        print("[Startup] RAW mode not implemented yet.")
+        from cli.cli_main import run_cli
+        run_cli(scheduler)
         return
 
     else:

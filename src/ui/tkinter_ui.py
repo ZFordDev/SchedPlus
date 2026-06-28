@@ -1,10 +1,10 @@
 """
 tkinter_ui.py
 --------------------
-Improved teaching Tkinter UI for SchedPlus.
-
 Still intentionally simple, but with cleaner layout,
 better spacing, and more readable structure.
+
+This is now User frendly :)
 """
 
 import tkinter as tk
@@ -42,7 +42,7 @@ def run_ui(scheduler: Scheduler) -> None:
     date_entry = ttk.Entry(container)
     date_entry.grid(row=1, column=1, sticky="ew", pady=3)
 
-    def open_calendar():
+    def open_calendar(): # new: still not forcing users to use it
         top = tk.Toplevel(root)
         top.title("Select Date")
 
@@ -65,7 +65,7 @@ def run_ui(scheduler: Scheduler) -> None:
     time_entry = ttk.Entry(container)
     time_entry.grid(row=2, column=1, sticky="ew", pady=3)
 
-    def open_time_picker():
+    def open_time_picker(): # new: still not forcing users to use it
         top = tk.Toplevel(root)
         top.title("Select Time")
 

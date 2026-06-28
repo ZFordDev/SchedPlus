@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SchedPlus
+Comment=Scheduling Application
+TryExec=schedplus
+Exec=schedplus %F
+Icon=${SNAP}/meta/gui/icon.png
+Categories=Utility;

@@ -2,7 +2,7 @@ import json
 import os
 from .scheduler import Task
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 DATA_FILE = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "data", "tasks.json")
