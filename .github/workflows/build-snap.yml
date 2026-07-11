@@ -1,0 +1,98 @@
+name: Build and Publish Snap Package
+
+on:
+  push:
+    tags:
+      - 'release-*'
+      - 'pre-release-*'
+
+jobs:
+  package-snap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Extract absolute version
+        id: get_version
+        run: |
+          VERSION=$(python3 -c "
+          for line in open('pyproject.toml'):
+              if line.strip().startswith('version ='):
+                  print(line.split('=')[1].strip().strip('\"\''))
+                  break
+          ")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version for Snap: $VERSION"
+
+      - name: Dynamically Generate Snapcraft Manifest
+        run: |
+          mkdir -p snap
+          cat <<EOF > snap/snapcraft.yaml
+          name: keyplus
+          base: core24
+          version: '${{ env.VERSION }}'
+          summary: Local-first password vault with CLI and optional GUI.
+          description: |
+            Secure local-first password vault designed with a minimalist aesthetic,
+            featuring a full rich CLI and an optional PySide6-driven graphical layout.
+          grade: stable
+          confinement: strict
+          apps:
+            keyplus:
+              command: bin/keyplus
+              extensions: [gnome]
+              plugs:
+                - home
+                - network
+            
+          parts:
+            keyplus:
+              plugin: python
+              source: .
+              python-packages:
+                - .
+              build-packages:
+                - build-essential
+                - python3-dev
+              stage-packages:
+                - libgl1-mesa-glx
+          EOF
+          echo "snapcraft.yaml generated successfully."
+
+      - name: Build Snap Package
+        uses: snapcore/action-build@v1
+        id: snapcraft
+
+      - name: Determine Track and Release Status
+        id: check_type
+        run: |
+          if [[ "${{ github.ref_name }}" == pre-release-* ]]; then
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
+            echo "SNAP_CHANNEL=edge" >> $GITHUB_ENV
+          else
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+            echo "SNAP_CHANNEL=candidate" >> $GITHUB_ENV
+          fi
+
+      - name: Upload Package to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.snapcraft.outputs.snap }}
+          prerelease: ${{ env.IS_PRERELEASE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Direct to Canonical Snap Store
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.snapcraft.outputs.snap }}
+          release: ${{ env.SNAP_CHANNEL }}

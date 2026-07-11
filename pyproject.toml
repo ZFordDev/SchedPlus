@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "schedplus"
+version = "0.7.3"
+description = "Lightweight scheduling and task management tool"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+
+authors = [
+  { name = "ZFordDev", email = "zforddev@gmail.com" }
+]
+
+maintainers = [
+  { name = "ZFordDev", email = "zforddev@gmail.com" }
+]
+
+keywords = ["schedule", "tasks", "calendar", "productivity", "UI"]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Topic :: Office/Business :: Scheduling"
+]
+
+dependencies = [
+  "PyQt6>=6.11.0",
+  "PyQt6-Qt6>=6.11.1",
+  "PyQt6_sip>=13.11.1",
+  "babel>=2.18.0",
+  "tkcalendar>=1.6.1"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+  "ruff"
+]
+
+[project.urls]
+Homepage = "https://github.com/ZFordDev/schedplus"
+Documentation = "https://docs.zford.dev/zforddev/schedplus"
+Repository = "https://github.com/ZFordDev/schedplus.git"
+"Bug Tracker" = "https://github.com/ZFordDev/schedplus/issues"
+Changelog = "https://github.com/ZFordDev/schedplus/blob/main/CHANGELOG.md"
+
+[project.scripts]
+schedplus = "schedplus.__main__:boot"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["schedplus*"]

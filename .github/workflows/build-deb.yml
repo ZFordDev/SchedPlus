@@ -1,0 +1,89 @@
+name: Build Debian Package
+
+on:
+  push:
+    tags:
+      - 'release-*'
+      - 'pre-release-*'
+
+jobs:
+  package-deb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3-dev
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install .
+
+      - name: Extract absolute version
+        id: get_version
+        run: |
+          VERSION=$(python3 -c "
+          for line in open('pyproject.toml'):
+              if line.strip().startswith('version ='):
+                  print(line.split('=')[1].strip().strip('\"\''))
+                  break
+          ")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
+      - name: Determine Release Status
+        id: check_type
+        run: |
+          if [[ "${{ github.ref_name }}" == pre-release-* ]]; then
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
+            echo "Status: Flagging as Pre-release"
+          else
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+            echo "Status: Flagging as Stable Production Release"
+          fi
+
+      - name: Compile application with PyInstaller
+        run: |
+          pyinstaller --noconfirm --onedir --windowed --name schedplus --paths=src src/schedplus/__main__.py
+
+      - name: Structure Debian Directory Architecture
+        run: |
+          mkdir -p debian_build/DEBIAN
+          mkdir -p debian_build/usr/bin
+          cp -r dist/schedplus/* debian_build/usr/bin/
+
+      - name: Generate Debian Control Manifest
+        run: |
+          cat <<EOF > debian_build/DEBIAN/control
+          Package: schedplus
+          Version: ${{ env.VERSION }}
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: ZFordDev <zforddev@gmail.com>
+          Description: Lightweight local-first desktop scheduler.
+          EOF
+
+      - name: Compile Debian Binary Asset
+        run: |
+          dpkg-deb --build debian_build schedplus-${{ env.VERSION }}-linux-amd64.deb
+
+      - name: Upload Package to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: schedplus-${{ env.VERSION }}-linux-amd64.deb
+          prerelease: ${{ env.IS_PRERELEASE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
