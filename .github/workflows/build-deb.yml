@@ -81,7 +81,7 @@ jobs:
           dpkg-deb --build debian_build schedplus-${{ env.VERSION }}-linux-amd64.deb
 
       - name: Upload Package to GitHub Releases
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: schedplus-${{ env.VERSION }}-linux-amd64.deb
           prerelease: ${{ env.IS_PRERELEASE }}
