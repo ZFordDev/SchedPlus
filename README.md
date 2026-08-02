@@ -84,8 +84,21 @@ To run or develop it, you’ll need:
 git clone https://github.com/ZFordDev/schedplus.git
 cd schedplus
 
-pip install .
+# Create and activate a virtualenv (recommended)
+python -m venv .venv
+source .venv/bin/activate
+
+# Install in editable mode for local development
+pip install -e .
+
+# Run (choose one):
+# - console script installed by pip
+schedplus
+# - run as a module
 python -m schedplus
+# - run from source without installing (development)
+cd src
+python -m main
 ```
 
 > *Recommended: use a `.venv`.*
@@ -96,7 +109,7 @@ SchedPlus binaries will be available once the packaging pipeline is complete.
 Until then, install from source:
 
 ```bash
-pip install .
+pip install e.
 ```
 
 ## Usage
@@ -104,7 +117,7 @@ pip install .
 Basic usage:
 
 ```bash
-python -m schedplus
+schedplus
 ```
 
 The UI will open and allow you to create, edit, and save tasks locally.
