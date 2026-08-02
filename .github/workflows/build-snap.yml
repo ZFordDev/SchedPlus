@@ -82,7 +82,7 @@ jobs:
           fi
 
       - name: Upload Package to GitHub Releases
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ${{ steps.snapcraft.outputs.snap }}
           prerelease: ${{ env.IS_PRERELEASE }}
