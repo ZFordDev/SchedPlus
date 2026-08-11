@@ -24,3 +24,6 @@
   and drag-to-reschedule integration with the shared scheduler.
 - Fixed PyQt dropdown popup rendering and added clear populated and empty states
   to the month calendar's selected-day agenda panel.
+- Replaced the interactive raw CLI with scriptable `add`, `list`, `edit`, and
+  `delete` subcommands, UUID-prefix lookup, consistent output, and meaningful
+  process exit codes. The previous `--raw` flag remains as a compatibility alias.

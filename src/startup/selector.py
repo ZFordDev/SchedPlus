@@ -52,8 +52,8 @@ class StartupSelector:
         ttk.Button(frame, text="Advanced | PyQt",
                    command=lambda: self._select(StartupMode.PYQT)).pack(fill="x", pady=4)
 
-        ttk.Button(frame, text="RAW | CLI Mode",
-                   command=lambda: self._select(StartupMode.RAW)).pack(fill="x", pady=4)
+        ttk.Button(frame, text="Command Line Help",
+                   command=lambda: self._select(StartupMode.CLI)).pack(fill="x", pady=4)
 
         ttk.Button(frame, text="Close",
                    command=self._close).pack(fill="x", pady=(10, 0))
