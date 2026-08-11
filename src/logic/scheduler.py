@@ -3,8 +3,7 @@ scheduler.py
 -------------
 SQLite-backed scheduler logic for SchedPlus.
 
-The Scheduler class now delegates all persistence to
-logic.storage.sqlite_storage instead of the legacy JSON storage.
+The Scheduler class delegates all persistence to logic.storage.sqlite_storage.
 
 UIs remain fully decoupled from storage details.
 """
@@ -23,28 +22,6 @@ class Task:
     text: str = ""
     createdAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     updatedAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "date": self.date,
-            "time": self.time,
-            "text": self.text,
-            "createdAt": self.createdAt,
-            "updatedAt": self.updatedAt,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(
-            id=data.get("id", str(uuid.uuid4())),
-            date=data.get("date", ""),
-            time=data.get("time", ""),
-            text=data.get("text", ""),
-            createdAt=data.get("createdAt", datetime.utcnow().isoformat()),
-            updatedAt=data.get("updatedAt", datetime.utcnow().isoformat()),
-        )
-
 
 class Scheduler:
     """

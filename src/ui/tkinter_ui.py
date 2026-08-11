@@ -146,12 +146,6 @@ def run_ui(scheduler: Scheduler) -> None:
             new_task = scheduler.get_tasks()[-1]
             task_list.insert("", "end", values=(new_task.date, new_task.time, new_task.text))
 
-            try:
-                scheduler.save_tasks()
-                print("Saving to:", filepath)
-            except Exception:
-                pass
-
             task_entry.delete(0, tk.END)
 
     add_button.config(command=add_task)
