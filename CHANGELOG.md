@@ -10,3 +10,4 @@
   friendlier date and time entry, task counts, and visible status feedback.
 - Added automatic SQLite initialization and corruption recovery, structured
   storage errors, rotating logs, and interface-specific failure messages.
+- Removed the non-functional `--dev` startup flag and its misleading help text.

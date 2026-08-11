@@ -12,7 +12,6 @@ from cli.help import show_startup_help
 
 
 VALID_FLAGS = {
-    "--dev": StartupMode.DEV,
     "--py": StartupMode.PYQT,
     "--tk": StartupMode.TK,
     "--raw": StartupMode.RAW,
