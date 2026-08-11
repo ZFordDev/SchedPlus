@@ -1,0 +1,25 @@
+SchedPlus licensing and attribution notice
+===========================================
+
+Copyright 2026 ZFordDev and SchedPlus contributors.
+
+Current licensing
+-----------------
+
+The complete SchedPlus desktop application is distributed under the GNU
+General Public License version 3.0 only (GPL-3.0-only). The reusable modules
+under src/logic are separately available under the Apache License, Version 2.0.
+Third-party components remain governed by their own licenses.
+
+Historical MIT release
+----------------------
+
+SchedPlus releases through version 0.7.3 were distributed under the MIT
+License. The final blanket-MIT source is preserved by the release-0.7.3 Git
+tag:
+
+https://github.com/ZFordDev/SchedPlus/tree/release-0.7.3
+
+The historical MIT license text is retained in LICENSES/MIT.txt. Existing
+copyright and attribution notices remain applicable to contributions made
+under that license.

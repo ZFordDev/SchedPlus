@@ -11,7 +11,7 @@ from ui.pyqt.window import SchedPlusWindow
 def run_pyqt_ui(scheduler, startup_notice=None):
     app = QApplication([])
     window = SchedPlusWindow(scheduler)
-    window.show()
+    window.showMaximized()
     if startup_notice:
         QMessageBox.warning(window, "Database recovered", startup_notice)
     app.exec()

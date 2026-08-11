@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Platform-specific paths and one-time database relocation."""
 
 from __future__ import annotations

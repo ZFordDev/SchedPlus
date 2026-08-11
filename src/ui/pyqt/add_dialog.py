@@ -1,152 +1,92 @@
-"""
-pyqt/add_dialog.py
-------------------
+"""Create and edit dialogs for scheduled tasks."""
 
-This is the popup window to add a new entry.
-
-We will also add edit entry soon.
-
-"""
-
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLineEdit, 
-    QPushButton, QDateEdit, QTimeEdit, QLabel
-)
 from PyQt6.QtCore import QDate, QTime, Qt
+from PyQt6.QtWidgets import (
+    QDateEdit,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QLabel,
+    QLineEdit,
+    QTimeEdit,
+    QVBoxLayout,
+)
 
 
-class AddTaskDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Create New Task")
-        self.setFixedSize(400, 360)
-        
-        # Make the dialog background match
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #FFFFFF;
-            }
-            QLabel {
-                font-size: 12px;
-                font-weight: bold;
-                color: #555555;
-                margin-bottom: 2px;
-            }
-            QLineEdit, QDateEdit, QTimeEdit {
-                background-color: #F8F9FA;
-                border: 1px solid #E0E0E0;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 14px;
-                color: #1A1A1A;
-            }
-            QLineEdit:focus, QDateEdit:focus, QTimeEdit:focus {
-                border: 1px solid #007ACC;
-                background-color: #FFFFFF;
-            }
-            /* Clean up the native dropdown arrow for date picker */
-            QDateEdit::drop-down, QTimeEdit::up-button, QTimeEdit::down-button {
-                border: none;
-                background: transparent;
-            }
-        """)
+class TaskDialog(QDialog):
+    def __init__(self, task=None, parent=None, initial_date=None, initial_time=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit task" if task else "Create task")
+        self.setMinimumWidth(440)
+        self.setModal(True)
 
-        # Main Layout
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(16)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(18)
 
-        # --- Task Input Field ---
-        task_block = QVBoxLayout()
-        task_block.setSpacing(4)
-        task_label = QLabel("WHAT NEEDS TO BE DONE?")
+        heading = QLabel("Edit task" if task else "Create a new task")
+        heading.setObjectName("DialogHeading")
+        layout.addWidget(heading)
+
+        form = QFormLayout()
+        form.setSpacing(12)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
+
         self.text_input = QLineEdit()
-        self.text_input.setPlaceholderText("e.g., Review project proposal")
-        task_block.addWidget(task_label)
-        task_block.addWidget(self.text_input)
-        main_layout.addLayout(task_block)
+        self.text_input.setPlaceholderText("What needs to be done?")
+        self.text_input.setClearButtonEnabled(True)
 
-        # --- Date & Time Fields (Side by Side) ---
-        dt_layout = QHBoxLayout()
-        dt_layout.setSpacing(16)
-
-        # Date Field
-        date_block = QVBoxLayout()
-        date_block.setSpacing(4)
-        date_label = QLabel("DATE")
         self.date_input = QDateEdit()
         self.date_input.setCalendarPopup(True)
         self.date_input.setDisplayFormat("yyyy-MM-dd")
-        self.date_input.setDate(QDate.currentDate())
-        date_block.addWidget(date_label)
-        date_block.addWidget(self.date_input)
-        dt_layout.addLayout(date_block)
 
-        # Time Field
-        time_block = QVBoxLayout()
-        time_block.setSpacing(4)
-        time_label = QLabel("TIME")
         self.time_input = QTimeEdit()
         self.time_input.setDisplayFormat("HH:mm")
-        self.time_input.setTime(QTime.currentTime())
-        time_block.addWidget(time_label)
-        time_block.addWidget(self.time_input)
-        dt_layout.addLayout(time_block)
 
-        main_layout.addLayout(dt_layout)
+        form.addRow("Task", self.text_input)
+        form.addRow("Date", self.date_input)
+        form.addRow("Time", self.time_input)
+        layout.addLayout(form)
 
-        # Spacer to push layout cleanly
-        main_layout.addStretch()
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Save
+            | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
 
-        # ---------------------------------------------------------
-        # CUSTOM ACTION BUTTONS
-        # ---------------------------------------------------------
-        button_layout = QHBoxLayout()
-        button_layout.setSpacing(12)
+        if task:
+            self.text_input.setText(task.text)
+            self.date_input.setDate(QDate.fromString(task.date, "yyyy-MM-dd"))
+            self.time_input.setTime(QTime.fromString(task.time, "HH:mm"))
+        else:
+            selected_date = QDate.fromString(initial_date or "", "yyyy-MM-dd")
+            selected_time = QTime.fromString(initial_time or "", "HH:mm")
+            self.date_input.setDate(
+                selected_date if selected_date.isValid() else QDate.currentDate()
+            )
+            self.time_input.setTime(
+                selected_time if selected_time.isValid() else QTime.currentTime()
+            )
 
-        self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setFixedHeight(38)
-        self.cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.cancel_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #F0F0F0;
-                color: #444444;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 13px;
-                border: none;
-            }
-            QPushButton:hover { background-color: #E5E5E5; }
-        """)
-        
-        self.save_btn = QPushButton("Save Task")
-        self.save_btn.setFixedHeight(38)
-        self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.save_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #007ACC;
-                color: white;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 13px;
-                border: none;
-            }
-            QPushButton:hover { background-color: #0062A3; }
-            QPushButton:pressed { background-color: #004C80; }
-        """)
+        self.text_input.setFocus()
 
-        # Connect slots
-        self.cancel_btn.clicked.connect(self.reject)
-        self.save_btn.clicked.connect(self.accept)
+    def get_values(self) -> tuple[str, str, str]:
+        return (
+            self.date_input.date().toString("yyyy-MM-dd"),
+            self.time_input.time().toString("HH:mm"),
+            self.text_input.text(),
+        )
 
-        button_layout.addWidget(self.cancel_btn)
-        button_layout.addWidget(self.save_btn)
-        
-        main_layout.addLayout(button_layout)
 
-    def get_values(self):
-        date_str = self.date_input.date().toString("yyyy-MM-dd")
-        time_str = self.time_input.time().toString("HH:mm")
-        text_str = self.text_input.text().strip()
+class AddTaskDialog(TaskDialog):
+    def __init__(self, parent=None, initial_date=None, initial_time=None):
+        super().__init__(
+            parent=parent, initial_date=initial_date, initial_time=initial_time
+        )
 
-        return date_str, time_str, text_str
+
+class EditTaskDialog(TaskDialog):
+    def __init__(self, task, parent=None):
+        super().__init__(task=task, parent=parent)

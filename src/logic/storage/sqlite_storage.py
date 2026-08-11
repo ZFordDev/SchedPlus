@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """SQLite persistence with structured errors and corruption recovery."""
 
 from __future__ import annotations

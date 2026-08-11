@@ -7,7 +7,7 @@ name = "schedplus"
 version = "0.7.3"
 description = "Lightweight scheduling and task management tool"
 readme = "README.md"
-license = { text = "MIT" }
+license = { text = "GPL-3.0-only" }
 requires-python = ">=3.10"
 
 authors = [
@@ -22,6 +22,7 @@ keywords = ["schedule", "tasks", "calendar", "productivity", "UI"]
 
 classifiers = [
   "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
   "Topic :: Office/Business :: Scheduling"
@@ -54,6 +55,7 @@ schedplus = "schedplus.__main__:boot"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+license-files = ["LICENSE", "LICENSES/*", "NOTICE"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
