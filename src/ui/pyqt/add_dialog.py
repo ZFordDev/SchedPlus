@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
 
 
 class TaskDialog(QDialog):
-    def __init__(self, task=None, parent=None):
+    def __init__(self, task=None, parent=None, initial_date=None, initial_time=None):
         super().__init__(parent)
         self.setWindowTitle("Edit task" if task else "Create task")
         self.setMinimumWidth(440)
@@ -61,8 +61,14 @@ class TaskDialog(QDialog):
             self.date_input.setDate(QDate.fromString(task.date, "yyyy-MM-dd"))
             self.time_input.setTime(QTime.fromString(task.time, "HH:mm"))
         else:
-            self.date_input.setDate(QDate.currentDate())
-            self.time_input.setTime(QTime.currentTime())
+            selected_date = QDate.fromString(initial_date or "", "yyyy-MM-dd")
+            selected_time = QTime.fromString(initial_time or "", "HH:mm")
+            self.date_input.setDate(
+                selected_date if selected_date.isValid() else QDate.currentDate()
+            )
+            self.time_input.setTime(
+                selected_time if selected_time.isValid() else QTime.currentTime()
+            )
 
         self.text_input.setFocus()
 
@@ -75,8 +81,10 @@ class TaskDialog(QDialog):
 
 
 class AddTaskDialog(TaskDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
+    def __init__(self, parent=None, initial_date=None, initial_time=None):
+        super().__init__(
+            parent=parent, initial_date=initial_date, initial_time=initial_time
+        )
 
 
 class EditTaskDialog(TaskDialog):

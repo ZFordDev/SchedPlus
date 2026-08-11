@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
+from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.theme import BASE_QSS
@@ -50,7 +51,7 @@ class SchedPlusWindow(QMainWindow):
 
         self.pages = QStackedWidget()
         self.task_list = TaskListWidget(scheduler, self.preferences)
-        self.calendar_page = self._build_calendar_placeholder()
+        self.calendar_page = CalendarWorkspace(scheduler, self.preferences)
         self.pages.addWidget(self.task_list)
         self.pages.addWidget(self.calendar_page)
         layout.addWidget(self.pages, 1)
@@ -59,6 +60,10 @@ class SchedPlusWindow(QMainWindow):
         self.task_list.add_requested.connect(self.open_add_dialog)
         self.task_list.edit_requested.connect(self.open_edit_dialog)
         self.task_list.delete_requested.connect(self.delete_task)
+        self.calendar_page.add_requested.connect(self.open_add_dialog)
+        self.calendar_page.edit_requested.connect(self.open_edit_dialog)
+        self.calendar_page.delete_requested.connect(self.delete_task)
+        self.calendar_page.reschedule_requested.connect(self.reschedule_task)
 
         self._create_shortcuts()
         self.show_page(self.preferences.startup_view)
@@ -99,25 +104,6 @@ class SchedPlusWindow(QMainWindow):
         button.setCursor(Qt.CursorShape.PointingHandCursor)
         return button
 
-    def _build_calendar_placeholder(self):
-        page = QWidget()
-        layout = QVBoxLayout(page)
-        layout.setContentsMargins(40, 40, 40, 40)
-        layout.addStretch()
-        heading = QLabel("Calendar workspace")
-        heading.setObjectName("PageHeading")
-        heading.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        detail = QLabel(
-            "The native month, week, and day calendar is the next implementation phase."
-        )
-        detail.setObjectName("MutedLabel")
-        detail.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        detail.setWordWrap(True)
-        layout.addWidget(heading)
-        layout.addWidget(detail)
-        layout.addStretch()
-        return page
-
     def _create_shortcuts(self):
         shortcuts = {
             "Ctrl+N": self.open_add_dialog,
@@ -140,13 +126,15 @@ class SchedPlusWindow(QMainWindow):
         self.tasks_nav.setChecked(not calendar)
         self.calendar_nav.setChecked(calendar)
 
-    def open_add_dialog(self):
-        dialog = AddTaskDialog(self)
+    def open_add_dialog(self, initial_date=None, initial_time=None):
+        dialog = AddTaskDialog(
+            self, initial_date=initial_date, initial_time=initial_time
+        )
         if dialog.exec():
             date, time, text = dialog.get_values()
             try:
                 self.scheduler.add_task(date, time, text)
-                self.task_list.refresh()
+                self.refresh_views()
                 self.show_status_message("Task added successfully")
             except ValidationError as exc:
                 self._show_validation_error(exc)
@@ -160,7 +148,7 @@ class SchedPlusWindow(QMainWindow):
             draft.date, draft.time, draft.text = dialog.get_values()
             try:
                 self.scheduler.update_task(draft)
-                self.task_list.refresh()
+                self.refresh_views()
                 self.show_status_message("Task updated successfully")
             except ValidationError as exc:
                 self._show_validation_error(exc)
@@ -182,7 +170,7 @@ class SchedPlusWindow(QMainWindow):
             return
         try:
             self.scheduler.delete_task(task.id)
-            self.task_list.refresh()
+            self.refresh_views()
             self.show_status_message("Task deleted")
         except StorageError as exc:
             self._show_storage_error("Unable to delete task", exc)
@@ -204,7 +192,7 @@ class SchedPlusWindow(QMainWindow):
     def reload_tasks(self):
         try:
             self.scheduler.load_tasks()
-            self.task_list.refresh()
+            self.refresh_views()
             self.show_status_message("Tasks refreshed")
         except StorageError as exc:
             self._show_storage_error("Unable to refresh tasks", exc)
@@ -215,11 +203,29 @@ class SchedPlusWindow(QMainWindow):
             self.preferences = dialog.preferences()
             self.settings_store.save(self.preferences)
             self.task_list.apply_preferences(self.preferences)
+            self.calendar_page.apply_preferences(self.preferences)
             self.show_page(self.preferences.startup_view)
             self.show_status_message("Settings saved")
 
     def toggle_full_screen(self):
         self.showNormal() if self.isFullScreen() else self.showFullScreen()
+
+    def reschedule_task(self, task, date, time):
+        draft = replace(task, date=date, time=time)
+        try:
+            self.scheduler.update_task(draft)
+            self.refresh_views()
+            self.show_status_message(f"Task moved to {date} at {time}")
+        except ValidationError as exc:
+            self.refresh_views()
+            self._show_validation_error(exc)
+        except StorageError as exc:
+            self.refresh_views()
+            self._show_storage_error("Unable to reschedule task", exc)
+
+    def refresh_views(self):
+        self.task_list.refresh()
+        self.calendar_page.refresh()
 
     def show_status_message(self, message, duration=3500):
         self.statusBar().showMessage(f"  {message}")

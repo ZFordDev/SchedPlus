@@ -8,7 +8,8 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from PyQt6.QtWidgets import QApplication
 
 from logic.scheduler import Task
-from ui.pyqt.add_dialog import EditTaskDialog
+from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
+from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.settings_dialog import SettingsDialog, UiPreferences
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.window import SchedPlusWindow
@@ -67,12 +68,22 @@ def test_edit_dialog_is_prepopulated(app):
     assert dialog.get_values() == ("2026-08-12", "09:05", "Plan release")
 
 
+def test_add_dialog_accepts_calendar_slot_defaults(app):
+    dialog = AddTaskDialog(initial_date="2026-09-14", initial_time="13:30")
+
+    assert dialog.get_values() == ("2026-09-14", "13:30", "")
+
+
 def test_settings_dialog_round_trips_preferences(app):
     preferences = UiPreferences(
         sort_field="text",
         sort_order="descending",
         task_filter="upcoming",
         startup_view="calendar",
+        calendar_view="week",
+        first_day_of_week="sunday",
+        workday_start=6,
+        workday_end=22,
     )
 
     dialog = SettingsDialog(preferences)
@@ -86,3 +97,41 @@ def test_window_has_navigation_and_shortcuts(app):
     assert window.pages.count() == 2
     assert len(window.shortcuts) == 7
     assert window.windowTitle() == "SchedPlus — Advanced"
+
+
+def test_native_calendar_renders_month_week_and_day(app):
+    today = date.today()
+    scheduler = MemoryScheduler(
+        [
+            Task(date=today.isoformat(), time="09:30", text="Calendar task"),
+            Task(date=today.isoformat(), time="23:45", text="Late task"),
+        ]
+    )
+    workspace = CalendarWorkspace(scheduler, UiPreferences())
+
+    assert workspace.month_calendar.task_counts[today.isoformat()] == 2
+    assert workspace.month_agenda.count() == 2
+
+    workspace.view_combo.setCurrentIndex(workspace.view_combo.findData("week"))
+    assert workspace.week_table.columnCount() == 7
+    assert today.isoformat() in workspace.week_table.slot_dates
+    assert "23:30" in workspace.week_table.slot_times
+
+    workspace.view_combo.setCurrentIndex(workspace.view_combo.findData("day"))
+    assert workspace.day_table.columnCount() == 1
+    assert workspace.day_table.slot_dates == [today.isoformat()]
+
+
+def test_calendar_emits_reschedule_request(app):
+    task = Task(date=date.today().isoformat(), time="09:30", text="Move task")
+    workspace = CalendarWorkspace(MemoryScheduler([task]), UiPreferences())
+    requests = []
+    workspace.reschedule_requested.connect(
+        lambda moved, new_date, new_time: requests.append(
+            (moved, new_date, new_time)
+        )
+    )
+
+    workspace.week_table.task_dropped.emit(task, "2026-09-14", "13:30")
+
+    assert requests == [(task, "2026-09-14", "13:30")]

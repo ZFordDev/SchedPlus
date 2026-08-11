@@ -23,6 +23,8 @@ SchedPlus gives you a focused place to organise tasks and plan your time without
 ## Features
 
 - **Local task management** for creating, viewing, updating, and deleting scheduled tasks
+- **Native calendar workspace** with month, week, and day planning views
+- **Calendar scheduling** with click-to-create, task editing, and drag-to-reschedule workflows
 - **SQLite persistence** stored in the platform-appropriate user data directory
 - **Offline-friendly workflow** with task data kept on your computer
 - **Multiple interfaces** including lightweight Tkinter, the advanced PyQt task workspace, and a raw CLI
@@ -86,7 +88,6 @@ SchedPlus is actively developed and open to contributions. Current work is focus
 
 Planned areas include:
 
-- Calendars and calendar-based planning
 - Reminders and notifications
 - Optional syncing across devices
 - Accounts for sync and connected features
@@ -102,9 +103,9 @@ Development priorities evolve with user feedback. Follow the live project tracke
 
 ## Known limitations
 
-- The PyQt task workspace is functional, while its native calendar views remain under development.
+- Advanced calendar features such as recurring events and categories are not yet available.
 - Packaged installers are not yet available.
-- Syncing, accounts, calendars, and reminders are planned features and are not yet available.
+- Syncing, accounts, and reminders are planned features and are not yet available.
 - macOS is not currently supported.
 
 ## Support and contributing

@@ -16,3 +16,6 @@
 - Expanded PyQt into a maximized advanced workspace with complete task CRUD,
   search, filtering, sorting, shortcuts, persistent preferences, and a native
   calendar navigation foundation.
+- Added native PyQt month, week, and day calendar views with task markers,
+  selected-day agendas, timed scheduling grids, navigation, calendar settings,
+  and drag-to-reschedule integration with the shared scheduler.
