@@ -13,3 +13,6 @@
 - Removed the non-functional `--dev` startup flag and its misleading help text.
 - Added scheduler-level task validation so every interface enforces normalized
   ISO dates, 24-hour times, and non-empty task text before persistence.
+- Expanded PyQt into a maximized advanced workspace with complete task CRUD,
+  search, filtering, sorting, shortcuts, persistent preferences, and a native
+  calendar navigation foundation.

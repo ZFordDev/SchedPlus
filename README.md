@@ -25,7 +25,7 @@ SchedPlus gives you a focused place to organise tasks and plan your time without
 - **Local task management** for creating, viewing, updating, and deleting scheduled tasks
 - **SQLite persistence** stored in the platform-appropriate user data directory
 - **Offline-friendly workflow** with task data kept on your computer
-- **Multiple interfaces** including the stable Tkinter UI, developing PyQt UI, and raw CLI
+- **Multiple interfaces** including lightweight Tkinter, the advanced PyQt task workspace, and a raw CLI
 - **Cross-platform foundation** targeting Windows and Linux
 - **Shared scheduling core** that keeps persistence and interface code separated
 
@@ -102,7 +102,7 @@ Development priorities evolve with user feedback. Follow the live project tracke
 
 ## Known limitations
 
-- The PyQt interface is still under development.
+- The PyQt task workspace is functional, while its native calendar views remain under development.
 - Packaged installers are not yet available.
 - Syncing, accounts, calendars, and reminders are planned features and are not yet available.
 - macOS is not currently supported.

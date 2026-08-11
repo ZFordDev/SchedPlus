@@ -1,116 +1,147 @@
-"""
-pyqt/window.py
---------------
-Main Frame for the PyQt UI
+"""Primary advanced native window for SchedPlus."""
 
-"""
+from dataclasses import replace
 
-from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStatusBar,
-    QMessageBox,
-)
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
-from ui.pyqt.task_list import TaskListWidget
-from ui.pyqt.add_dialog import AddTaskDialog
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
+from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
+from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore
+from ui.pyqt.task_list import TaskListWidget
+from ui.pyqt.theme import BASE_QSS
 
 
 class SchedPlusWindow(QMainWindow):
     def __init__(self, scheduler):
         super().__init__()
         self.scheduler = scheduler
+        self.settings_store = SettingsStore()
+        self.preferences = self.settings_store.load()
 
-        self.setWindowTitle("SchedPlus")
-        self.resize(520, 680) # Slightly taller for better task distribution
-        self.setStyleSheet("background-color: #FAFAFA;") # Soft global background
+        self.setWindowTitle("SchedPlus — Advanced")
+        self.resize(1180, 760)
+        self.setMinimumSize(820, 560)
+        self.setStyleSheet(BASE_QSS)
 
-        # Status Bar Styling
-        status = self.statusBar()
-        status.setStyleSheet("""
-            QStatusBar {
-                background: #F0F0F0;
-                color: #555555;
-                font-size: 11px;
-                border-top: 1px solid #E0E0E0;
-            }
-            QStatusBar::item { border: none; }
-        """)
-        
-        self.status_timer = QTimer()
+        self.status_timer = QTimer(self)
         self.status_timer.setSingleShot(True)
-        self.status_timer.timeout.connect(self.clear_status_message)
+        self.status_timer.timeout.connect(self.statusBar().clearMessage)
 
-        # Central Layout Setup
-        central = QWidget()
-        layout = QVBoxLayout(central)
+        root = QWidget()
+        root.setObjectName("AppRoot")
+        layout = QHBoxLayout(root)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0) # Tighten the gap between header and content
+        layout.setSpacing(0)
 
-        # ---------------------------------------------------------
-        # HEADER BAR
-        # ---------------------------------------------------------
-        header_widget = QWidget()
-        header_widget.setStyleSheet("""
-            QWidget {
-                background-color: #FFFFFF;
-                border-bottom: 1px solid #EAEAEA;
-            }
-        """)
-        header_layout = QHBoxLayout(header_widget)
-        header_layout.setContentsMargins(20, 16, 20, 16)
+        sidebar = self._build_sidebar()
+        layout.addWidget(sidebar)
 
-        title = QLabel("SchedPlus")
-        title.setStyleSheet("""
-            QLabel {
-                font-size: 20px;
-                font-weight: bold;
-                color: #1A1A1A;
-                border: none;
-            }
-        """)
+        self.pages = QStackedWidget()
+        self.task_list = TaskListWidget(scheduler, self.preferences)
+        self.calendar_page = self._build_calendar_placeholder()
+        self.pages.addWidget(self.task_list)
+        self.pages.addWidget(self.calendar_page)
+        layout.addWidget(self.pages, 1)
+        self.setCentralWidget(root)
 
-        # Cleaned up header button to match the app style
-        self.add_btn = QPushButton("＋ Add Task")
-        self.add_btn.setFixedHeight(34)
-        self.add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.add_btn.setStyleSheet("""
-            QPushButton {
-                background: #007ACC;
-                color: white;
-                border-radius: 6px;
-                padding: 0px 16px;
-                font-weight: bold;
-                font-size: 12px;
-                border: none;
-            }
-            QPushButton:hover { background: #0062A3; }
-            QPushButton:pressed { background: #004C80; }
-        """)
-        self.add_btn.clicked.connect(self.open_add_dialog)
+        self.task_list.add_requested.connect(self.open_add_dialog)
+        self.task_list.edit_requested.connect(self.open_edit_dialog)
+        self.task_list.delete_requested.connect(self.delete_task)
 
-        header_layout.addWidget(title)
-        header_layout.addStretch()
-        header_layout.addWidget(self.add_btn)
-
-        layout.addWidget(header_widget)
-
-        # ---------------------------------------------------------
-        # TASK LIST
-        # ---------------------------------------------------------
-        self.task_list = TaskListWidget(scheduler)
-        layout.addWidget(self.task_list)
-
-        # CONNECT THE TASK LIST BUTTON!
-        self.task_list.add_button.clicked.connect(self.open_add_dialog)
-
-        self.setCentralWidget(central)
+        self._create_shortcuts()
+        self.show_page(self.preferences.startup_view)
         self.show_status_message("Tasks loaded")
 
+    def _build_sidebar(self):
+        sidebar = QWidget()
+        sidebar.setObjectName("Sidebar")
+        sidebar.setFixedWidth(210)
+        layout = QVBoxLayout(sidebar)
+        layout.setContentsMargins(18, 24, 18, 20)
+        layout.setSpacing(8)
+
+        brand = QLabel("SchedPlus")
+        brand.setObjectName("Brand")
+        caption = QLabel("ADVANCED")
+        caption.setObjectName("SidebarCaption")
+        layout.addWidget(brand)
+        layout.addWidget(caption)
+        layout.addSpacing(22)
+
+        self.tasks_nav = self._navigation_button("Tasks")
+        self.calendar_nav = self._navigation_button("Calendar")
+        self.settings_button = self._navigation_button("Settings")
+        self.tasks_nav.clicked.connect(lambda: self.show_page("tasks"))
+        self.calendar_nav.clicked.connect(lambda: self.show_page("calendar"))
+        self.settings_button.clicked.connect(self.open_settings)
+        layout.addWidget(self.tasks_nav)
+        layout.addWidget(self.calendar_nav)
+        layout.addStretch()
+        layout.addWidget(self.settings_button)
+        return sidebar
+
+    def _navigation_button(self, text):
+        button = QPushButton(text)
+        button.setObjectName("NavigationButton")
+        button.setCheckable(text != "Settings")
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        return button
+
+    def _build_calendar_placeholder(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(40, 40, 40, 40)
+        layout.addStretch()
+        heading = QLabel("Calendar workspace")
+        heading.setObjectName("PageHeading")
+        heading.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        detail = QLabel(
+            "The native month, week, and day calendar is the next implementation phase."
+        )
+        detail.setObjectName("MutedLabel")
+        detail.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        detail.setWordWrap(True)
+        layout.addWidget(heading)
+        layout.addWidget(detail)
+        layout.addStretch()
+        return page
+
+    def _create_shortcuts(self):
+        shortcuts = {
+            "Ctrl+N": self.open_add_dialog,
+            "Ctrl+E": self.edit_selected_task,
+            "Delete": self.delete_selected_task,
+            "Ctrl+R": self.reload_tasks,
+            "Ctrl+F": self.task_list.focus_search,
+            "Ctrl+,": self.open_settings,
+            "F11": self.toggle_full_screen,
+        }
+        self.shortcuts = []
+        for sequence, callback in shortcuts.items():
+            shortcut = QShortcut(QKeySequence(sequence), self)
+            shortcut.activated.connect(callback)
+            self.shortcuts.append(shortcut)
+
+    def show_page(self, page):
+        calendar = page == "calendar"
+        self.pages.setCurrentIndex(1 if calendar else 0)
+        self.tasks_nav.setChecked(not calendar)
+        self.calendar_nav.setChecked(calendar)
+
     def open_add_dialog(self):
-        dialog = AddTaskDialog()
+        dialog = AddTaskDialog(self)
         if dialog.exec():
             date, time, text = dialog.get_values()
             try:
@@ -118,15 +149,86 @@ class SchedPlusWindow(QMainWindow):
                 self.task_list.refresh()
                 self.show_status_message("Task added successfully")
             except ValidationError as exc:
-                self.show_status_message("Check task details")
-                QMessageBox.warning(self, "Check task details", str(exc))
+                self._show_validation_error(exc)
             except StorageError as exc:
-                self.show_status_message("Task could not be saved")
-                QMessageBox.critical(self, "Unable to add task", str(exc))
+                self._show_storage_error("Unable to add task", exc)
 
-    def show_status_message(self, msg, duration=3000):
-        self.statusBar().showMessage(f"  {msg}") # Tiny padding spacer
+    def open_edit_dialog(self, task):
+        draft = replace(task)
+        dialog = EditTaskDialog(draft, self)
+        if dialog.exec():
+            draft.date, draft.time, draft.text = dialog.get_values()
+            try:
+                self.scheduler.update_task(draft)
+                self.task_list.refresh()
+                self.show_status_message("Task updated successfully")
+            except ValidationError as exc:
+                self._show_validation_error(exc)
+            except StorageError as exc:
+                self._show_storage_error("Unable to update task", exc)
+
+    def delete_task(self, task):
+        confirmation = QMessageBox(self)
+        confirmation.setIcon(QMessageBox.Icon.Question)
+        confirmation.setWindowTitle("Delete task?")
+        confirmation.setText(f'Delete “{task.text}”?')
+        confirmation.setInformativeText("This action cannot be undone.")
+        confirmation.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+        )
+        confirmation.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        confirmation.button(QMessageBox.StandardButton.Yes).setText("Delete")
+        if confirmation.exec() != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            self.scheduler.delete_task(task.id)
+            self.task_list.refresh()
+            self.show_status_message("Task deleted")
+        except StorageError as exc:
+            self._show_storage_error("Unable to delete task", exc)
+
+    def edit_selected_task(self):
+        task = self.task_list.selected_task()
+        if task:
+            self.open_edit_dialog(task)
+        else:
+            self.show_status_message("Select a task to edit")
+
+    def delete_selected_task(self):
+        task = self.task_list.selected_task()
+        if task:
+            self.delete_task(task)
+        else:
+            self.show_status_message("Select a task to delete")
+
+    def reload_tasks(self):
+        try:
+            self.scheduler.load_tasks()
+            self.task_list.refresh()
+            self.show_status_message("Tasks refreshed")
+        except StorageError as exc:
+            self._show_storage_error("Unable to refresh tasks", exc)
+
+    def open_settings(self):
+        dialog = SettingsDialog(self.preferences, self)
+        if dialog.exec():
+            self.preferences = dialog.preferences()
+            self.settings_store.save(self.preferences)
+            self.task_list.apply_preferences(self.preferences)
+            self.show_page(self.preferences.startup_view)
+            self.show_status_message("Settings saved")
+
+    def toggle_full_screen(self):
+        self.showNormal() if self.isFullScreen() else self.showFullScreen()
+
+    def show_status_message(self, message, duration=3500):
+        self.statusBar().showMessage(f"  {message}")
         self.status_timer.start(duration)
 
-    def clear_status_message(self):
-        self.statusBar().clearMessage()
+    def _show_validation_error(self, error):
+        self.show_status_message("Check task details")
+        QMessageBox.warning(self, "Check task details", str(error))
+
+    def _show_storage_error(self, title, error):
+        self.show_status_message("Database operation failed")
+        QMessageBox.critical(self, title, str(error))
