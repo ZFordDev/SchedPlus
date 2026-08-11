@@ -7,9 +7,9 @@ from tkinter import messagebox, ttk
 
 from logic.scheduler import Scheduler
 from logic.storage.sqlite_storage import StorageError
+from logic.validation import ValidationError
 from tkcalendar import Calendar
 from ui.shortcuts import bind_enter_key
-from ui.validation import add_validated_task
 
 
 LOGGER = logging.getLogger(__name__)
@@ -358,8 +358,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
 
     def add_task() -> bool:
         try:
-            new_task = add_validated_task(
-                scheduler,
+            new_task = scheduler.add_task(
                 date_entry.get(),
                 time_entry.get(),
                 task_entry.get(),
@@ -372,7 +371,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             update_task_count()
             set_status("Task added successfully", success=True)
             return True
-        except ValueError as exc:
+        except ValidationError as exc:
             LOGGER.warning("Task validation failed: %s", exc)
             set_status(str(exc))
             messagebox.showerror("Check task details", str(exc), parent=root)
