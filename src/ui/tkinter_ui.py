@@ -6,6 +6,7 @@ from datetime import date, datetime
 from tkinter import messagebox, ttk
 
 from logic.scheduler import Scheduler
+from logic.storage.sqlite_storage import StorageError
 from tkcalendar import Calendar
 from ui.shortcuts import bind_enter_key
 from ui.validation import add_validated_task
@@ -137,7 +138,7 @@ def _center_window(window: tk.Toplevel | tk.Tk) -> None:
     window.geometry(f"+{x}+{y}")
 
 
-def run_ui(scheduler: Scheduler) -> None:
+def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     root = tk.Tk()
     root.title("SchedPlus")
     root.geometry("680x600")
@@ -375,6 +376,9 @@ def run_ui(scheduler: Scheduler) -> None:
             LOGGER.warning("Task validation failed: %s", exc)
             set_status(str(exc))
             messagebox.showerror("Check task details", str(exc), parent=root)
+        except StorageError as exc:
+            set_status("Task could not be saved")
+            messagebox.showerror("Unable to add task", str(exc), parent=root)
         except Exception as exc:
             LOGGER.exception("Unable to add task from the Tkinter interface")
             set_status("Task could not be saved")
@@ -391,4 +395,11 @@ def run_ui(scheduler: Scheduler) -> None:
     root.bind("<Escape>", lambda _event: root.focus_set())
     task_entry.focus_set()
     _center_window(root)
+    if startup_notice:
+        root.after(
+            100,
+            lambda: messagebox.showwarning(
+                "Database recovered", startup_notice, parent=root
+            ),
+        )
     root.mainloop()

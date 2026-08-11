@@ -6,13 +6,15 @@ Main Frame for the PyQt UI
 """
 
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStatusBar
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStatusBar,
+    QMessageBox,
 )
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QColor
 
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.add_dialog import AddTaskDialog
+from logic.storage.sqlite_storage import StorageError
 
 
 class SchedPlusWindow(QMainWindow):
@@ -114,9 +116,13 @@ class SchedPlusWindow(QMainWindow):
             if len(result) == 3:
                 date, time, text = result
                 if date and time and text:
-                    self.scheduler.add_task(date, time, text)
-                    self.task_list.refresh()
-                    self.show_status_message("Task added successfully")
+                    try:
+                        self.scheduler.add_task(date, time, text)
+                        self.task_list.refresh()
+                        self.show_status_message("Task added successfully")
+                    except StorageError as exc:
+                        self.show_status_message("Task could not be saved")
+                        QMessageBox.critical(self, "Unable to add task", str(exc))
 
     def show_status_message(self, msg, duration=3000):
         self.statusBar().showMessage(f"  {msg}") # Tiny padding spacer

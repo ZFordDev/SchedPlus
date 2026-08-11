@@ -8,6 +8,8 @@ Basic one-shot CLI for SchedPlus.
 import sys
 from datetime import datetime
 
+from logic.storage.sqlite_storage import StorageError, reset_database
+
 # ANSI colors
 C_RESET = "\033[0m"
 C_OK = "\033[92m"
@@ -91,7 +93,11 @@ def cmd_add(scheduler):
         return
 
     # Add the validated task to the scheduler
-    scheduler.add_task(date=date_iso, time=time, text=text)
+    try:
+        scheduler.add_task(date=date_iso, time=time, text=text)
+    except StorageError as exc:
+        print(f"{C_WARN}Could not add task: {exc}{C_RESET}", file=sys.stderr)
+        return False
     # Confirm successful addition
     print(f"{C_OK}[OK]{C_RESET} Added: {date_iso} {time} — {text}")
 
@@ -131,15 +137,11 @@ def cmd_wipe(scheduler):
             print("Cancelled.")
             return
 
-    # Import necessary modules for database file manipulation
-    from logic.storage.sqlite_storage import DB_FILE, init_db
-    import os
-
-    # Remove the database file if it exists
-    if os.path.exists(DB_FILE):
-        os.remove(DB_FILE)
-
-    # Re-initialize the database schema
-    init_db()
+    try:
+        reset_database()
+    except StorageError as exc:
+        print(f"{C_WARN}Could not wipe database: {exc}{C_RESET}", file=sys.stderr)
+        return False
+    scheduler.tasks.clear()
     # Confirm successful wipe
     print(f"{C_OK}[OK]{C_RESET} Database wiped.")
