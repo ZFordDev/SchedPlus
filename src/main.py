@@ -13,4 +13,4 @@ from startup.controller import boot
 
 
 if __name__ == "__main__":
-    boot()
+    raise SystemExit(boot())

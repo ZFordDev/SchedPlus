@@ -21,7 +21,7 @@ def boot():
 
     # 2. If invalid flag -> stop
     if mode == StartupMode.INVALID:
-        return
+        return 2
 
     # 3. If no flags -> show popup selector
     if mode == StartupMode.POPUP:
@@ -34,7 +34,7 @@ def boot():
             return
 
     # 4. Route to correct UI
-    _launch_mode(mode)
+    return _launch_mode(mode)
 
 
 def _launch_mode(mode: StartupMode):
@@ -50,7 +50,7 @@ def _launch_mode(mode: StartupMode):
         scheduler.load_tasks()
     except StorageError as exc:
         _report_storage_error(mode, exc)
-        return
+        return 1
 
     startup_notice = recovery.message if recovery else None
 
@@ -63,6 +63,7 @@ def _launch_mode(mode: StartupMode):
 
         print("[Startup] Launching Tkinter UI...")
         run_ui(scheduler, startup_notice=startup_notice)
+        return 0
 
     elif mode == StartupMode.PYQT:
         try:
@@ -73,16 +74,17 @@ def _launch_mode(mode: StartupMode):
 
         print("[Startup] Launching PyQt UI...")
         run_pyqt_ui(scheduler, startup_notice=startup_notice)
+        return 0
 
-    elif mode == StartupMode.RAW:
+    elif mode == StartupMode.CLI:
         from cli.cli_main import run_cli
         if startup_notice:
             print(f"Database recovery: {startup_notice}", file=sys.stderr)
-        run_cli(scheduler)
-        return
+        return run_cli(scheduler)
 
     else:
         print(f"[Startup] Unknown mode: {mode}")
+        return 2
 
 
 def _report_storage_error(mode: StartupMode, error: StorageError) -> None:

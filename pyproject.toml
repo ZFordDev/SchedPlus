@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "schedplus"
 version = "0.7.3"
-description = "Lightweight scheduling and task management tool"
+description = "Modern, local-first scheduling and productivity application"
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
 requires-python = ">=3.10"
@@ -59,7 +59,7 @@ license-files = ["LICENSE", "LICENSES/*", "NOTICE"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["schedplus*"]
+include = ["schedplus*", "cli*", "logic*", "startup*", "ui*", "data*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

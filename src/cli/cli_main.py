@@ -1,18 +1,14 @@
-"""
-cli_main.py
------------
-Main Entry point to CLI (RAW)
-"""
+"""Entry point for the scriptable SchedPlus CLI."""
 
 import sys
-from .raw_mode import run_raw_mode
+
+from cli.commands import run_command
+
 
 def run_cli(scheduler):
-    # Entry point for RAW CLI mode.
-    args = sys.argv[1:]
-
-    # Remove the --raw flag itself
-    if "--raw" in args:
-        args.remove("--raw")
-
-    run_raw_mode(args, scheduler)
+    arguments = list(sys.argv[1:])
+    if arguments and arguments[0] == "--raw":
+        arguments.pop(0)
+    if not arguments:
+        arguments = ["--help"]
+    return run_command(arguments, scheduler)

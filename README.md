@@ -28,7 +28,7 @@ SchedPlus gives you a focused place to organise tasks and plan your time without
 - **Calendar scheduling** with click-to-create, task editing, and drag-to-reschedule workflows
 - **SQLite persistence** stored in the platform-appropriate user data directory
 - **Offline-friendly workflow** with task data kept on your computer
-- **Multiple interfaces** including lightweight Tkinter, the advanced PyQt task workspace, and a raw CLI
+- **Multiple interfaces** including lightweight Tkinter, the advanced PyQt task workspace, and a scriptable CLI
 - **Cross-platform foundation** targeting Windows and Linux
 - **Shared scheduling core** that keeps persistence and interface code separated
 
@@ -57,10 +57,29 @@ Run `schedplus` without an option to open the interface selector, or launch an i
 schedplus         # Open the interface selector
 schedplus --tk    # Launch the Tkinter interface
 schedplus --py    # Launch the PyQt interface
-schedplus --raw   # Use the raw command-line interface
 ```
 
-Run `schedplus --raw help` for the commands available in raw mode.
+Tasks can also be managed directly from a terminal without launching a UI:
+
+```bash
+# Create a task
+schedplus add "Buy milk" --date 2026-08-03 --time 14:00
+
+# List tasks, optionally changing their order
+schedplus list
+schedplus list --sort time --descending
+
+# Edit a task using its full ID or an unambiguous ID prefix
+schedplus edit 7c94a2 --text "Buy milk and bread" --time 15:00
+
+# Delete a task
+schedplus delete 7c94a2
+```
+
+All commands use the same validation and SQLite backend as the desktop
+interfaces. Validation and database failures are written to stderr, and each
+command returns a process-friendly exit status. Run `schedplus --help` or
+`schedplus COMMAND --help` for complete options.
 
 ## System requirements
 
