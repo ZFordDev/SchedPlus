@@ -6,3 +6,5 @@
   added automatic relocation of databases created by earlier releases.
 - Removed the obsolete JSON persistence backend and migration fallback. SQLite
   is now the sole task storage system.
+- Refreshed the lightweight Tkinter interface with a responsive layout,
+  friendlier date and time entry, task counts, and visible status feedback.

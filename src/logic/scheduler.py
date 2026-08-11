@@ -46,6 +46,7 @@ class Scheduler:
         task = Task(date=date, time=time, text=text)
         db.create_entry(task)
         self.tasks.append(task)
+        return task
 
     # ---------------------------------------------------------
     # Read
