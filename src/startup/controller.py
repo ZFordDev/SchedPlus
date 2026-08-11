@@ -7,7 +7,7 @@ Startup controller for SchedPlus.
 import sys
 from .flags import determine_startup_mode
 from .modes import StartupMode
-from logic.storage.paths import DatabaseMigrationError, prepare_database
+from logic.storage.sqlite_storage import StorageError, initialize_database
 
 
 def boot():
@@ -15,13 +15,6 @@ def boot():
     Main entrypoint for SchedPlus startup.
     Determines startup mode and launches the correct UI.
     """
-
-    # 0. Prepare the user-owned SQLite database location.
-    try:
-        prepare_database()
-    except DatabaseMigrationError as exc:
-        print(f"Unable to start SchedPlus: {exc}", file=sys.stderr)
-        return
 
     # 1. Determine mode from CLI flags
     mode = determine_startup_mode(sys.argv[1:])
@@ -52,7 +45,14 @@ def _launch_mode(mode: StartupMode):
 
     from logic.scheduler import Scheduler
     scheduler = Scheduler()
-    scheduler.load_tasks()
+    try:
+        recovery = initialize_database()
+        scheduler.load_tasks()
+    except StorageError as exc:
+        _report_storage_error(mode, exc)
+        return
+
+    startup_notice = recovery.message if recovery else None
 
     if mode == StartupMode.TK:
         try:
@@ -62,7 +62,7 @@ def _launch_mode(mode: StartupMode):
             return
 
         print("[Startup] Launching Tkinter UI...")
-        run_ui(scheduler)
+        run_ui(scheduler, startup_notice=startup_notice)
 
     elif mode == StartupMode.PYQT:
         try:
@@ -72,7 +72,7 @@ def _launch_mode(mode: StartupMode):
             return
 
         print("[Startup] Launching PyQt UI...")
-        run_pyqt_ui(scheduler)
+        run_pyqt_ui(scheduler, startup_notice=startup_notice)
 
     # going to add this soon to avoid constant wiping.
     elif mode == StartupMode.DEV:
@@ -81,8 +81,44 @@ def _launch_mode(mode: StartupMode):
 
     elif mode == StartupMode.RAW:
         from cli.cli_main import run_cli
+        if startup_notice:
+            print(f"Database recovery: {startup_notice}", file=sys.stderr)
         run_cli(scheduler)
         return
 
     else:
         print(f"[Startup] Unknown mode: {mode}")
+
+
+def _report_storage_error(mode: StartupMode, error: StorageError) -> None:
+    """Present a startup database failure through the selected interface."""
+    if mode == StartupMode.TK:
+        try:
+            import tkinter as tk
+            from tkinter import messagebox
+
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("SchedPlus database error", str(error), parent=root)
+            root.destroy()
+            return
+        except Exception as reporter_exc:
+            print(
+                f"Unable to display the Tkinter database error: {reporter_exc}",
+                file=sys.stderr,
+            )
+    elif mode == StartupMode.PYQT:
+        try:
+            from PyQt6.QtWidgets import QApplication, QMessageBox
+
+            app = QApplication.instance() or QApplication([])
+            QMessageBox.critical(None, "SchedPlus database error", str(error))
+            app.quit()
+            return
+        except Exception as reporter_exc:
+            print(
+                f"Unable to display the PyQt database error: {reporter_exc}",
+                file=sys.stderr,
+            )
+
+    print(f"SchedPlus database error: {error}", file=sys.stderr)
