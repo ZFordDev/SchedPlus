@@ -6,9 +6,9 @@ Basic one-shot CLI for SchedPlus.
 """
 
 import sys
-from datetime import datetime
 
 from logic.storage.sqlite_storage import StorageError, reset_database
+from logic.validation import ValidationError
 
 # ANSI colors
 C_RESET = "\033[0m"
@@ -56,35 +56,15 @@ def cmd_add(scheduler):
     # Prompt user to start adding a task or cancel
     print(f"{C_INFO}Add new task (type 'cancel' to abort){C_RESET}")
 
-    # Prompt for date input with valid loop
-    while True:
-        date = input("Date (DD-MM-YYYY): ").strip()
-        if date.lower() == "cancel":
-            print("Cancelled.")
-            return
+    date = input("Date (YYYY-MM-DD): ").strip()
+    if date.lower() == "cancel":
+        print("Cancelled.")
+        return
 
-        try:
-            # Validate date and convert to ISO
-            d = datetime.strptime(date, "%d-%m-%Y")
-            date_iso = d.strftime("%Y-%m-%d")
-            break
-        except ValueError:
-            print(f"{C_WARN}Invalid date. Try again.{C_RESET}")
-
-    # Prompt for time input with validation loop
-    # Add fuzzy logic later
-    while True:
-        time = input("Time (HH:MM): ").strip()
-        if time.lower() == "cancel":
-            print("Cancelled.")
-            return
-
-        try:
-            # Validate time format (HH:MM)
-            datetime.strptime(time, "%H:%M")
-            break
-        except ValueError:
-            print(f"{C_WARN}Invalid time. Try again.{C_RESET}")
+    time = input("Time (HH:MM): ").strip()
+    if time.lower() == "cancel":
+        print("Cancelled.")
+        return
 
     # Prompt for task note
     text = input("Note: ").strip()
@@ -94,12 +74,15 @@ def cmd_add(scheduler):
 
     # Add the validated task to the scheduler
     try:
-        scheduler.add_task(date=date_iso, time=time, text=text)
+        task = scheduler.add_task(date=date, time=time, text=text)
+    except ValidationError as exc:
+        print(f"{C_WARN}Invalid task: {exc}{C_RESET}", file=sys.stderr)
+        return False
     except StorageError as exc:
         print(f"{C_WARN}Could not add task: {exc}{C_RESET}", file=sys.stderr)
         return False
     # Confirm successful addition
-    print(f"{C_OK}[OK]{C_RESET} Added: {date_iso} {time} — {text}")
+    print(f"{C_OK}[OK]{C_RESET} Added: {task.date} {task.time} — {task.text}")
 
 
 # ---------------------------------------------------------

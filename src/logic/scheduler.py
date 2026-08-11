@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 from typing import List
 from datetime import datetime
 
+from .validation import validate_task
+
 
 @dataclass
 class Task:
@@ -43,7 +45,7 @@ class Scheduler:
     def add_task(self, date: str, time: str, text: str):
         from .storage import sqlite_storage as db
 
-        task = Task(date=date, time=time, text=text)
+        task = validate_task(Task(date=date, time=time, text=text))
         db.create_entry(task)
         self.tasks.append(task)
         return task
@@ -68,6 +70,7 @@ class Scheduler:
     def update_task(self, task: Task):
         from .storage import sqlite_storage as db
 
+        validate_task(task)
         db.update_entry(task)
 
         # Update in-memory list
