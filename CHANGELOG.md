@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Adopted GPL-3.0-only for the complete PyQt desktop distribution and
+  Apache-2.0 for the reusable logic layer. The `release-0.7.3` tag remains the
+  final blanket-MIT release, with its license and contributor notices retained.
 - Moved the SQLite database to the platform-specific user data directory and
   added automatic relocation of databases created by earlier releases.
 - Removed the obsolete JSON persistence backend and migration fallback. SQLite

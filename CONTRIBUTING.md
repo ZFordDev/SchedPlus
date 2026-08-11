@@ -133,13 +133,28 @@ Contributions should reflect its lightweight, minimal, and predictable design:
 - UI changes should follow the existing layout and interaction patterns  
 - Avoid introducing heavy dependencies — keep the project simple and easy to install  
 - SQLite storage must remain safe, local, and predictable
-- Do not add features that turn SchedPlus into a full productivity suite unless scoped and discussed  
+- Scope larger productivity features through an issue before implementation
 - PyQt‑related changes should be tested on Windows and Linux when possible  
-- Keep the codebase beginner‑friendly — SchedPlus is also a learning reference  
+- Keep the codebase approachable, documented, and maintainable
 - Maintain the clean, distraction‑free feel of the interface  
 - Ensure new features align with the “simple, local‑first, predictable” philosophy  
-- Avoid complex background services, cloud sync, or account systems  
+- Discuss background services, synchronization, or account systems before implementation
 - Follow the existing module layout in `src/`  
+
+---
+
+## Licensing Contributions
+
+SchedPlus uses different licenses for clearly separated parts of the project:
+
+- Contributions under `src/logic/` are submitted under Apache-2.0.
+- Contributions to the complete desktop application and all other source areas
+  are submitted under GPL-3.0-only unless a file states otherwise.
+- Third-party code must retain its original license and attribution notices.
+
+By submitting a contribution, you confirm that you have the right to provide
+it under the license applying to the files you modify. See [NOTICE](NOTICE) for
+the licensing boundary and historical MIT attribution.
 
 ---
 

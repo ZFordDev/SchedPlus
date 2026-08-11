@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Task validation rules shared by every SchedPlus interface."""
 
 from datetime import datetime
