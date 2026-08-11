@@ -1,199 +1,124 @@
-<!-- ========================================================= -->
-<!-- Standards Approval Badge (not up to standards yet) -->
-<!-- ========================================================= -->
-<!--
-<table align="right">
-  <tr>
-    <td>
-      <img src="https://raw.githubusercontent.com/ZFordDev/ZFordDev/main/assets/standards-approved.svg" width="80" alt="ZFordDev Standards Approved Badge">
-    </td>
-  </tr>
-</table> 
--->
+<div align="center">
 
-<!-- ========================================================= -->
-<!-- Required Badges -->
-<!-- ========================================================= -->
-
-[![Docs](https://img.shields.io/badge/DocsHub-docs.zford.dev-4F46E5?style=flat-square)](https://docs.zford.dev/zforddev/keyplus/)
-![Status](https://img.shields.io/badge/Status-ACTIVE-4CAF50?style=flat-square)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)
-![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white)
-![Python](https://img.shields.io/badge/Built_with-Python-blue?style=flat-square)
 # SchedPlus
 
-> A lightweight, local‑first desktop scheduler built in Python.  
-> **Status:** Alpha • Actively Maintained • Accepting Contributions
+### A modern, local-first scheduler for Windows and Linux
 
-## Why This Exists
+[Documentation](https://docs.zford.dev/zforddev/schedplus/) · [Downloads](https://github.com/ZFordDev/SchedPlus/releases) · [Report a bug](https://github.com/ZFordDev/SchedPlus/issues/new/choose)
 
-Most scheduling tools try to do everything — calendars, reminders, syncing, accounts, cloud dashboards — and end up feeling heavy or overly complex.
+[![Status](https://img.shields.io/badge/status-active-4CAF50?style=flat-square)](https://github.com/ZFordDev/SchedPlus)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-0078D4?style=flat-square)](#installation)
+[![GitHub downloads](https://img.shields.io/github/downloads/ZFordDev/SchedPlus/total?style=flat-square)](https://github.com/ZFordDev/SchedPlus/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
-SchedPlus is intentionally the opposite:
+</div>
 
-- **simple**
-- **local‑first**
-- **lightweight**
-- **predictable**
-- **no accounts**
-- **no cloud**
-- **no clutter**
+SchedPlus gives you a focused place to organise tasks and plan your time without unnecessary friction. It is local-first, offline-friendly, and growing into a broader scheduling platform with calendars, reminders, syncing, and accounts on the roadmap.
 
-It focuses on one job: helping you plan your day without getting in your way.
-
-## Overview
-
-SchedPlus is a clean, predictable desktop scheduler built for people who want structure without noise.
-
-It emphasizes:
-
-- fast startup  
-- a minimal interface  
-- local‑only task storage  
-- a small, readable Python codebase  
-- an offline‑first workflow  
-
-SchedPlus currently ships with a stable Tkinter UI, while a full PyQt migration is underway to deliver a more modern, cross‑platform experience.
+<p align="center">
+  <img src="assets/screenshots/schedplus-tkinter.png" width="48%" alt="SchedPlus Tkinter interface" />
+  <img src="assets/screenshots/schedplus-pyqt.png" width="48%" alt="SchedPlus PyQt interface" />
+</p>
 
 ## Features
 
-- Local task creation and management  
-- JSON‑based save/load  
-- Offline‑first workflow  
-- Tkinter UI (stable)  
-- PyQt UI (in development)  
-- Clean logic/storage separation  
-- Beginner‑friendly codebase  
-
-## Requirements
-To run or develop it, you’ll need:
-
-> Python 3.10+  
-> pip
-> Tkinter  
-> PyQt6 
-
-**Supported environments:**
-
-> Windows 10+  
-> Linux (Ubuntu 24.04+)
-
-## Quick Start
-
-```bash
-git clone https://github.com/ZFordDev/schedplus.git
-cd schedplus
-
-# Create and activate a virtualenv (recommended)
-python -m venv .venv
-source .venv/bin/activate
-
-# Install in editable mode for local development
-pip install -e .
-
-# Run (choose one):
-# - console script installed by pip
-schedplus
-# - run as a module
-python -m schedplus
-# - run from source without installing (development)
-cd src
-python -m main
-```
-
-> *Recommended: use a `.venv`.*
+- **Local task management** for creating, viewing, updating, and deleting scheduled tasks
+- **SQLite persistence** stored in the platform-appropriate user data directory
+- **Offline-friendly workflow** with task data kept on your computer
+- **Multiple interfaces** including the stable Tkinter UI, developing PyQt UI, and raw CLI
+- **Cross-platform foundation** targeting Windows and Linux
+- **Shared scheduling core** that keeps persistence and interface code separated
 
 ## Installation
 
-SchedPlus binaries will be available once the packaging pipeline is complete.  
-Until then, install from source:
+Packaged releases are planned. Until installers are available, install SchedPlus from source:
 
 ```bash
-pip install e.
-```
+git clone https://github.com/ZFordDev/SchedPlus.git
+cd SchedPlus
 
-## Usage
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
 
-Basic usage:
-
-```bash
 schedplus
 ```
 
-The UI will open and allow you to create, edit, and save tasks locally.
+On Windows, activate the virtual environment with `.venv\Scripts\activate` before running the remaining commands.
 
-## Project Structure
+## Usage
 
-SchedPlus uses a simple, predictable layout designed to keep UI, logic, and data clearly separated.
+Run `schedplus` without an option to open the interface selector, or launch an interface directly:
 
-```text
-schedplus/
-├── src/
-│   └── schedplus/
-│       ├── assets/        # Icons and UI assets
-│       ├── data/          # Local task storage
-│       ├── logic/         # Core scheduling logic
-│       ├── startup/       # Application startup flow
-│       ├── ui/            # Tkinter + PyQt interfaces
-│       └── __main__.py    # Application entry point
-│
-└── packaging/             # Future packaging targets
-    ├── snap/
-    ├── deb/
-    └── windows/
+```bash
+schedplus         # Open the interface selector
+schedplus --tk    # Launch the Tkinter interface
+schedplus --py    # Launch the PyQt interface
+schedplus --raw   # Use the raw command-line interface
 ```
 
-## Roadmap
- 
-- [ ] Cross‑platform packaging  
-- [ ] Windows installer  
-- [ ] Improved task management  
-- [ ] UI backend experimentation  
-- [ ] Multi‑platform releases  
+Run `schedplus --raw help` for the commands available in raw mode.
 
-## Screenshots
+## System requirements
 
-<p align="center">
-  <img src="assets/screenshots/schedplus-tkinter.png" width="45%" />
-  <img src="assets/screenshots/schedplus-pyqt.png" width="45%" />
-</p>
+- Python 3.10 or later
+- Windows 10 or later, or a modern Linux distribution
+- Tkinter for the Tkinter interface
+- A desktop environment for graphical modes
 
-## Known Issues
+_macOS is not currently supported._
 
-- PyQt UI is incomplete  
-- Packaging is experimental  
-- macOS support not yet available  
+## Build from source
 
-## Support
+You will need Python 3.10 or later, pip, and Git. Tkinter may need to be installed through your operating system's package manager.
 
-You can support SchedPlus by:
+```bash
+git clone https://github.com/ZFordDev/SchedPlus.git
+cd SchedPlus
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
-- Leaving a ⭐ on GitHub  
-- Reporting bugs  
-- Suggesting new features  
-- Improving documentation  
-- Contributing code  
+## Project status and roadmap
 
-## Contributing
+SchedPlus is actively developed and open to contributions. Current work is focused on strengthening the desktop experience and expanding SchedPlus beyond task management into a complete scheduling platform.
 
-Contributions, bug reports, feature requests, and feedback are welcome.
+Planned areas include:
 
-See `CONTRIBUTING.md` for project‑specific guidelines.  
-For ecosystem‑wide expectations, see **[STANDARDS.md](https://github.com/ZFordDev/ZFordDev/blob/main/STANDARDS.md)**.
+- Calendars and calendar-based planning
+- Reminders and notifications
+- Optional syncing across devices
+- Accounts for sync and connected features
+- Improved task management workflows
+- Cross-platform installers and packaged releases
+- Continued development of the PyQt interface
 
-## Security
+Development priorities evolve with user feedback. Follow the live project trackers for current plans:
 
-See `SECURITY.md` for vulnerability reporting guidelines.  
-If no security policy is present, please report issues responsibly via GitHub Issues.
+- [Open issues and planned improvements](https://github.com/ZFordDev/SchedPlus/issues)
+- [Latest releases and release notes](https://github.com/ZFordDev/SchedPlus/releases)
+- [Contributing guide](CONTRIBUTING.md)
+
+## Known limitations
+
+- The PyQt interface is still under development.
+- Packaged installers are not yet available.
+- Syncing, accounts, calendars, and reminders are planned features and are not yet available.
+- macOS is not currently supported.
+
+## Support and contributing
+
+Bug reports, feature ideas, documentation improvements, and code contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change, and use the [issue tracker](https://github.com/ZFordDev/SchedPlus/issues) for bugs and suggestions.
+
+Security vulnerabilities should be reported using the process in [SECURITY.md](SECURITY.md), not through a public issue.
+
+If SchedPlus is useful to you, starring the repository or sharing the project also helps.
 
 ## License
 
-Released under the MIT License.  
-See `LICENSE` for details.
+SchedPlus is free and open-source software released under the [MIT License](LICENSE).
 
-## About ZFordDev
+## About
 
-This project is part of the ZFordDev ecosystem — a collection of lightweight, practical tools built with clarity, simplicity, and long‑term maintainability in mind.
-
-For ecosystem‑wide standards, see **STANDARDS.md**.
-
+SchedPlus is part of the ZFordDev ecosystem, a collection of focused tools built for clarity, practical use, and long-term maintainability. It is built and maintained by [ZFordDev](https://github.com/ZFordDev).

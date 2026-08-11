@@ -87,13 +87,13 @@ SchedPlus is a lightweight Python application with a local‑only workflow.
 When reporting security issues, please consider the following:
 
 - SchedPlus does not load or execute remote content  
-- All data is stored locally in simple JSON files (`data/tasks.json`)  
+- All task data is stored locally in the user's SchedPlus SQLite database.
 - No networking, syncing, or cloud communication is performed  
 - The Tkinter UI is stable; the PyQt UI is in active development and may behave differently across platforms  
 - SchedPlus does not collect telemetry or send user data anywhere  
 - The application does not run background services or scheduled tasks  
 
-If a vulnerability involves JSON handling, UI behaviour, file access, or platform‑specific issues, please include clear reproduction steps for both Windows and Linux (when applicable).
+If a vulnerability involves database handling, UI behaviour, file access, or platform‑specific issues, please include clear reproduction steps for both Windows and Linux (when applicable).
 
 ---
 

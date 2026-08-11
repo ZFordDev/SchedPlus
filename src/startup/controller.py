@@ -7,7 +7,6 @@ Startup controller for SchedPlus.
 import sys
 from .flags import determine_startup_mode
 from .modes import StartupMode
-from logic.storage.migration import needs_migration, run_migration
 from logic.storage.paths import DatabaseMigrationError, prepare_database
 
 
@@ -17,11 +16,9 @@ def boot():
     Determines startup mode and launches the correct UI.
     """
 
-    # 0. Relocate an existing DB, then migrate legacy JSON when applicable.
+    # 0. Prepare the user-owned SQLite database location.
     try:
         prepare_database()
-        if needs_migration():
-            run_migration()
     except DatabaseMigrationError as exc:
         print(f"Unable to start SchedPlus: {exc}", file=sys.stderr)
         return
