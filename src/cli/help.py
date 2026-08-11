@@ -25,7 +25,6 @@ def show_startup_help():
 
 {_fmt('--tk', 'Launch Tkinter UI')}
 {_fmt('--py', 'Launch PyQt UI')}
-{_fmt('--dev', 'Developer mode')}
 {_fmt('--raw', 'Use RAW CLI mode')}
 
 (no flags)   Show GUI startup selector
@@ -60,7 +59,6 @@ def show_general_help():
 {C_HEADER}Startup Modes:{C_RESET}
 {_fmt('--tk', 'Launch Tkinter UI')}
 {_fmt('--py', 'Launch PyQt UI')}
-{_fmt('--dev', 'Developer mode')}
 {_fmt('--raw', 'Use RAW CLI mode')}
 (no flags)   Show GUI startup selector
 
