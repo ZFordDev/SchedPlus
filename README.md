@@ -1,29 +1,16 @@
-<!-- ========================================================= -->
-<!-- Standards Approval Badge (not up to standards yet) -->
-<!-- ========================================================= -->
-<!--
-<table align="right">
-  <tr>
-    <td>
-      <img src="https://raw.githubusercontent.com/ZFordDev/ZFordDev/main/assets/standards-approved.svg" width="80" alt="ZFordDev Standards Approved Badge">
-    </td>
-  </tr>
-</table> 
--->
+<div align="center">
 
-<!-- ========================================================= -->
-<!-- Required Badges -->
-<!-- ========================================================= -->
-
-[![Docs](https://img.shields.io/badge/DocsHub-docs.zford.dev-4F46E5?style=flat-square)](https://docs.zford.dev/zforddev/keyplus/)
-![Status](https://img.shields.io/badge/Status-ACTIVE-4CAF50?style=flat-square)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)
-![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&logo=windows&logoColor=white)
-![Python](https://img.shields.io/badge/Built_with-Python-blue?style=flat-square)
 # SchedPlus
 
-> A lightweight, local‑first desktop scheduler built in Python.  
-> **Status:** Alpha • Actively Maintained • Accepting Contributions
+### A lightweight, local‑first desktop scheduler built in Python.  
+
+[Documentation](https://docs.zford.dev/zforddev/schedplus/) · [Downloads](https://github.com/ZFordDev/SchedPlus/releases) · [Report a bug](https://github.com/ZFordDev/SchedPlus/issues/new/choose)
+
+![Status](https://img.shields.io/badge/Status-ACTIVE-4CAF50?style=flat-square)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-0078D4?style=flat-square)](#installation)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+
+</div>
 
 ## Why This Exists
 
@@ -58,7 +45,7 @@ SchedPlus currently ships with a stable Tkinter UI, while a full PyQt migration 
 ## Features
 
 - Local task creation and management  
-- JSON‑based save/load  
+- SQLite-based local storage
 - Offline‑first workflow  
 - Tkinter UI (stable)  
 - PyQt UI (in development)  
@@ -196,4 +183,3 @@ See `LICENSE` for details.
 This project is part of the ZFordDev ecosystem — a collection of lightweight, practical tools built with clarity, simplicity, and long‑term maintainability in mind.
 
 For ecosystem‑wide standards, see **STANDARDS.md**.
-

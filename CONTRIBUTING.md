@@ -132,7 +132,7 @@ Contributions should reflect its lightweight, minimal, and predictable design:
 
 - UI changes should follow the existing layout and interaction patterns  
 - Avoid introducing heavy dependencies — keep the project simple and easy to install  
-- JSON storage must remain safe, local, and predictable  
+- SQLite storage must remain safe, local, and predictable
 - Do not add features that turn SchedPlus into a full productivity suite unless scoped and discussed  
 - PyQt‑related changes should be tested on Windows and Linux when possible  
 - Keep the codebase beginner‑friendly — SchedPlus is also a learning reference  
@@ -147,5 +147,3 @@ Contributions should reflect its lightweight, minimal, and predictable design:
 
 Your contributions help strengthen the entire ZFordDev ecosystem.  
 Whether you’re fixing a typo or building a major feature — you’re part of the project’s future.
-
-
