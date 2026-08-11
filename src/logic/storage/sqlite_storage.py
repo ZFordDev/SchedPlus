@@ -1,23 +1,20 @@
-import os
 import sqlite3
 from datetime import datetime
 from ..scheduler import Task
+from .paths import database_path, prepare_database
 
 # ---------------------------------------------------------
 # Database location
 # ---------------------------------------------------------
 
-DB_FILE = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "data", "tasks.db")
-)
-os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+DB_FILE = str(database_path())
 
 # ---------------------------------------------------------
 # Connection helper
 # ---------------------------------------------------------
 
 def _get_conn():
-    return sqlite3.connect(DB_FILE)
+    return sqlite3.connect(prepare_database())
 
 # ---------------------------------------------------------
 # Schema initialization
