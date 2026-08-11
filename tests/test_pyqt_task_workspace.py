@@ -111,6 +111,8 @@ def test_native_calendar_renders_month_week_and_day(app):
 
     assert workspace.month_calendar.task_counts[today.isoformat()] == 2
     assert workspace.month_agenda.count() == 2
+    assert not workspace.month_agenda.isHidden()
+    assert workspace.month_empty.isHidden()
 
     workspace.view_combo.setCurrentIndex(workspace.view_combo.findData("week"))
     assert workspace.week_table.columnCount() == 7
@@ -120,6 +122,12 @@ def test_native_calendar_renders_month_week_and_day(app):
     workspace.view_combo.setCurrentIndex(workspace.view_combo.findData("day"))
     assert workspace.day_table.columnCount() == 1
     assert workspace.day_table.slot_dates == [today.isoformat()]
+
+    workspace.month_calendar.setSelectedDate(
+        workspace.month_calendar.selectedDate().addDays(30)
+    )
+    assert workspace.month_agenda.isHidden()
+    assert not workspace.month_empty.isHidden()
 
 
 def test_calendar_emits_reschedule_request(app):

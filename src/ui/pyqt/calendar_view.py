@@ -236,10 +236,24 @@ class CalendarWorkspace(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         splitter = QSplitter()
         self.month_calendar = EventCalendar()
+        agenda_panel = QWidget()
+        agenda_layout = QVBoxLayout(agenda_panel)
+        agenda_layout.setContentsMargins(10, 0, 0, 0)
+        agenda_layout.setSpacing(8)
+        self.month_agenda_heading = QLabel()
+        self.month_agenda_heading.setObjectName("SectionHeading")
         self.month_agenda = QListWidget()
         self.month_agenda.setAlternatingRowColors(True)
+        self.month_agenda.setSpacing(2)
+        self.month_empty = QLabel("No tasks scheduled for this date.")
+        self.month_empty.setObjectName("EmptyState")
+        self.month_empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.month_empty.setWordWrap(True)
+        agenda_layout.addWidget(self.month_agenda_heading)
+        agenda_layout.addWidget(self.month_agenda, 1)
+        agenda_layout.addWidget(self.month_empty, 1)
         splitter.addWidget(self.month_calendar)
-        splitter.addWidget(self.month_agenda)
+        splitter.addWidget(agenda_panel)
         splitter.setStretchFactor(0, 2)
         splitter.setStretchFactor(1, 1)
         layout.addWidget(splitter)
@@ -297,6 +311,7 @@ class CalendarWorkspace(QWidget):
 
     def _render_month_agenda(self, tasks, selected):
         selected_value = selected.toString("yyyy-MM-dd")
+        self.month_agenda_heading.setText(selected.toString("dddd, d MMMM"))
         self.month_agenda.clear()
         for task in sorted(
             (task for task in tasks if task.date == selected_value),
@@ -305,10 +320,9 @@ class CalendarWorkspace(QWidget):
             item = QListWidgetItem(f"{task.time}   {task.text}")
             item.setData(TASK_ROLE, task)
             self.month_agenda.addItem(item)
-        if not self.month_agenda.count():
-            placeholder = QListWidgetItem("No tasks on this date")
-            placeholder.setFlags(Qt.ItemFlag.NoItemFlags)
-            self.month_agenda.addItem(placeholder)
+        has_tasks = self.month_agenda.count() > 0
+        self.month_agenda.setVisible(has_tasks)
+        self.month_empty.setVisible(not has_tasks)
 
     def _render_week(self, tasks, selected):
         offset = (

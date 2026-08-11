@@ -19,3 +19,5 @@
 - Added native PyQt month, week, and day calendar views with task markers,
   selected-day agendas, timed scheduling grids, navigation, calendar settings,
   and drag-to-reschedule integration with the shared scheduler.
+- Fixed PyQt dropdown popup rendering and added clear populated and empty states
+  to the month calendar's selected-day agenda panel.
