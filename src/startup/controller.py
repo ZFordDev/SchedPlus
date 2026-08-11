@@ -8,6 +8,7 @@ import sys
 from .flags import determine_startup_mode
 from .modes import StartupMode
 from logic.storage.migration import needs_migration, run_migration
+from logic.storage.paths import DatabaseMigrationError, prepare_database
 
 
 def boot():
@@ -16,9 +17,14 @@ def boot():
     Determines startup mode and launches the correct UI.
     """
 
-    # 0. Run migration BEFORE anything else
-    if needs_migration():
-        run_migration()
+    # 0. Relocate an existing DB, then migrate legacy JSON when applicable.
+    try:
+        prepare_database()
+        if needs_migration():
+            run_migration()
+    except DatabaseMigrationError as exc:
+        print(f"Unable to start SchedPlus: {exc}", file=sys.stderr)
+        return
 
     # 1. Determine mode from CLI flags
     mode = determine_startup_mode(sys.argv[1:])
