@@ -32,27 +32,82 @@ SchedPlus gives you a focused place to organise tasks and plan your time without
 - **Cross-platform foundation** targeting Windows and Linux
 - **Shared scheduling core** that keeps persistence and interface code separated
 
-## Installation
+## Editions and installation
 
-Packaged releases are planned. Until installers are available, install SchedPlus from source:
+**Standard** is the recommended edition. It launches the advanced PyQt desktop
+workspace directly. **Lite** provides the lightweight Tkinter interface,
+**Full** offers an interface selector for source and portable use, and **CLI**
+is for terminals and automation.
+
+Download packaged releases from the [GitHub Releases page](https://github.com/ZFordDev/SchedPlus/releases).
+Always verify the matching SHA-256 checksum before running a downloaded file.
+
+| Platform | Recommended package | Other supported packages |
+| --- | --- | --- |
+| Debian/Ubuntu | `schedplus` (Standard) | `schedplus-lite`, `schedplus-cli` |
+| Linux portable | Standard AppImage | — |
+| Windows | Standard installer | Standard, Lite, Full, and CLI portable ZIPs |
+| Microsoft Store | Standard (pending Store approval) | — |
+| Snap | Standard (pending Snap publication) | — |
+
+### Debian and Ubuntu
+
+Download the correct architecture-specific `.deb` from a release, then install
+it locally. The Standard, Lite, and CLI packages conflict with each other, so
+install only one at a time.
+
+```bash
+sudo apt install ./schedplus_<version>_<architecture>.deb
+# or: sudo apt install ./schedplus-lite_<version>_<architecture>.deb
+# or: sudo apt install ./schedplus-cli_<version>_<architecture>.deb
+```
+
+Launch the desktop package from your application menu, or run `schedplus`,
+`schedplus-lite`, or `schedplus-cli` from a terminal. Remove only the package
+when needed; do not use a data-cleaning command unless you intend to erase
+tasks:
+
+```bash
+sudo apt remove schedplus
+```
+
+### AppImage
+
+Make the Standard AppImage executable and run it; no installation is required.
+
+```bash
+chmod +x SchedPlus-<version>-x86_64.AppImage
+./SchedPlus-<version>-x86_64.AppImage
+```
+
+If FUSE is unavailable, extract it instead: `./SchedPlus-<version>-x86_64.AppImage
+--appimage-extract`, then run `squashfs-root/AppRun`.
+
+### Windows
+
+Run `SchedPlus-Setup-<version>-windows-x86_64.exe` for the recommended Standard
+installation. It is per-user, adds a Start Menu entry, and can be removed from
+Windows Settings. Portable releases are ZIP files named
+`SchedPlus-<Edition>-<version>-windows-x86_64.zip`; extract one anywhere you
+can read it, then start its executable. Do not extract or install into the data
+directory below.
+
+The Microsoft Store Standard edition is pending approval. Once published, use
+the Store listing rather than a separate installer when you want Store-managed
+updates. The Snap Standard edition is likewise pending publication; its future
+installation command will be `snap install schedplus`.
+
+### Source installation
+
+Source installs remain available for contributors and users who need the Full
+edition. Create a virtual environment, activate it, then choose a profile:
 
 ```bash
 git clone https://github.com/ZFordDev/SchedPlus.git
 cd SchedPlus
-
 python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[full]"
-
-schedplus
-```
-
-On Windows, activate the virtual environment with `.venv\Scripts\activate` before running the remaining commands.
-
-SchedPlus can also be installed with only the dependencies needed by a specific
-interface:
-
-```bash
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# Linux: source .venv/bin/activate
 pip install -e .             # Core scheduler, updater, and CLI
 pip install -e ".[lite]"      # Core plus the lightweight Tkinter interface
 pip install -e ".[standard]"  # Core plus the advanced PyQt interface
@@ -65,7 +120,8 @@ must be installed separately.
 
 ## Usage
 
-Run `schedplus` without an option to open the interface selector, or launch an interface directly:
+For a source Full installation, run `schedplus` without an option to open the
+interface selector, or launch an interface directly:
 
 ```bash
 schedplus         # Open the interface selector
@@ -100,16 +156,32 @@ command returns a process-friendly exit status. Run `schedplus --help` or
 `schedplus COMMAND --help` for complete options.
 
 Non-Store packaged builds can check for verified updates in the background and
-offer to restart after a release is ready. Store packages use their Store's
-update service instead. Self-updating is intentionally disabled for source
-checkouts, so development files are never replaced automatically.
+offer to restart after a release is ready. Store packages use Store updates
+instead. Self-updating is intentionally disabled for source checkouts, so
+development files are never replaced automatically.
+
+## Your data, upgrades, and removal
+
+Packages never write task data into their installation directory. The SQLite
+database and `schedplus.log` use these per-user locations:
+
+| Package environment | Data location |
+| --- | --- |
+| Windows installer, portable ZIP, and MSIX | `%APPDATA%\ZFordDev\SchedPlus\tasks.db` |
+| Normal Linux, Debian, and AppImage | `~/.local/share/ZFordDev/SchedPlus/tasks.db` |
+| Strict Snap | `$SNAP_USER_COMMON/SchedPlus/tasks.db` |
+
+Upgrades retain this data. Removing an installer, `.deb`, Snap, or AppImage
+does not delete it. Back up `tasks.db` while SchedPlus is closed before a major
+upgrade; installations from 0.7.3 and earlier automatically move the old
+in-application database to the appropriate user-data location when possible.
 
 ## System requirements
 
-- Python 3.10 or later
 - Windows 10 or later, or a modern Linux distribution
-- Tkinter for the Tkinter interface
 - A desktop environment for graphical modes
+- Python 3.10 or later only for source installations
+- Tkinter (and, on some Linux systems, `python3-tk`) only for the Lite source profile
 
 _macOS is not currently supported._
 
@@ -138,7 +210,7 @@ Planned areas include:
 - Optional syncing across devices
 - Accounts for sync and connected features
 - Improved task management workflows
-- Cross-platform installers and packaged releases
+- Additional platform packages and Store publication
 - Continued development of the PyQt interface
 
 Development priorities evolve with user feedback. Follow the live project trackers for current plans:
@@ -150,7 +222,7 @@ Development priorities evolve with user feedback. Follow the live project tracke
 ## Known limitations
 
 - Advanced calendar features such as recurring events and categories are not yet available.
-- Packaged installers are not yet available.
+- Snap and Microsoft Store publication are pending approval.
 - Syncing, accounts, and reminders are planned features and are not yet available.
 - macOS is not currently supported.
 
