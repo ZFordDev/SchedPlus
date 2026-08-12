@@ -45,9 +45,9 @@ Microsoft Store packaging must supply unplated PNG logo assets at these sizes
 | Wide310x150Logo | 310 × 150 |
 | StoreLogo | 50 × 50 |
 
-Store submission assets are intentionally kept out of the application runtime
-assets because Microsoft certification requires final, package-specific PNGs.
-They must use the `dev.zford.SchedPlus` identity and current SchedPlus branding.
+The MSIX build generates the final package-specific PNGs from the 512px master
+into its staging directory; see [../msix/README.md](../msix/README.md). They
+must use the Partner Center identity and current SchedPlus branding.
 
 ## Licensing and source disclosure
 

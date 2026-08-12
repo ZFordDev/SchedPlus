@@ -1,0 +1,76 @@
+name: Build SchedPlus Standard MSIX
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/build-msix.yml
+      - packaging/msix/**
+      - packaging/pyinstaller/**
+      - scripts/build_msix.py
+      - src/**
+      - assets/**
+      - pyproject.toml
+  workflow_dispatch:
+
+jobs:
+  validate-source:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run MSIX packaging tests
+        run: |
+          python -m pip install --upgrade pip pytest
+          python -m pytest tests/test_msix_packaging.py -q
+
+  package:
+    if: github.event_name == 'workflow_dispatch'
+    needs: validate-source
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Standard edition and packaging dependencies
+        run: |
+          python -m pip install --upgrade pip pyinstaller Pillow
+          python -m pip install ".[standard]"
+      - name: Build Standard frozen application
+        run: >-
+          pyinstaller --noconfirm --distpath dist --workpath build
+          packaging/pyinstaller/schedplus-standard.spec
+      - name: Locate MakeAppx
+        id: sdk
+        shell: pwsh
+        run: |
+          $makeappx = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Recurse -Filter MakeAppx.exe |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if ($null -eq $makeappx) { throw 'MakeAppx.exe was not found in the Windows SDK.' }
+          "makeappx=$($makeappx.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - name: Build and validate unsigned Store package
+        run: >-
+          python scripts/build_msix.py
+          --frozen-dir dist/SchedPlusStandard
+          --output-dir artifacts/msix
+          --identity-name "${{ secrets.MSIX_IDENTITY_NAME }}"
+          --publisher "${{ secrets.MSIX_PUBLISHER }}"
+          --publisher-display-name "${{ secrets.MSIX_PUBLISHER_DISPLAY_NAME }}"
+          --makeappx "${{ steps.sdk.outputs.makeappx }}"
+      - name: Verify package contains only Standard UI and release disclosures
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem artifacts/msix/*.msix | Select-Object -First 1
+          Copy-Item $package.FullName package.zip
+          Expand-Archive -Path package.zip -DestinationPath expanded-msix
+          if (!(Test-Path expanded-msix/SchedPlusStandard.exe)) { throw 'MSIX does not contain Standard launcher' }
+          if (!(Test-Path expanded-msix/SOURCE.txt)) { throw 'MSIX does not contain source disclosure' }
+          if (Test-Path expanded-msix/tasks.db) { throw 'MSIX must not contain user task data' }
+          $manifest = Get-Content -Raw expanded-msix/AppxManifest.xml
+          if ($manifest -match 'appExecutionAlias') { throw 'Store package must not declare an execution alias' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schedplus-standard-msix
+          path: artifacts/msix/*.msix
