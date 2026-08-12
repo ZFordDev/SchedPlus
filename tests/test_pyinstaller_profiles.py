@@ -31,7 +31,16 @@ def test_each_profile_has_a_dedicated_onedir_spec(edition, entry_point, excluded
 def test_standard_profile_bundles_the_lazily_imported_pyqt_interface():
     source = (SPEC_DIRECTORY / "schedplus-standard.spec").read_text(encoding="utf-8")
 
-    assert 'hiddenimports=["ui.pyqt_ui"]' in source
+    for module in (
+        "ui.pyqt_ui",
+        "ui.pyqt.window",
+        "ui.pyqt.add_dialog",
+        "ui.pyqt.calendar_view",
+        "ui.pyqt.settings_dialog",
+        "ui.pyqt.task_list",
+        "ui.pyqt.theme",
+    ):
+        assert f'"{module}"' in source
 
 
 @pytest.mark.parametrize("edition", EDITION_CONFIG)

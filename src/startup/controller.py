@@ -114,8 +114,8 @@ def _launch_mode(mode: StartupMode, arguments: list[str] | None = None):
     elif mode == StartupMode.PYQT:
         try:
             from ui.pyqt_ui import run_pyqt_ui
-        except Exception:
-            print("PyQt UI is not available on this system.")
+        except Exception as exc:
+            print(f"PyQt UI is not available on this system: {exc}", file=sys.stderr)
             return 1
 
         print("[Startup] Launching PyQt UI...")
