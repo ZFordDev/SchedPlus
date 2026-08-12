@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a portable Standard-edition AppImage build with checksum generation,
+  extraction fallback testing, and read-only runtime behavior.
 - Added release-grade Debian packaging for Standard, Lite, and CLI frozen
   editions, with correct filesystem layout, metadata, licensing, linting, and
   installation/removal validation.

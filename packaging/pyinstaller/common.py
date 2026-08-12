@@ -20,14 +20,21 @@ ASSETS = [
 ICON = str(PROJECT_ROOT / "assets" / "windows" / "SchedPlus.ico")
 
 
-def build(*, edition: str, entry_point: str, excludes: list[str], console: bool):
+def build(
+    *,
+    edition: str,
+    entry_point: str,
+    excludes: list[str],
+    console: bool,
+    hiddenimports: list[str] | None = None,
+):
     """Return the PyInstaller build graph for one self-contained onedir edition."""
     analysis = Analysis(
         [str(PROJECT_ROOT / "packaging" / "pyinstaller" / "entry_points" / entry_point)],
         pathex=[str(PROJECT_ROOT / "src")],
         binaries=[],
         datas=ASSETS,
-        hiddenimports=[],
+        hiddenimports=hiddenimports or [],
         hookspath=[],
         hooksconfig={},
         runtime_hooks=[],
