@@ -73,7 +73,7 @@ jobs:
           Priority: optional
           Architecture: amd64
           Maintainer: ZFordDev <zforddev@gmail.com>
-          Description: Lightweight local-first desktop scheduler.
+          Description: A modern, local-first scheduler for planning tasks and time without an account or network connection.
           EOF
 
       - name: Compile Debian Binary Asset

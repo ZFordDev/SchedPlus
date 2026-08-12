@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added shared release metadata for the stable `dev.zford.SchedPlus`
+  application identity, including Linux desktop and AppStream metadata,
+  validated icon assets, a multi-resolution Windows ICO, Store asset guidance,
+  and CI validation.
+- Updated Debian and Snap release descriptions to use current SchedPlus branding.
 - Adopted GPL-3.0-only for the complete PyQt desktop distribution and
   Apache-2.0 for the reusable logic layer. The `release-0.7.3` tag remains the
   final blanket-MIT release, with its license and contributor notices retained.

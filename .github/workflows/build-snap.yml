@@ -35,25 +35,26 @@ jobs:
         run: |
           mkdir -p snap
           cat <<EOF > snap/snapcraft.yaml
-          name: keyplus
+          name: schedplus
           base: core24
           version: '${{ env.VERSION }}'
-          summary: Local-first password vault with CLI and optional GUI.
+          summary: A modern, local-first scheduler for tasks and time.
           description: |
-            Secure local-first password vault designed with a minimalist aesthetic,
-            featuring a full rich CLI and an optional PySide6-driven graphical layout.
+            SchedPlus is a modern, local-first scheduler for planning tasks and
+            time without an account or network connection. It includes native
+            desktop workspaces, a calendar, SQLite persistence, and a CLI.
           grade: stable
           confinement: strict
           apps:
-            keyplus:
-              command: bin/keyplus
+            schedplus:
+              command: bin/schedplus-full
               extensions: [gnome]
               plugs:
                 - home
                 - network
             
           parts:
-            keyplus:
+            schedplus:
               plugin: python
               source: .
               python-packages:
