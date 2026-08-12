@@ -61,11 +61,12 @@ def test_builder_resolves_relative_appimagetool_path(monkeypatch, tmp_path):
     assert invoked[0][1:3] == ["--comp", "xz"]
 
 
-def test_appimage_smoke_test_installs_host_graphics_runtime():
+def test_appimage_smoke_test_uses_host_graphics_runtime_without_x11():
     workflow = (PROJECT_ROOT / ".github" / "workflows" / "build-appimage.yml").read_text(
         encoding="utf-8"
     )
 
     assert "libegl1" in workflow
     assert "libgl1" in workflow
-    assert "libxcb-cursor0" in workflow
+    assert "QT_QPA_PLATFORM=offscreen" in workflow
+    assert "Xvfb" not in workflow

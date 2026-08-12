@@ -28,7 +28,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libegl1 libgl1 libfuse2 libxcb-cursor0 squashfs-tools xvfb
+          sudo apt-get install --yes libegl1 libgl1 libfuse2 squashfs-tools
           python -m pip install --upgrade pip pyinstaller
           python -m pip install ".[standard]"
       - name: Build frozen Standard edition
@@ -56,17 +56,14 @@ jobs:
           test -x squashfs-root/AppRun
           test -f squashfs-root/dev.zford.SchedPlus.desktop
           test -f squashfs-root/dev.zford.SchedPlus.png
-      - name: Smoke-test portable launch
+      - name: Smoke-test portable launch without a host display server
         run: |
           APPIMAGE="$(find artifacts/appimage -name '*.AppImage' -print -quit)"
-          Xvfb :99 -screen 0 1280x720x24 &
-          XVFB_PID=$!
-          DISPLAY=:99 "$APPIMAGE" &
+          QT_QPA_PLATFORM=offscreen "$APPIMAGE" &
           APP_PID=$!
           sleep 4
           kill -0 "$APP_PID"
           kill "$APP_PID" || true
-          kill "$XVFB_PID" || true
       - name: Verify checksum
         run: (cd artifacts/appimage && sha256sum --check *.sha256)
       - uses: actions/upload-artifact@v4

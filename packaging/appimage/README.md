@@ -39,8 +39,9 @@ When FUSE is unavailable, extract and run without mounting the image:
 
 The AppImage bundles SchedPlus and its PyQt runtime. It still uses the host's
 standard graphics stack (including EGL/OpenGL libraries such as `libegl1` and
-`libgl1`, plus the X11 cursor library `libxcb-cursor0` when using the X11 Qt
-platform plugin), which should be present on supported desktop Linux distributions.
+`libgl1`), which is normally present on supported desktop Linux distributions.
+The release smoke test uses Qt's `offscreen` platform plugin so it validates the
+portable application without coupling the build to a particular X11/XCB stack.
 
 The AppImage is read-only at runtime. SchedPlus stores tasks outside the image
 at `~/.local/share/ZFordDev/SchedPlus/tasks.db`; it never needs write access to
