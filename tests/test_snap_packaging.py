@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from scripts.sync_snap_version import sync_version
+from scripts.sync_release_versions import sync_versions
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = PROJECT_ROOT / "snap" / "snapcraft.yaml"
@@ -26,11 +26,27 @@ def test_committed_manifest_packages_standard_with_strict_confinement():
 def test_snap_version_sync_uses_project_metadata(tmp_path):
     project_file = tmp_path / "pyproject.toml"
     manifest = tmp_path / "snapcraft.yaml"
+    windows_version = tmp_path / "version_info.txt"
     project_file.write_text('[project]\nversion = "9.8.7"\n', encoding="utf-8")
     manifest.write_text('name: schedplus\nversion: "0.0.0"\n', encoding="utf-8")
+    windows_version.write_text(
+        "    filevers=(0, 0, 0, 0),\n"
+        "    prodvers=(0, 0, 0, 0),\n"
+        "StringStruct('FileVersion', '0.0.0')\n"
+        "StringStruct('ProductVersion', '0.0.0')\n",
+        encoding="utf-8",
+    )
 
-    assert sync_version(project_file=project_file, manifest=manifest) == "9.8.7"
+    assert (
+        sync_versions(
+            project_file=project_file,
+            snap_manifest=manifest,
+            windows_version=windows_version,
+        )
+        == "9.8.7"
+    )
     assert manifest.read_text(encoding="utf-8") == 'name: schedplus\nversion: "9.8.7"\n'
+    assert "filevers=(9, 8, 7, 0)" in windows_version.read_text(encoding="utf-8")
 
 
 def test_snap_desktop_assets_use_registered_identity():
@@ -57,7 +73,7 @@ def test_snap_release_channels_and_manual_stable_gate_are_explicit():
     assert "github.event_name == 'workflow_dispatch' && inputs.publish_stable" in workflow
     assert "release: stable" in workflow
     assert "Dynamically Generate Snapcraft Manifest" not in workflow
-    assert "python3 scripts/sync_snap_version.py" in workflow
+    assert "python3 scripts/sync_release_versions.py" in workflow
 
 
 def test_workflow_installs_launches_and_checks_refresh_persistence():

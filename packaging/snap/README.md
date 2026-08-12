@@ -10,7 +10,7 @@ The Snap icon is the current 256px release icon copied from
 Build from the repository root with:
 
 ```bash
-python3 scripts/sync_snap_version.py
+python3 scripts/sync_release_versions.py
 snapcraft --use-lxd
 ```
 

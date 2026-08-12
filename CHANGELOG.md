@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added unified tag/version validation, pre-package testing, independent Linux,
+  Windows, and Snap builds, exact source archives, release-payload validation,
+  unified checksums, an SPDX source SBOM, and draft candidate GitHub Releases.
 - Replaced the legacy generated Snap workflow with a committed, strictly
   confined `schedplus` manifest for the Standard PyQt edition, persistent task
   storage, desktop integration, clean-install and refresh checks, staged Store
