@@ -10,4 +10,5 @@ app = build(
     entry_point="standard.py",
     excludes=["tkinter", "tkinter.ttk", "tkcalendar"],
     console=False,
+    hiddenimports=["ui.pyqt_ui"],
 )
