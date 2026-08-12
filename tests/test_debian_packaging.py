@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from scripts import build_debian_package
 from scripts.build_debian_package import EDITIONS, _control
 
 
@@ -16,3 +19,37 @@ def test_debian_package_control_uses_current_branding():
 
     assert "local-first scheduler" in control
     assert "KeyPlus" not in control
+
+
+def test_command_line_arguments_are_passed_to_the_debian_builder(monkeypatch, capsys):
+    received = {}
+    expected = Path("artifacts/debian/schedplus-cli_0.8.0_amd64.deb")
+    monkeypatch.setattr(
+        build_debian_package,
+        "build",
+        lambda **options: received.update(options) or expected,
+    )
+    monkeypatch.setattr(
+        build_debian_package.sys,
+        "argv",
+        [
+            "build_debian_package.py",
+            "--edition",
+            "cli",
+            "--frozen-dir",
+            "dist/SchedPlusCli",
+            "--output-dir",
+            "artifacts/debian",
+            "--version",
+            "0.8.0",
+        ],
+    )
+
+    assert build_debian_package.main() == 0
+    assert received == {
+        "edition": "cli",
+        "frozen_dir": Path("dist/SchedPlusCli"),
+        "output_dir": Path("artifacts/debian"),
+        "version": "0.8.0",
+    }
+    assert capsys.readouterr().out == f"{expected}\n"

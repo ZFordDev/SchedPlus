@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -83,8 +84,8 @@ License: Apache-2.0
 """
 
 
-def build(*, edition_key: str, frozen_dir: Path, output_dir: Path, version: str) -> Path:
-    edition = EDITIONS[edition_key]
+def build(*, edition: str, frozen_dir: Path, output_dir: Path, version: str) -> Path:
+    edition = EDITIONS[edition]
     frozen_dir = frozen_dir.resolve()
     if frozen_dir.name != edition.frozen_name:
         raise ValueError(f"{edition.name} requires {edition.frozen_name!r} frozen directory")
