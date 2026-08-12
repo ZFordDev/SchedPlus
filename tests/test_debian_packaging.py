@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from scripts import build_debian_package
-from scripts.build_debian_package import EDITIONS, _control
+from scripts.build_debian_package import EDITIONS, _control, _copyright, _lintian_overrides
 
 
 def test_debian_editions_are_mutually_exclusive():
@@ -19,6 +19,14 @@ def test_debian_package_control_uses_current_branding():
 
     assert "local-first scheduler" in control
     assert "KeyPlus" not in control
+
+
+def test_debian_metadata_uses_common_apache_license_and_explicit_runtime_overrides():
+    assert "/usr/share/common-licenses/Apache-2.0" in _copyright()
+
+    overrides = _lintian_overrides("schedplus-cli")
+    assert "schedplus-cli: custom-library-search-path" in overrides
+    assert "schedplus-cli: unstripped-binary-or-object" in overrides
 
 
 def test_command_line_arguments_are_passed_to_the_debian_builder(monkeypatch, capsys):

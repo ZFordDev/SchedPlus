@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import shutil
 import subprocess
 import sys
@@ -12,7 +13,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 METADATA = PROJECT_ROOT / "packaging" / "metadata"
-DESCRIPTION = "A modern, local-first scheduler for planning tasks and time without an account or network connection."
+DESCRIPTION = "Modern local-first scheduler for planning tasks and time"
 
 
 @dataclass(frozen=True)
@@ -79,9 +80,31 @@ License: GPL-3.0-only
  The complete license text is installed as /usr/share/doc/schedplus/LICENSE.
 
 License: Apache-2.0
- The complete license text is installed as
- /usr/share/doc/schedplus/LICENSES/Apache-2.0.txt.
+ On Debian systems, the complete text of the Apache License, Version 2.0 can
+ be found in /usr/share/common-licenses/Apache-2.0. A copy is also retained in
+ /usr/share/doc/schedplus/LICENSES/Apache-2.0.txt for source-distribution
+ attribution.
 """
+
+
+def _lintian_overrides(package: str) -> str:
+    """Document policy exceptions inherent in an upstream PyInstaller runtime."""
+    return "\n".join(
+        f"""{package}: custom-library-search-path
+{package}: embedded-library
+{package}: library-not-linked-against-libc
+{package}: unstripped-binary-or-object
+{package}: shared-library-lacks-prerequisites
+{package}: undeclared-elf-prerequisites
+{package}: hardening-no-pie
+{package}: shared-library-is-executable""".splitlines()
+    ) + "\n"
+
+
+def _normalize_shared_library_modes(application_dir: Path) -> None:
+    """Shared objects are data loaded by the frozen runtime, not executables."""
+    for candidate in application_dir.rglob("*.so*"):
+        candidate.chmod(candidate.stat().st_mode & ~0o111)
 
 
 def build(*, edition: str, frozen_dir: Path, output_dir: Path, version: str) -> Path:
@@ -98,6 +121,7 @@ def build(*, edition: str, frozen_dir: Path, output_dir: Path, version: str) -> 
         shutil.rmtree(stage)
     application_dir = stage / "usr" / "lib" / edition.name
     shutil.copytree(frozen_dir, application_dir)
+    _normalize_shared_library_modes(application_dir)
 
     _write(stage / "DEBIAN" / "control", _control(edition, version, architecture))
     _write(
@@ -121,10 +145,18 @@ def build(*, edition: str, frozen_dir: Path, output_dir: Path, version: str) -> 
 
     documents = stage / "usr" / "share" / "doc" / edition.name
     documents.mkdir(parents=True, exist_ok=True)
-    for source in (PROJECT_ROOT / "LICENSE", PROJECT_ROOT / "NOTICE", PROJECT_ROOT / "CHANGELOG.md"):
+    for source in (PROJECT_ROOT / "LICENSE", PROJECT_ROOT / "NOTICE"):
         shutil.copy2(source, documents / source.name)
+    with (PROJECT_ROOT / "CHANGELOG.md").open("rb") as source, gzip.GzipFile(
+        documents / "changelog.gz", "wb", mtime=0
+    ) as destination:
+        shutil.copyfileobj(source, destination)
     shutil.copytree(PROJECT_ROOT / "LICENSES", documents / "LICENSES")
     _write(documents / "copyright", _copyright())
+    _write(
+        stage / "usr" / "share" / "lintian" / "overrides" / edition.name,
+        _lintian_overrides(edition.name),
+    )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     artifact = output_dir / f"{edition.name}_{version}_{architecture}.deb"

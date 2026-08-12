@@ -28,3 +28,10 @@ Artifacts are consistently named `<package>_<version>_<architecture>.deb`; the
 architecture comes from `dpkg --print-architecture`, not a hard-coded value.
 CI runs `lintian --fail-on error`, installs each package on a clean runner,
 removes it, and verifies the pre-existing user database remains untouched.
+
+PyInstaller intentionally embeds an upstream Python runtime and extension
+libraries. The packages normalize shared-library permissions and fix ordinary
+Debian metadata issues directly. The remaining unavoidable lintian findings
+(embedded runtime libraries, their upstream RUNPATH, stripping and dependency
+analysis) are listed in package-specific overrides under
+`/usr/share/lintian/overrides/`. They are explicit exceptions, not ignored CI.
