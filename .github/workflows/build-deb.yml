@@ -1,6 +1,7 @@
 name: Build Debian packages
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - .github/workflows/build-deb.yml
@@ -9,10 +10,6 @@ on:
       - scripts/build_debian_package.py
       - src/**
       - pyproject.toml
-  push:
-    tags:
-      - release-*
-      - pre-release-*
   workflow_dispatch:
 
 jobs:

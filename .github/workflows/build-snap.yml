@@ -1,6 +1,7 @@
 name: Build and publish SchedPlus Standard Snap
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - .github/workflows/build-snap.yml
@@ -9,10 +10,6 @@ on:
       - pyproject.toml
       - src/**
       - tests/test_snap_packaging.py
-  push:
-    tags:
-      - release-*
-      - pre-release-*
   workflow_dispatch:
     inputs:
       publish_stable:
@@ -27,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set Snap version from project metadata
-        run: python3 scripts/sync_snap_version.py
+        run: python3 scripts/sync_release_versions.py
       - name: Build committed Snapcraft project
         uses: snapcore/action-build@v1
         id: snapcraft
@@ -60,7 +57,7 @@ jobs:
           path: ${{ steps.snapcraft.outputs.snap }}
 
   publish-prerelease:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.event_name != 'workflow_call' && startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-24.04
     steps:

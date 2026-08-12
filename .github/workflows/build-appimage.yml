@@ -1,6 +1,7 @@
 name: Build SchedPlus Standard AppImage
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - .github/workflows/build-appimage.yml
@@ -11,10 +12,6 @@ on:
       - scripts/build_appimage.py
       - src/**
       - pyproject.toml
-  push:
-    tags:
-      - release-*
-      - pre-release-*
   workflow_dispatch:
 
 jobs:
