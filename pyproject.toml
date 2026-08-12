@@ -33,6 +33,7 @@ dependencies = [
   "PyQt6-Qt6>=6.11.1",
   "PyQt6_sip>=13.11.1",
   "babel>=2.18.0",
+  "cryptography>=44.0.0",
   "tkcalendar>=1.6.1"
 ]
 
@@ -59,7 +60,7 @@ license-files = ["LICENSE", "LICENSES/*", "NOTICE"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["schedplus*", "cli*", "logic*", "startup*", "ui*", "data*"]
+include = ["schedplus*", "cli*", "logic*", "startup*", "ui*", "data*", "updater*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

@@ -2,10 +2,11 @@
 
 from dataclasses import replace
 
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtCore import QObject, QTimer, Qt, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
     QHBoxLayout,
+    QApplication,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -17,11 +18,19 @@ from PyQt6.QtWidgets import (
 
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
+from updater.background import start_automatic_update
+from updater.errors import UpdateError
+from updater.service import launch_prepared_update
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.theme import BASE_QSS
+
+
+class _UpdateSignals(QObject):
+    ready = pyqtSignal(object, object)
+    failed = pyqtSignal(str)
 
 
 class SchedPlusWindow(QMainWindow):
@@ -68,6 +77,15 @@ class SchedPlusWindow(QMainWindow):
         self._create_shortcuts()
         self.show_page(self.preferences.startup_view)
         self.show_status_message("Tasks loaded")
+
+        self.update_signals = _UpdateSignals(self)
+        self.update_signals.ready.connect(self._offer_prepared_update)
+        self.update_signals.failed.connect(
+            lambda message: self.show_status_message(f"Update check failed: {message}")
+        )
+        self.update_thread = start_automatic_update(
+            self.update_signals.ready.emit, self.update_signals.failed.emit
+        )
 
     def _build_sidebar(self):
         sidebar = QWidget()
@@ -159,7 +177,7 @@ class SchedPlusWindow(QMainWindow):
         confirmation = QMessageBox(self)
         confirmation.setIcon(QMessageBox.Icon.Question)
         confirmation.setWindowTitle("Delete task?")
-        confirmation.setText(f'Delete “{task.text}”?')
+        confirmation.setText(f"Delete “{task.text}”?")
         confirmation.setInformativeText("This action cannot be undone.")
         confirmation.setStandardButtons(
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
@@ -202,10 +220,40 @@ class SchedPlusWindow(QMainWindow):
         if dialog.exec():
             self.preferences = dialog.preferences()
             self.settings_store.save(self.preferences)
+            try:
+                dialog.save_update_preferences()
+            except UpdateError as exc:
+                QMessageBox.warning(self, "Unable to save update settings", str(exc))
             self.task_list.apply_preferences(self.preferences)
             self.calendar_page.apply_preferences(self.preferences)
             self.show_page(self.preferences.startup_view)
             self.show_status_message("Settings saved")
+
+    def _offer_prepared_update(self, build_info, prepared):
+        prompt = QMessageBox(self)
+        prompt.setIcon(QMessageBox.Icon.Information)
+        prompt.setWindowTitle("SchedPlus update ready")
+        prompt.setText(
+            f"SchedPlus {prepared.check.latest_version} is ready to install."
+        )
+        prompt.setInformativeText(
+            "SchedPlus will close and restart after installing the update."
+        )
+        prompt.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel
+        )
+        prompt.button(QMessageBox.StandardButton.Yes).setText("Restart and update")
+        prompt.button(QMessageBox.StandardButton.Cancel).setText("Later")
+        prompt.setDefaultButton(QMessageBox.StandardButton.Yes)
+        if prompt.exec() != QMessageBox.StandardButton.Yes:
+            self.show_status_message("Update postponed")
+            return
+        try:
+            launch_prepared_update(build_info, prepared)
+        except UpdateError as exc:
+            QMessageBox.critical(self, "Unable to install update", str(exc))
+            return
+        QApplication.instance().quit()
 
     def toggle_full_screen(self):
         self.showNormal() if self.isFullScreen() else self.showFullScreen()

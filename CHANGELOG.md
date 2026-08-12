@@ -27,3 +27,7 @@
 - Replaced the interactive raw CLI with scriptable `add`, `list`, `edit`, and
   `delete` subcommands, UUID-prefix lookup, consistent output, and meaningful
   process exit codes. The previous `--raw` flag remains as a compatibility alias.
+- Added the secure self-update foundation for non-Store packages: signed release
+  manifests, verified background downloads, external installation handoff,
+  atomic managed-install swaps, startup health checks, and last-known-good
+  rollback. Source, Snap, and Microsoft Store builds remain opted out.

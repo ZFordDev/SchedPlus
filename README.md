@@ -74,12 +74,21 @@ schedplus edit 7c94a2 --text "Buy milk and bread" --time 15:00
 
 # Delete a task
 schedplus delete 7c94a2
+
+# Inspect updater state (self-updating packaged builds only)
+schedplus update status
+schedplus update check
 ```
 
 All commands use the same validation and SQLite backend as the desktop
 interfaces. Validation and database failures are written to stderr, and each
 command returns a process-friendly exit status. Run `schedplus --help` or
 `schedplus COMMAND --help` for complete options.
+
+Non-Store packaged builds can check for verified updates in the background and
+offer to restart after a release is ready. Store packages use their Store's
+update service instead. Self-updating is intentionally disabled for source
+checkouts, so development files are never replaced automatically.
 
 ## System requirements
 

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from PyQt6.QtCore import QSettings
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -12,6 +13,12 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
+from updater.preferences import (
+    UpdatePreferences,
+    load_update_preferences,
+    save_update_preferences,
+)
+from updater.config import load_build_info
 
 SORT_FIELDS = {
     "date": "Date",
@@ -100,17 +107,23 @@ class SettingsDialog(QDialog):
         self.sort_field = QComboBox()
         for value, label in SORT_FIELDS.items():
             self.sort_field.addItem(label, value)
-        self.sort_field.setCurrentIndex(self.sort_field.findData(preferences.sort_field))
+        self.sort_field.setCurrentIndex(
+            self.sort_field.findData(preferences.sort_field)
+        )
 
         self.sort_order = QComboBox()
         self.sort_order.addItem("Ascending", "ascending")
         self.sort_order.addItem("Descending", "descending")
-        self.sort_order.setCurrentIndex(self.sort_order.findData(preferences.sort_order))
+        self.sort_order.setCurrentIndex(
+            self.sort_order.findData(preferences.sort_order)
+        )
 
         self.task_filter = QComboBox()
         for value, label in FILTERS.items():
             self.task_filter.addItem(label, value)
-        self.task_filter.setCurrentIndex(self.task_filter.findData(preferences.task_filter))
+        self.task_filter.setCurrentIndex(
+            self.task_filter.findData(preferences.task_filter)
+        )
 
         self.startup_view = QComboBox()
         self.startup_view.addItem("Tasks", "tasks")
@@ -143,6 +156,16 @@ class SettingsDialog(QDialog):
         self.workday_end.setSuffix(":00")
         self.workday_end.setValue(preferences.workday_end)
 
+        update_preferences = load_update_preferences()
+        self.check_updates = QCheckBox("Check automatically")
+        self.check_updates.setChecked(update_preferences.check_automatically)
+        updates_available = load_build_info().internally_managed
+        self.check_updates.setEnabled(updates_available)
+        if not updates_available:
+            self.check_updates.setToolTip(
+                "Updates are managed by your package provider or disabled for this build."
+            )
+
         form.addRow("Default sort", self.sort_field)
         form.addRow("Sort order", self.sort_order)
         form.addRow("Default filter", self.task_filter)
@@ -151,6 +174,7 @@ class SettingsDialog(QDialog):
         form.addRow("First day of week", self.first_day)
         form.addRow("Visible day starts", self.workday_start)
         form.addRow("Visible day ends", self.workday_end)
+        form.addRow("Application updates", self.check_updates)
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(
@@ -171,4 +195,11 @@ class SettingsDialog(QDialog):
             first_day_of_week=self.first_day.currentData(),
             workday_start=self.workday_start.value(),
             workday_end=max(self.workday_start.value(), self.workday_end.value()),
+        )
+
+    def save_update_preferences(self) -> None:
+        save_update_preferences(
+            UpdatePreferences(
+                check_automatically=self.check_updates.isChecked(),
+            )
         )

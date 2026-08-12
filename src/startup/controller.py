@@ -5,9 +5,14 @@ Startup controller for SchedPlus.
 """
 
 import sys
+
+from logic.storage.sqlite_storage import StorageError, initialize_database
+from updater.config import load_build_info, resolve_install_root
+from updater.errors import UpdateConfigurationError, UpdateError
+from updater.health import confirm_startup_health, consume_health_argument
+
 from .flags import determine_startup_mode
 from .modes import StartupMode
-from logic.storage.sqlite_storage import StorageError, initialize_database
 
 
 def boot():
@@ -16,8 +21,23 @@ def boot():
     Determines startup mode and launches the correct UI.
     """
 
+    # Internal updater arguments are consumed before public CLI routing. Reaching
+    # this point confirms that the replacement process and its core imports work.
+    arguments, health_token = consume_health_argument(sys.argv[1:])
+    if health_token:
+        build_info = load_build_info()
+        try:
+            install_root = str(resolve_install_root(build_info))
+        except UpdateConfigurationError:
+            install_root = ""
+        try:
+            confirm_startup_health(health_token, install_root)
+        except UpdateError as exc:
+            print(f"SchedPlus update startup check failed: {exc}", file=sys.stderr)
+            return 1
+
     # 1. Determine mode from CLI flags
-    mode = determine_startup_mode(sys.argv[1:])
+    mode = determine_startup_mode(arguments)
 
     # 2. If invalid flag -> stop
     if mode == StartupMode.INVALID:
@@ -26,6 +46,7 @@ def boot():
     # 3. If no flags -> show popup selector
     if mode == StartupMode.POPUP:
         from .selector import StartupSelector
+
         selector = StartupSelector()
         mode = selector.show()
 
@@ -44,6 +65,7 @@ def _launch_mode(mode: StartupMode):
     """
 
     from logic.scheduler import Scheduler
+
     scheduler = Scheduler()
     try:
         recovery = initialize_database()
@@ -78,6 +100,7 @@ def _launch_mode(mode: StartupMode):
 
     elif mode == StartupMode.CLI:
         from cli.cli_main import run_cli
+
         if startup_notice:
             print(f"Database recovery: {startup_notice}", file=sys.stderr)
         return run_cli(scheduler)
