@@ -1,0 +1,76 @@
+name: Build SchedPlus Windows packages
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/build-windows-packages.yml
+      - packaging/pyinstaller/**
+      - packaging/windows/**
+      - scripts/build_windows_packages.py
+      - scripts/validate_windows_artifacts.py
+      - src/**
+      - assets/**
+      - pyproject.toml
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          python -m pip install ".[full]"
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress --yes
+      - name: Build all frozen editions
+        run: |
+          pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-standard.spec
+          pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-lite.spec
+          pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-full.spec
+          pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-cli.spec
+      - name: Build portable ZIPs and Standard installer
+        shell: pwsh
+        run: |
+          $version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])"
+          $iscc = (Get-Command ISCC.exe -ErrorAction Stop).Source
+          python scripts/build_windows_packages.py --frozen-root dist --output-dir artifacts/windows --version $version --iscc $iscc
+      - name: Validate release artifacts and checksums
+        shell: pwsh
+        run: |
+          $version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])"
+          python scripts/validate_windows_artifacts.py --output-dir artifacts/windows --version $version
+      - name: Smoke-test portable CLI
+        shell: pwsh
+        run: |
+          $portable = Get-ChildItem artifacts/windows/SchedPlus-CLI-*-windows-x86_64.zip | Select-Object -First 1
+          Expand-Archive -Path $portable.FullName -DestinationPath portable-cli
+          $cli = Get-ChildItem portable-cli -Recurse -Filter SchedPlusCli.exe | Select-Object -First 1
+          & $cli.FullName --help
+      - name: Smoke-test installer, upgrade, and uninstall data preservation
+        shell: pwsh
+        run: |
+          $databaseDirectory = Join-Path $env:APPDATA 'ZFordDev\SchedPlus'
+          New-Item -ItemType Directory -Force -Path $databaseDirectory | Out-Null
+          $database = Join-Path $databaseDirectory 'tasks.db'
+          Set-Content -Path $database -Value 'preserved-task-data' -NoNewline
+          $installer = Get-ChildItem artifacts/windows/SchedPlus-Setup-*-windows-x86_64.exe | Select-Object -First 1
+          $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-')
+          Start-Process -FilePath $installer.FullName -ArgumentList $arguments -Wait
+          $installRoot = Join-Path $env:LOCALAPPDATA 'Programs\SchedPlus'
+          if (!(Test-Path (Join-Path $installRoot 'SchedPlusStandard.exe'))) { throw 'installer did not install Standard' }
+          if (!(Test-Path (Join-Path $installRoot 'SOURCE.txt'))) { throw 'installer did not install source information' }
+          $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\SchedPlus\SchedPlus.lnk'
+          if (!(Test-Path $shortcut)) { throw 'installer did not add Start Menu shortcut' }
+          Start-Process -FilePath $installer.FullName -ArgumentList $arguments -Wait
+          if ((Get-Content -Raw $database) -ne 'preserved-task-data') { throw 'upgrade changed user data' }
+          Start-Process -FilePath (Join-Path $installRoot 'unins000.exe') -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
+          if ((Get-Content -Raw $database) -ne 'preserved-task-data') { throw 'uninstall removed user data' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schedplus-windows-packages
+          path: artifacts/windows/*

@@ -18,6 +18,7 @@ ASSETS = [
     (str(PROJECT_ROOT / "NOTICE"), "licenses"),
 ]
 ICON = str(PROJECT_ROOT / "assets" / "windows" / "SchedPlus.ico")
+VERSION_INFO = str(PROJECT_ROOT / "packaging" / "pyinstaller" / "version_info.txt")
 
 
 def build(
@@ -54,6 +55,7 @@ def build(
         upx=False,
         console=console,
         icon=ICON if sys.platform == "win32" else None,
+        version=VERSION_INFO if sys.platform == "win32" else None,
     )
     return COLLECT(
         executable,
