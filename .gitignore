@@ -52,6 +52,7 @@ packaging/deb/DEBIAN/
 dist/
 build/
 *.spec
+!packaging/pyinstaller/*.spec
 *.exe
 *.egg-info
 # ────────────────────────────────────────────────
