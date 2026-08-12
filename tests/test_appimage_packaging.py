@@ -77,6 +77,7 @@ def test_appimagetool_download_is_pinned_cached_and_retried():
     )
 
     assert "actions/cache@v4" in workflow
-    assert "AppImage/appimagetool/releases/download/1.9.1" in workflow
-    assert "--retry 10 --retry-all-errors" in workflow
+    assert "gh release download 1.9.1" in workflow
+    assert "--repo AppImage/appimagetool" in workflow
+    assert "GH_TOKEN: ${{ github.token }}" in workflow
     assert "AppImage/AppImageKit/releases/download/continuous" not in workflow
