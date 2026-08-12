@@ -51,6 +51,7 @@ packaging/deb/DEBIAN/
 # PyInstaller / Windows builds
 dist/
 build/
+artifacts/
 *.spec
 !packaging/pyinstaller/*.spec
 *.exe

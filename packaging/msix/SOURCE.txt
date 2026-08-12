@@ -1,0 +1,9 @@
+SchedPlus source and license information
+==========================================
+
+Source repository: https://github.com/ZFordDev/SchedPlus
+Source releases: https://github.com/ZFordDev/SchedPlus/releases
+
+SchedPlus is GPL-3.0-only. Reusable modules under src/logic are Apache-2.0.
+See LICENSE, LICENSES/, and NOTICE in this package for the complete license
+texts, legacy MIT attribution, and licensing boundary.
