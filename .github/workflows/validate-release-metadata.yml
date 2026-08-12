@@ -1,0 +1,31 @@
+name: Validate release metadata
+
+on:
+  pull_request:
+    paths:
+      - assets/icons/**
+      - assets/windows/**
+      - packaging/metadata/**
+      - scripts/generate_release_assets.py
+      - scripts/validate_release_metadata.py
+      - tests/test_release_metadata.py
+  push:
+    branches:
+      - main
+    paths:
+      - assets/icons/**
+      - assets/windows/**
+      - packaging/metadata/**
+      - scripts/generate_release_assets.py
+      - scripts/validate_release_metadata.py
+      - tests/test_release_metadata.py
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python scripts/validate_release_metadata.py

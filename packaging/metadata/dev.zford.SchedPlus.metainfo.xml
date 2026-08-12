@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.zford.SchedPlus</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>SchedPlus</name>
+  <summary>A modern, local-first scheduler</summary>
+  <description>
+    <p>SchedPlus is a local-first task scheduler for planning tasks and time without an account or network connection.</p>
+    <p>It provides lightweight Tkinter and advanced PyQt desktop workspaces, a native calendar, SQLite persistence, and a scriptable command-line interface.</p>
+  </description>
+  <launchable type="desktop-id">dev.zford.SchedPlus.desktop</launchable>
+  <developer id="dev.zford">
+    <name>ZFordDev</name>
+  </developer>
+  <url type="homepage">https://github.com/ZFordDev/SchedPlus</url>
+  <url type="bugtracker">https://github.com/ZFordDev/SchedPlus/issues</url>
+  <url type="vcs-browser">https://github.com/ZFordDev/SchedPlus</url>
+  <url type="contribute">https://github.com/ZFordDev/SchedPlus/blob/main/CONTRIBUTING.md</url>
+  <provides>
+    <binary>schedplus</binary>
+    <binary>schedplus-full</binary>
+    <binary>schedplus-standard</binary>
+    <binary>schedplus-lite</binary>
+    <binary>schedplus-cli</binary>
+    <id>dev.zford.SchedPlus</id>
+  </provides>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.7.3" date="2026-08-12" />
+  </releases>
+</component>
