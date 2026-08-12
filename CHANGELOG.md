@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Store Snap task data under `SNAP_USER_COMMON` so it persists across package
+  revisions, with safe normal-Linux fallback when that variable is unavailable.
 - Added shared release metadata for the stable `dev.zford.SchedPlus`
   application identity, including Linux desktop and AppStream metadata,
   validated icon assets, a multi-resolution Windows ICO, Store asset guidance,

@@ -6,30 +6,64 @@ from logic.storage import paths
 
 
 @pytest.mark.parametrize(
-    ("platform", "appdata", "expected"),
+    ("platform", "appdata", "snap_user_common", "expected"),
     [
-        ("linux", None, Path("/home/test/.local/share/ZFordDev/SchedPlus")),
+        ("linux", None, None, Path("/home/test/.local/share/ZFordDev/SchedPlus")),
         (
             "darwin",
+            None,
             None,
             Path("/home/test/Library/Application Support/ZFordDev/SchedPlus"),
         ),
         (
             "win32",
             "C:/Users/Test/AppData/Roaming",
+            None,
             Path("C:/Users/Test/AppData/Roaming/ZFordDev/SchedPlus"),
+        ),
+        (
+            "linux",
+            None,
+            "/home/test/snap/schedplus/common",
+            Path("/home/test/snap/schedplus/common/SchedPlus"),
         ),
     ],
 )
-def test_user_data_directory(monkeypatch, platform, appdata, expected):
+def test_user_data_directory(monkeypatch, platform, appdata, snap_user_common, expected):
     monkeypatch.setattr(paths.sys, "platform", platform)
     monkeypatch.setattr(paths.Path, "home", lambda: Path("/home/test"))
     if appdata is None:
         monkeypatch.delenv("APPDATA", raising=False)
     else:
         monkeypatch.setenv("APPDATA", appdata)
+    if snap_user_common is None:
+        monkeypatch.delenv("SNAP_USER_COMMON", raising=False)
+    else:
+        monkeypatch.setenv("SNAP_USER_COMMON", snap_user_common)
 
     assert paths.user_data_directory() == expected
+
+
+def test_empty_snap_common_falls_back_to_normal_linux_location(monkeypatch):
+    monkeypatch.setattr(paths.sys, "platform", "linux")
+    monkeypatch.setattr(paths.Path, "home", lambda: Path("/home/test"))
+    monkeypatch.setenv("SNAP_USER_COMMON", "   ")
+
+    assert paths.user_data_directory() == Path(
+        "/home/test/.local/share/ZFordDev/SchedPlus"
+    )
+
+
+def test_snap_database_path_stays_stable_when_revision_home_changes(monkeypatch):
+    monkeypatch.setattr(paths.sys, "platform", "linux")
+    monkeypatch.setenv("SNAP_USER_COMMON", "/home/test/snap/schedplus/common")
+    monkeypatch.setattr(paths.Path, "home", lambda: Path("/home/test/snap/schedplus/12"))
+    before_refresh = paths.database_path()
+    monkeypatch.setattr(paths.Path, "home", lambda: Path("/home/test/snap/schedplus/13"))
+
+    assert before_refresh == paths.database_path() == Path(
+        "/home/test/snap/schedplus/common/SchedPlus/tasks.db"
+    )
 
 
 def test_prepare_database_moves_legacy_database(monkeypatch, tmp_path, caplog):
