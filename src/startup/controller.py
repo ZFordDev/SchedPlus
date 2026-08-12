@@ -16,10 +16,32 @@ from .modes import StartupMode
 
 
 def boot():
-    """
-    Main entrypoint for SchedPlus startup.
-    Determines startup mode and launches the correct UI.
-    """
+    """Run the legacy flexible launcher used by ``schedplus``."""
+    return boot_full()
+
+
+def boot_full():
+    """Run the Full edition launcher, including the interface selector."""
+    return _boot()
+
+
+def boot_standard():
+    """Run the Standard edition directly in the PyQt interface."""
+    return _boot(StartupMode.PYQT)
+
+
+def boot_lite():
+    """Run the Lite edition directly in the Tkinter interface."""
+    return _boot(StartupMode.TK)
+
+
+def boot_cli():
+    """Run the CLI edition directly through command parsing."""
+    return _boot(StartupMode.CLI)
+
+
+def _boot(forced_mode: StartupMode | None = None):
+    """Perform shared startup before launching a selected edition mode."""
 
     # Internal updater arguments are consumed before public CLI routing. Reaching
     # this point confirms that the replacement process and its core imports work.
@@ -36,8 +58,10 @@ def boot():
             print(f"SchedPlus update startup check failed: {exc}", file=sys.stderr)
             return 1
 
-    # 1. Determine mode from CLI flags
-    mode = determine_startup_mode(arguments)
+    # The full launcher retains the legacy selector and flag routing. Dedicated
+    # editions deliberately skip flag routing so a frozen build starts only the
+    # interface it contains.
+    mode = forced_mode or determine_startup_mode(arguments)
 
     # 2. If invalid flag -> stop
     if mode == StartupMode.INVALID:
@@ -52,13 +76,13 @@ def boot():
 
         if mode is None:
             print("Startup cancelled.")
-            return
+            return 0
 
     # 4. Route to correct UI
-    return _launch_mode(mode)
+    return _launch_mode(mode, arguments)
 
 
-def _launch_mode(mode: StartupMode):
+def _launch_mode(mode: StartupMode, arguments: list[str] | None = None):
     """
     Launch the appropriate UI based on the resolved mode.
     Lazy imports ensure no heavy UI frameworks load unless needed.
@@ -81,7 +105,7 @@ def _launch_mode(mode: StartupMode):
             from ui.tkinter_ui import run_ui
         except Exception:
             print("Tkinter UI is not available on this system.")
-            return
+            return 1
 
         print("[Startup] Launching Tkinter UI...")
         run_ui(scheduler, startup_notice=startup_notice)
@@ -92,7 +116,7 @@ def _launch_mode(mode: StartupMode):
             from ui.pyqt_ui import run_pyqt_ui
         except Exception:
             print("PyQt UI is not available on this system.")
-            return
+            return 1
 
         print("[Startup] Launching PyQt UI...")
         run_pyqt_ui(scheduler, startup_notice=startup_notice)
@@ -103,7 +127,7 @@ def _launch_mode(mode: StartupMode):
 
         if startup_notice:
             print(f"Database recovery: {startup_notice}", file=sys.stderr)
-        return run_cli(scheduler)
+        return run_cli(scheduler, arguments)
 
     else:
         print(f"[Startup] Unknown mode: {mode}")

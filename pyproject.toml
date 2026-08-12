@@ -60,7 +60,12 @@ Repository = "https://github.com/ZFordDev/schedplus.git"
 Changelog = "https://github.com/ZFordDev/schedplus/blob/main/CHANGELOG.md"
 
 [project.scripts]
-schedplus = "schedplus.__main__:boot"
+# ``schedplus`` remains the flexible Full launcher for source installs.
+schedplus = "startup.controller:boot_full"
+schedplus-full = "startup.controller:boot_full"
+schedplus-standard = "startup.controller:boot_standard"
+schedplus-lite = "startup.controller:boot_lite"
+schedplus-cli = "startup.controller:boot_cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
