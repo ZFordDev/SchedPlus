@@ -1,10 +1,9 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 import pytest
 
 from scripts import build_appimage
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -70,3 +69,14 @@ def test_appimage_smoke_test_uses_host_graphics_runtime_without_x11():
     assert "libgl1" in workflow
     assert "QT_QPA_PLATFORM=offscreen" in workflow
     assert "Xvfb" not in workflow
+
+
+def test_appimagetool_download_is_pinned_cached_and_retried():
+    workflow = (PROJECT_ROOT / ".github" / "workflows" / "build-appimage.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "actions/cache@v4" in workflow
+    assert "AppImage/appimagetool/releases/download/1.9.1" in workflow
+    assert "--retry 10 --retry-all-errors" in workflow
+    assert "AppImage/AppImageKit/releases/download/continuous" not in workflow
