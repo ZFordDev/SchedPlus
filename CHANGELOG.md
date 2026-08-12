@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added Standard, Lite, Full, and CLI Windows portable ZIP builds and a
+  per-user Standard installer with Start Menu integration, uninstallation,
+  source disclosures, checksums, and clean-runner lifecycle tests.
+- Added a Standard-only Microsoft Store MSIX manifest, Store visual-asset
+  generation, manual CI package build, release-listing material, and packaging
+  validation. Store publication remains manually controlled.
+- Documented v0.8.0 editions, package formats, installation, upgrades,
+  data retention, licensing, and source availability in the repository and
+  DocsHub guides.
 - Added a portable Standard-edition AppImage build with checksum generation,
   extraction fallback testing, and read-only runtime behavior.
 - Added release-grade Debian packaging for Standard, Lite, and CLI frozen
