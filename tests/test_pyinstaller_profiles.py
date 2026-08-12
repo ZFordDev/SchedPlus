@@ -43,6 +43,13 @@ def test_standard_profile_bundles_the_lazily_imported_pyqt_interface():
         assert f'"{module}"' in source
 
 
+def test_windows_builds_embed_the_icon_and_version_resource():
+    source = (SPEC_DIRECTORY / "common.py").read_text(encoding="utf-8")
+
+    assert "version=VERSION_INFO if sys.platform == \"win32\" else None" in source
+    assert "icon=ICON if sys.platform == \"win32\" else None" in source
+
+
 @pytest.mark.parametrize("edition", EDITION_CONFIG)
 def test_artifact_validator_accepts_complete_edition_directory(tmp_path, edition):
     artifact = tmp_path / EDITION_CONFIG[edition]["directory"]
