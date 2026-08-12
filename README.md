@@ -42,12 +42,26 @@ cd SchedPlus
 
 python -m venv .venv
 source .venv/bin/activate
-pip install -e .
+pip install -e ".[full]"
 
 schedplus
 ```
 
 On Windows, activate the virtual environment with `.venv\Scripts\activate` before running the remaining commands.
+
+SchedPlus can also be installed with only the dependencies needed by a specific
+interface:
+
+```bash
+pip install -e .             # Core scheduler, updater, and CLI
+pip install -e ".[lite]"      # Core plus the lightweight Tkinter interface
+pip install -e ".[standard]"  # Core plus the advanced PyQt interface
+pip install -e ".[full]"      # Every supported interface
+```
+
+Tkinter itself is supplied by Python or your operating system; the `lite` extra
+adds `tkcalendar`. On some Linux distributions, a package such as `python3-tk`
+must be installed separately.
 
 ## Usage
 
@@ -110,6 +124,9 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```
+
+The development profile includes both desktop interfaces along with the test,
+formatting, and linting tools.
 
 ## Project status and roadmap
 

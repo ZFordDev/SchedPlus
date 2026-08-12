@@ -31,3 +31,6 @@
   manifests, verified background downloads, external installation handoff,
   atomic managed-install swaps, startup health checks, and last-known-good
   rollback. Source, Snap, and Microsoft Store builds remain opted out.
+- Split runtime dependencies into core/CLI, Lite, Standard, and Full profiles.
+  Removed unused Babel and direct Qt runtime implementation pins; contributor
+  installs retain all interfaces through the development profile.
