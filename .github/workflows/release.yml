@@ -102,33 +102,3 @@ jobs:
           prerelease: ${{ startsWith(github.ref_name, 'pre-release-') }}
           generate_release_notes: true
           files: release-artifacts/*
-
-  publish-snap:
-    needs: [validate, appimage, debian, windows, snap, draft-release]
-    runs-on: ubuntu-24.04
-    environment: snap-store-candidate
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: schedplus-standard-snap
-          path: artifacts/snap
-      - name: Select Store channel
-        id: channel
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          if [[ "$TAG" == *rc* || "$TAG" == release-* ]]; then
-            echo 'name=candidate' >> "$GITHUB_OUTPUT"
-          else
-            echo 'name=edge' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Locate verified Snap
-        id: package
-        run: echo "path=$(find artifacts/snap -name '*.snap' -print -quit)" >> "$GITHUB_OUTPUT"
-      - name: Publish approved candidate
-        uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.package.outputs.path }}
-          release: ${{ steps.channel.outputs.name }}

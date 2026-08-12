@@ -17,9 +17,8 @@ def test_release_workflow_gates_draft_on_every_independent_builder():
     assert "anchore/sbom-action@v0" in workflow
     assert "sudo apt-get install --yes libegl1 libgl1" in workflow
     assert "QT_QPA_PLATFORM=offscreen python -m pytest -q" in workflow
-    assert "environment: snap-store-candidate" in workflow
-    assert "needs: [validate, appimage, debian, windows, snap, draft-release]" in workflow
-    assert "SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}" in workflow
+    assert "snapcore/action-publish" not in workflow
+    assert "SNAPCRAFT_STORE_CREDENTIALS" not in workflow
 
 
 def test_release_verifier_reports_missing_payload(tmp_path):

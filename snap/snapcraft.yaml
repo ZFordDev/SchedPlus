@@ -1,6 +1,8 @@
 name: schedplus
 base: core24
 version: "0.8.0"
+platforms:
+  amd64:
 summary: Plan tasks and time with a local-first scheduler
 description: |
   SchedPlus Standard is a modern, local-first scheduler for planning tasks and

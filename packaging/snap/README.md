@@ -38,14 +38,16 @@ revisions, so automatic refreshes preserve tasks. The package requests `home`
 for user-selected files; the GNOME extension supplies the desktop, Wayland,
 X11, settings, theme, and OpenGL interfaces needed by PyQt.
 
-## Publishing policy
+## Build service and publishing policy
 
-- Non-RC `pre-release-*` tags publish to `edge`.
-- Tags containing an `-rc`, and `release-*` tags, publish to `candidate`.
-- `stable` is only available from a manual workflow dispatch with
-  `publish_stable` enabled. Configure required reviewers on the
-  `snap-store-stable` GitHub environment so that job must be approved before
-  Store publication.
+The Snap Store is linked directly to `ZFordDev/SchedPlus` and uses Canonical's
+build service. GitHub Actions independently builds an amd64 candidate for the
+unified draft Release, but it holds no Snap Store credentials and never
+publishes a Store revision.
 
-The repository secret `SNAPCRAFT_STORE_CREDENTIALS` must be scoped to the
-registered `schedplus` snap.
+After every platform artifact has passed and the draft GitHub Release exists,
+release the corresponding Canonical-built revision manually in the Snapcraft
+dashboard: trial prereleases go to `edge`, release candidates to `candidate`,
+and production releases are promoted to `stable` only after final approval.
+The manifest currently limits Store builds to amd64, the architecture tested
+by the release workflow.

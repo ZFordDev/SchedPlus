@@ -11,12 +11,6 @@ on:
       - src/**
       - tests/test_snap_packaging.py
   workflow_dispatch:
-    inputs:
-      publish_stable:
-        description: Publish this revision to the stable channel
-        required: true
-        default: false
-        type: boolean
 
 jobs:
   build:
@@ -40,54 +34,3 @@ jobs:
         with:
           name: schedplus-standard-snap
           path: ${{ steps.snapcraft.outputs.snap }}
-
-  publish-prerelease:
-    if: github.event_name != 'workflow_call' && startsWith(github.ref, 'refs/tags/')
-    needs: build
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: schedplus-standard-snap
-          path: artifacts/snap
-      - name: Locate downloaded Snap
-        id: snap
-        run: echo "path=$(find artifacts/snap -name '*.snap' -print -quit)" >> "$GITHUB_OUTPUT"
-      - name: Select edge or candidate channel
-        id: channel
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          if [[ "$TAG" == release-* || "$TAG" == *-rc || "$TAG" == *-rc.* || "$TAG" == *-rc-* ]]; then
-            echo 'name=candidate' >> "$GITHUB_OUTPUT"
-          else
-            echo 'name=edge' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Publish tagged build
-        uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.snap.outputs.path }}
-          release: ${{ steps.channel.outputs.name }}
-
-  publish-stable:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish_stable
-    needs: build
-    runs-on: ubuntu-24.04
-    environment: snap-store-stable
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: schedplus-standard-snap
-          path: artifacts/snap
-      - name: Locate downloaded Snap
-        id: snap
-        run: echo "path=$(find artifacts/snap -name '*.snap' -print -quit)" >> "$GITHUB_OUTPUT"
-      - name: Publish manually approved stable build
-        uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.snap.outputs.path }}
-          release: stable

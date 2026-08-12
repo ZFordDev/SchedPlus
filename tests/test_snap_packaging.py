@@ -12,6 +12,7 @@ def test_committed_manifest_packages_standard_with_strict_confinement():
 
     assert "name: schedplus" in manifest
     assert "base: core24" in manifest
+    assert "platforms:\n  amd64:" in manifest
     assert "confinement: strict" in manifest
     assert 'version: "' in manifest
     assert "command: bin/schedplus-standard" in manifest
@@ -66,14 +67,17 @@ def test_snap_desktop_assets_use_registered_identity():
 
 def test_snap_release_channels_and_manual_stable_gate_are_explicit():
     workflow = WORKFLOW.read_text(encoding="utf-8")
+    documentation = (PROJECT_ROOT / "packaging" / "snap" / "README.md").read_text(
+        encoding="utf-8"
+    )
 
-    assert "name=edge" in workflow
-    assert "name=candidate" in workflow
-    assert "environment: snap-store-stable" in workflow
-    assert "github.event_name == 'workflow_dispatch' && inputs.publish_stable" in workflow
-    assert "release: stable" in workflow
+    assert "snapcore/action-publish" not in workflow
+    assert "SNAPCRAFT_STORE_CREDENTIALS" not in workflow
     assert "Dynamically Generate Snapcraft Manifest" not in workflow
     assert "python3 scripts/sync_release_versions.py" in workflow
+    assert "trial prereleases go to `edge`" in documentation
+    assert "release candidates to `candidate`" in documentation
+    assert "promoted to `stable` only after final approval" in documentation
 
 
 def test_workflow_leaves_store_refresh_testing_to_supported_manual_hosts():
