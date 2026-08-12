@@ -9,9 +9,9 @@ from typing import TextIO
 
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
+from updater.errors import UpdateError
 
-
-COMMANDS = {"add", "list", "edit", "delete"}
+COMMANDS = {"add", "list", "edit", "delete", "update"}
 
 
 class CommandError(ValueError):
@@ -23,14 +23,14 @@ def build_parser() -> argparse.ArgumentParser:
         prog="schedplus",
         description="Manage SchedPlus tasks from the command line.",
     )
-    subparsers = parser.add_subparsers(
-        dest="command", metavar="COMMAND", required=True
-    )
+    subparsers = parser.add_subparsers(dest="command", metavar="COMMAND", required=True)
 
     add_parser = subparsers.add_parser("add", help="Create a task")
     add_parser.add_argument("text", help="Task description")
     add_parser.add_argument("--date", required=True, help="Date in YYYY-MM-DD format")
-    add_parser.add_argument("--time", required=True, help="Time in 24-hour HH:MM format")
+    add_parser.add_argument(
+        "--time", required=True, help="Time in 24-hour HH:MM format"
+    )
     add_parser.set_defaults(handler=_add_task)
 
     list_parser = subparsers.add_parser("list", help="List tasks")
@@ -56,6 +56,19 @@ def build_parser() -> argparse.ArgumentParser:
     delete_parser.add_argument("id", help="Full task ID or unambiguous ID prefix")
     delete_parser.set_defaults(handler=_delete_task)
 
+    update_parser = subparsers.add_parser("update", help="Manage application updates")
+    update_commands = update_parser.add_subparsers(
+        dest="update_command", metavar="ACTION", required=True
+    )
+    for action, help_text in (
+        ("check", "Check for a compatible release"),
+        ("install", "Download, verify, and install a compatible release"),
+        ("status", "Show the last updater transaction"),
+        ("rollback", "Restore the last-known-good managed release"),
+    ):
+        command = update_commands.add_parser(action, help=help_text)
+        command.set_defaults(handler=_update_application)
+
     return parser
 
 
@@ -79,6 +92,9 @@ def run_command(
         return 2
     except StorageError as exc:
         print(f"Database error: {exc}", file=stderr)
+        return 1
+    except UpdateError as exc:
+        print(f"Update error: {exc}", file=stderr)
         return 1
 
 
@@ -140,6 +156,45 @@ def _delete_task(options, scheduler, stdout):
     return 0
 
 
+def _update_application(options, scheduler, stdout):
+    from updater.checker import check_for_update
+    from updater.config import load_build_info, resolve_install_root
+    from updater.installer import rollback_managed_update
+    from updater.service import launch_prepared_update, prepare_update
+    from updater.state import read_state
+
+    info = load_build_info()
+    if options.update_command == "status":
+        state = read_state()
+        print(f"Updater status: {state.status}", file=stdout)
+        if state.current_version:
+            print(f"Current version: {state.current_version}", file=stdout)
+        if state.target_version:
+            print(f"Target version: {state.target_version}", file=stdout)
+        if state.message:
+            print(state.message, file=stdout)
+        return 0
+    if options.update_command == "check":
+        result = check_for_update(info)
+        if result.available:
+            print(f"SchedPlus {result.latest_version} is available.", file=stdout)
+        else:
+            print(f"SchedPlus {info.version} is up to date.", file=stdout)
+        return 0
+    if options.update_command == "rollback":
+        rollback_managed_update(resolve_install_root(info))
+        print("The previous SchedPlus version has been restored.", file=stdout)
+        return 0
+
+    prepared = prepare_update(info)
+    launch_prepared_update(info, prepared)
+    print(
+        f"SchedPlus {prepared.check.latest_version} is ready. Closing to install it.",
+        file=stdout,
+    )
+    return 0
+
+
 def _resolve_task(scheduler, identifier):
     identifier = identifier.strip().lower()
     if not identifier:
@@ -150,9 +205,7 @@ def _resolve_task(scheduler, identifier):
         return exact[0]
 
     matches = [
-        task
-        for task in scheduler.get_tasks()
-        if task.id.lower().startswith(identifier)
+        task for task in scheduler.get_tasks() if task.id.lower().startswith(identifier)
     ]
     if not matches:
         raise CommandError(f"no task matches ID '{identifier}'")

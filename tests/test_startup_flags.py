@@ -17,6 +17,8 @@ def test_removed_dev_flag_is_invalid(capsys):
     assert "--dev" not in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("command", ["add", "list", "edit", "delete", "--help"])
+@pytest.mark.parametrize(
+    "command", ["add", "list", "edit", "delete", "update", "--help"]
+)
 def test_direct_commands_route_to_cli(command):
     assert determine_startup_mode([command]) is StartupMode.CLI

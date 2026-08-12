@@ -1,6 +1,7 @@
 """Lightweight, user-friendly Tkinter interface for SchedPlus."""
 
 import logging
+import queue
 import tkinter as tk
 from datetime import date, datetime
 from tkinter import messagebox, ttk
@@ -9,8 +10,16 @@ from logic.scheduler import Scheduler
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from tkcalendar import Calendar
+from updater.background import start_automatic_update
+from updater.config import load_build_info
+from updater.errors import UpdateError
+from updater.preferences import (
+    UpdatePreferences,
+    load_update_preferences,
+    save_update_preferences,
+)
+from updater.service import launch_prepared_update
 from ui.shortcuts import bind_enter_key
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -247,12 +256,8 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         hour = tk.StringVar(value=now.strftime("%H"))
         minute = tk.StringVar(value=now.strftime("%M"))
 
-        ttk.Label(content, text="Hour").grid(
-            row=0, column=0, sticky="w", padx=(0, 8)
-        )
-        ttk.Label(content, text="Minute").grid(
-            row=0, column=1, sticky="w", padx=(8, 0)
-        )
+        ttk.Label(content, text="Hour").grid(row=0, column=0, sticky="w", padx=(0, 8))
+        ttk.Label(content, text="Minute").grid(row=0, column=1, sticky="w", padx=(8, 0))
         ttk.Spinbox(
             content,
             from_=0,
@@ -355,6 +360,65 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             text=message,
             style="Success.Status.TLabel" if success else "Status.TLabel",
         )
+
+    update_events: queue.SimpleQueue = queue.SimpleQueue()
+
+    def offer_prepared_update(build_info, prepared) -> None:
+        accepted = messagebox.askyesno(
+            "SchedPlus update ready",
+            f"SchedPlus {prepared.check.latest_version} is ready to install.\n\n"
+            "Restart now to complete the update?",
+            parent=root,
+        )
+        if not accepted:
+            set_status("Update postponed")
+            return
+        try:
+            launch_prepared_update(build_info, prepared)
+        except UpdateError as exc:
+            messagebox.showerror("Unable to install update", str(exc), parent=root)
+            return
+        root.destroy()
+
+    def poll_update_events() -> None:
+        while not update_events.empty():
+            kind, payload = update_events.get()
+            if kind == "ready":
+                offer_prepared_update(*payload)
+            else:
+                set_status(f"Update check failed: {payload}")
+        root.after(250, poll_update_events)
+
+    update_preferences = load_update_preferences()
+    automatic_updates = tk.BooleanVar(
+        root, value=update_preferences.check_automatically
+    )
+
+    def save_automatic_update_setting() -> None:
+        try:
+            save_update_preferences(UpdatePreferences(automatic_updates.get()))
+            set_status("Update preference saved", success=True)
+        except UpdateError as exc:
+            messagebox.showerror(
+                "Unable to save update settings", str(exc), parent=root
+            )
+
+    application_menu = tk.Menu(root)
+    settings_menu = tk.Menu(application_menu, tearoff=False)
+    settings_menu.add_checkbutton(
+        label="Check for updates automatically",
+        variable=automatic_updates,
+        command=save_automatic_update_setting,
+        state="normal" if load_build_info().internally_managed else "disabled",
+    )
+    application_menu.add_cascade(label="Settings", menu=settings_menu)
+    root.configure(menu=application_menu)
+
+    start_automatic_update(
+        lambda info, prepared: update_events.put(("ready", (info, prepared))),
+        lambda message: update_events.put(("error", message)),
+    )
+    root.after(250, poll_update_events)
 
     def add_task() -> bool:
         try:
