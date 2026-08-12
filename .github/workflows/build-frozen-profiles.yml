@@ -1,0 +1,56 @@
+name: Build frozen SchedPlus profiles
+
+on:
+  pull_request:
+    paths:
+      - packaging/pyinstaller/**
+      - assets/**
+      - src/**
+      - pyproject.toml
+      - scripts/validate_frozen_artifact.py
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - edition: standard
+            directory: SchedPlusStandard
+          - edition: lite
+            directory: SchedPlusLite
+          - edition: full
+            directory: SchedPlusFull
+          - edition: cli
+            directory: SchedPlusCli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install edition dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          if ('${{ matrix.edition }}' -eq 'cli') {
+            python -m pip install .
+          } else {
+            python -m pip install ".[${{ matrix.edition }}]"
+          }
+      - name: Build onedir artifact
+        run: >-
+          pyinstaller --noconfirm --distpath dist --workpath build
+          packaging/pyinstaller/schedplus-${{ matrix.edition }}.spec
+      - name: Validate artifact contents
+        run: >-
+          python scripts/validate_frozen_artifact.py --edition ${{ matrix.edition }}
+          --directory dist/${{ matrix.directory }}
+      - name: Smoke-test frozen CLI
+        if: matrix.edition == 'cli'
+        run: .\dist\SchedPlusCli\SchedPlusCli.exe --help
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schedplus-${{ matrix.edition }}-onedir
+          path: dist/${{ matrix.directory }}
