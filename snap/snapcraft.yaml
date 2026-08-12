@@ -1,0 +1,32 @@
+name: schedplus
+base: core24
+version: "0.8.0"
+summary: Plan tasks and time with a local-first scheduler
+description: |
+  SchedPlus Standard is a modern, local-first scheduler for planning tasks and
+  time without an account or network connection. Its PyQt desktop workspace
+  includes task management and native calendar views backed by local SQLite
+  storage.
+grade: stable
+confinement: strict
+license: GPL-3.0-only
+website: https://github.com/ZFordDev/SchedPlus
+source-code: https://github.com/ZFordDev/SchedPlus
+issues: https://github.com/ZFordDev/SchedPlus/issues
+icon: snap/gui/schedplus.png
+
+apps:
+  schedplus:
+    command: bin/schedplus-standard
+    extensions: [gnome]
+    plugs:
+      - home
+
+parts:
+  schedplus:
+    plugin: python
+    source: .
+    python-packages:
+      - ".[standard]"
+    build-packages:
+      - python3-dev

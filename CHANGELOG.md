@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Replaced the legacy generated Snap workflow with a committed, strictly
+  confined `schedplus` manifest for the Standard PyQt edition, persistent task
+  storage, desktop integration, clean-install and refresh checks, staged Store
+  channels, and prepared listing copy.
 - Added Standard, Lite, Full, and CLI Windows portable ZIP builds and a
   per-user Standard installer with Start Menu integration, uninstallation,
   source disclosures, checksums, and clean-runner lifecycle tests.
