@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=SchedPlus
+Comment=Plan tasks and time with a local-first scheduler
+Exec=schedplus
+Icon=${SNAP}/meta/gui/schedplus.png
+Terminal=false
+Categories=Office;Calendar;Utility;
+Keywords=schedule;calendar;tasks;planner;productivity;
+StartupNotify=true
+StartupWMClass=SchedPlus

@@ -1,99 +1,111 @@
-name: Build and Publish Snap Package
+name: Build and publish SchedPlus Standard Snap
 
 on:
+  pull_request:
+    paths:
+      - .github/workflows/build-snap.yml
+      - snap/**
+      - packaging/snap/**
+      - pyproject.toml
+      - src/**
+      - tests/test_snap_packaging.py
   push:
     tags:
-      - 'release-*'
-      - 'pre-release-*'
+      - release-*
+      - pre-release-*
+  workflow_dispatch:
+    inputs:
+      publish_stable:
+        description: Publish this revision to the stable channel
+        required: true
+        default: false
+        type: boolean
 
 jobs:
-  package-snap:
-    runs-on: ubuntu-latest
-
+  build:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.11'
-
-      - name: Extract absolute version
-        id: get_version
-        run: |
-          VERSION=$(python3 -c "
-          for line in open('pyproject.toml'):
-              if line.strip().startswith('version ='):
-                  print(line.split('=')[1].strip().strip('\"\''))
-                  break
-          ")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Extracted version for Snap: $VERSION"
-
-      - name: Dynamically Generate Snapcraft Manifest
-        run: |
-          mkdir -p snap
-          cat <<EOF > snap/snapcraft.yaml
-          name: schedplus
-          base: core24
-          version: '${{ env.VERSION }}'
-          summary: A modern, local-first scheduler for tasks and time.
-          description: |
-            SchedPlus is a modern, local-first scheduler for planning tasks and
-            time without an account or network connection. It includes native
-            desktop workspaces, a calendar, SQLite persistence, and a CLI.
-          grade: stable
-          confinement: strict
-          apps:
-            schedplus:
-              command: bin/schedplus-full
-              extensions: [gnome]
-              plugs:
-                - home
-                - network
-            
-          parts:
-            schedplus:
-              plugin: python
-              source: .
-              python-packages:
-                - .
-              build-packages:
-                - build-essential
-                - python3-dev
-              stage-packages:
-                - libgl1-mesa-glx
-          EOF
-          echo "snapcraft.yaml generated successfully."
-
-      - name: Build Snap Package
+      - uses: actions/checkout@v4
+      - name: Set Snap version from project metadata
+        run: python3 scripts/sync_snap_version.py
+      - name: Build committed Snapcraft project
         uses: snapcore/action-build@v1
         id: snapcraft
-
-      - name: Determine Track and Release Status
-        id: check_type
+      - name: Inspect package metadata and desktop integration
         run: |
-          if [[ "${{ github.ref_name }}" == pre-release-* ]]; then
-            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
-            echo "SNAP_CHANNEL=edge" >> $GITHUB_ENV
-          else
-            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
-            echo "SNAP_CHANNEL=candidate" >> $GITHUB_ENV
-          fi
-
-      - name: Upload Package to GitHub Releases
-        uses: softprops/action-gh-release@v3
+          unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/snap.yaml > /tmp/schedplus-snap.yaml
+          grep -F 'name: schedplus' /tmp/schedplus-snap.yaml
+          grep -F 'confinement: strict' /tmp/schedplus-snap.yaml
+          unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Exec=schedplus'
+          unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Icon=${SNAP}/meta/gui/schedplus.png'
+          unsquashfs -ll "${{ steps.snapcraft.outputs.snap }}" | grep -F 'meta/gui/schedplus.png'
+      - name: Install and launch on a clean supported runner
+        run: |
+          sudo snap install --dangerous "${{ steps.snapcraft.outputs.snap }}"
+          QT_QPA_PLATFORM=offscreen snap run schedplus &
+          APP_PID=$!
+          sleep 8
+          kill -0 "$APP_PID"
+          kill "$APP_PID" || true
+          test -f "$HOME/snap/schedplus/common/SchedPlus/tasks.db"
+      - name: Verify refresh-safe task storage
+        run: |
+          DATABASE="$HOME/snap/schedplus/common/SchedPlus/tasks.db"
+          DATABASE_HASH="$(sha256sum "$DATABASE" | cut -d ' ' -f 1)"
+          sudo snap refresh --dangerous "${{ steps.snapcraft.outputs.snap }}"
+          test "$(sha256sum "$DATABASE" | cut -d ' ' -f 1)" = "$DATABASE_HASH"
+      - uses: actions/upload-artifact@v4
         with:
-          files: ${{ steps.snapcraft.outputs.snap }}
-          prerelease: ${{ env.IS_PRERELEASE }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: schedplus-standard-snap
+          path: ${{ steps.snapcraft.outputs.snap }}
 
-      - name: Publish Direct to Canonical Snap Store
+  publish-prerelease:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: schedplus-standard-snap
+          path: artifacts/snap
+      - name: Locate downloaded Snap
+        id: snap
+        run: echo "path=$(find artifacts/snap -name '*.snap' -print -quit)" >> "$GITHUB_OUTPUT"
+      - name: Select edge or candidate channel
+        id: channel
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ "$TAG" == release-* || "$TAG" == *-rc || "$TAG" == *-rc.* || "$TAG" == *-rc-* ]]; then
+            echo 'name=candidate' >> "$GITHUB_OUTPUT"
+          else
+            echo 'name=edge' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish tagged build
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
-          snap: ${{ steps.snapcraft.outputs.snap }}
-          release: ${{ env.SNAP_CHANNEL }}
+          snap: ${{ steps.snap.outputs.path }}
+          release: ${{ steps.channel.outputs.name }}
+
+  publish-stable:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_stable
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: snap-store-stable
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: schedplus-standard-snap
+          path: artifacts/snap
+      - name: Locate downloaded Snap
+        id: snap
+        run: echo "path=$(find artifacts/snap -name '*.snap' -print -quit)" >> "$GITHUB_OUTPUT"
+      - name: Publish manually approved stable build
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.snap.outputs.path }}
+          release: stable
