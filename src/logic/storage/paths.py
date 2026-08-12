@@ -20,7 +20,7 @@ class DatabaseMigrationError(RuntimeError):
 
 
 def user_data_directory() -> Path:
-    """Return SchedPlus's per-user data directory for the current platform."""
+    """Return SchedPlus's persistent per-user data directory for this package."""
     home = Path.home()
 
     if sys.platform == "win32":
@@ -28,6 +28,12 @@ def user_data_directory() -> Path:
     elif sys.platform == "darwin":
         base = home / "Library" / "Application Support"
     else:
+        # Snap changes HOME for each revision. SNAP_USER_COMMON remains stable
+        # across refreshes, so it prevents an update from appearing to lose the
+        # task database. Empty values intentionally fall back to normal Linux.
+        snap_common = os.environ.get("SNAP_USER_COMMON", "").strip()
+        if snap_common:
+            return Path(snap_common) / "SchedPlus"
         base = home / ".local" / "share"
 
     return base / "ZFordDev" / "SchedPlus"
