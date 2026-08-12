@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added release-grade Debian packaging for Standard, Lite, and CLI frozen
+  editions, with correct filesystem layout, metadata, licensing, linting, and
+  installation/removal validation.
 - Added reproducible PyInstaller onedir specifications for Standard, Lite,
   Full, and CLI editions, including frozen artifact validation in CI.
 - Store Snap task data under `SNAP_USER_COMMON` so it persists across package

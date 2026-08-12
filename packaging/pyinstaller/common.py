@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PyInstaller.building.build_main import Analysis, COLLECT, EXE, PYZ
@@ -45,7 +46,7 @@ def build(*, edition: str, entry_point: str, excludes: list[str], console: bool)
         strip=False,
         upx=False,
         console=console,
-        icon=ICON,
+        icon=ICON if sys.platform == "win32" else None,
     )
     return COLLECT(
         executable,
