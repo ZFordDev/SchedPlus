@@ -29,19 +29,27 @@ classifiers = [
 ]
 
 dependencies = [
-  "PyQt6>=6.11.0",
-  "PyQt6-Qt6>=6.11.1",
-  "PyQt6_sip>=13.11.1",
-  "babel>=2.18.0",
-  "cryptography>=44.0.0",
-  "tkcalendar>=1.6.1"
+  "cryptography>=44.0.0"
 ]
 
 [project.optional-dependencies]
+lite = [
+  "tkcalendar>=1.6.1"
+]
+standard = [
+  "PyQt6>=6.11.0"
+]
+full = [
+  "PyQt6>=6.11.0",
+  "tkcalendar>=1.6.1"
+]
 dev = [
+  "PyQt6>=6.11.0",
+  "tkcalendar>=1.6.1",
   "pytest",
   "black",
-  "ruff"
+  "ruff",
+  "tomli>=2.0.0; python_version < '3.11'"
 ]
 
 [project.urls]
