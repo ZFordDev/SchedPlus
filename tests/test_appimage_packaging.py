@@ -68,3 +68,4 @@ def test_appimage_smoke_test_installs_host_graphics_runtime():
 
     assert "libegl1" in workflow
     assert "libgl1" in workflow
+    assert "libxcb-cursor0" in workflow
