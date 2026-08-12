@@ -25,6 +25,12 @@ sudo snap install --dangerous ./schedplus_*.snap
 snap run schedplus
 ```
 
+CI builds the Snap and inspects its packaged identity, confinement, desktop
+entry, and icon. Install, graphical launch, and Store-refresh persistence are
+tested manually on a supported Snap host: unsigned local snaps can be installed
+with `--dangerous`, but snapd cannot exercise a Store refresh from that same
+unasserted artifact.
+
 SchedPlus stores its database at
 `$SNAP_USER_COMMON/SchedPlus/tasks.db` (`~/snap/schedplus/common/SchedPlus/tasks.db`
 for a normal per-user installation). `SNAP_USER_COMMON` is shared by all

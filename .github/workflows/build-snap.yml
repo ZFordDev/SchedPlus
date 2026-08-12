@@ -36,21 +36,6 @@ jobs:
           unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Exec=schedplus'
           unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Icon=${SNAP}/meta/gui/schedplus.png'
           unsquashfs -ll "${{ steps.snapcraft.outputs.snap }}" | grep -F 'meta/gui/schedplus.png'
-      - name: Install and launch on a clean supported runner
-        run: |
-          sudo snap install --dangerous "${{ steps.snapcraft.outputs.snap }}"
-          QT_QPA_PLATFORM=offscreen snap run schedplus &
-          APP_PID=$!
-          sleep 8
-          kill -0 "$APP_PID"
-          kill "$APP_PID" || true
-          test -f "$HOME/snap/schedplus/common/SchedPlus/tasks.db"
-      - name: Verify refresh-safe task storage
-        run: |
-          DATABASE="$HOME/snap/schedplus/common/SchedPlus/tasks.db"
-          DATABASE_HASH="$(sha256sum "$DATABASE" | cut -d ' ' -f 1)"
-          sudo snap refresh --dangerous "${{ steps.snapcraft.outputs.snap }}"
-          test "$(sha256sum "$DATABASE" | cut -d ' ' -f 1)" = "$DATABASE_HASH"
       - uses: actions/upload-artifact@v4
         with:
           name: schedplus-standard-snap

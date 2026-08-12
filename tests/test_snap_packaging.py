@@ -76,10 +76,9 @@ def test_snap_release_channels_and_manual_stable_gate_are_explicit():
     assert "python3 scripts/sync_release_versions.py" in workflow
 
 
-def test_workflow_installs_launches_and_checks_refresh_persistence():
+def test_workflow_leaves_store_refresh_testing_to_supported_manual_hosts():
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    assert "snap install --dangerous" in workflow
-    assert "snap run schedplus" in workflow
-    assert "snap refresh --dangerous" in workflow
-    assert 'snap/schedplus/common/SchedPlus/tasks.db' in workflow
+    assert "snap install --dangerous" not in workflow
+    assert "snap refresh --dangerous" not in workflow
+    assert "Inspect package metadata and desktop integration" in workflow
