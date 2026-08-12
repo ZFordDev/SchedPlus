@@ -57,7 +57,7 @@ def build(*, frozen_dir: Path, output_dir: Path, version: str, appimagetool: Pat
     artifact = output_dir / f"SchedPlus-{version}-{architecture()}.AppImage"
     environment = {**os.environ, "ARCH": architecture()}
     appimagetool = appimagetool.resolve()
-    subprocess.run([str(appimagetool), "--comp", "zstd", str(appdir), str(artifact)], check=True, env=environment)
+    subprocess.run([str(appimagetool), "--comp", "xz", str(appdir), str(artifact)], check=True, env=environment)
     checksum = artifact.with_suffix(artifact.suffix + ".sha256")
     with artifact.open("rb") as source:
         digest = hashlib.file_digest(source, "sha256").hexdigest()

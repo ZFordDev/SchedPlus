@@ -17,7 +17,8 @@ python scripts/build_appimage.py \
 The artifact is named `SchedPlus-<version>-<architecture>.AppImage`, with a
 neighbouring `.sha256` checksum file. CI builds on Ubuntu 22.04, the oldest
 currently supported GitHub-hosted Linux build base for this project, to keep
-the portable runtime compatible with supported Linux distributions.
+the portable runtime compatible with supported Linux distributions. The build
+uses AppImageKit's broadly supported `xz` compression.
 
 ## Running and troubleshooting
 

@@ -55,3 +55,4 @@ def test_builder_resolves_relative_appimagetool_path(monkeypatch, tmp_path):
     )
 
     assert invoked[0][0] == str(tool.resolve())
+    assert invoked[0][1:3] == ["--comp", "xz"]
