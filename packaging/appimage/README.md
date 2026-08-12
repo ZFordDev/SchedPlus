@@ -37,6 +37,10 @@ When FUSE is unavailable, extract and run without mounting the image:
 ./squashfs-root/AppRun
 ```
 
+The AppImage bundles SchedPlus and its PyQt runtime. It still uses the host's
+standard graphics stack (including EGL/OpenGL libraries such as `libegl1` and
+`libgl1`), which should be present on supported desktop Linux distributions.
+
 The AppImage is read-only at runtime. SchedPlus stores tasks outside the image
 at `~/.local/share/ZFordDev/SchedPlus/tasks.db`; it never needs write access to
 the directory containing the AppImage. A Lite AppImage is intentionally not

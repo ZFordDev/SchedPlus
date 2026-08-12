@@ -6,6 +6,9 @@ import pytest
 from scripts import build_appimage
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
 def test_appdir_contains_portable_standard_launch_metadata(tmp_path):
     frozen = tmp_path / "SchedPlusStandard"
     frozen.mkdir()
@@ -56,3 +59,12 @@ def test_builder_resolves_relative_appimagetool_path(monkeypatch, tmp_path):
 
     assert invoked[0][0] == str(tool.resolve())
     assert invoked[0][1:3] == ["--comp", "xz"]
+
+
+def test_appimage_smoke_test_installs_host_graphics_runtime():
+    workflow = (PROJECT_ROOT / ".github" / "workflows" / "build-appimage.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "libegl1" in workflow
+    assert "libgl1" in workflow
