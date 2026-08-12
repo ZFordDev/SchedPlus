@@ -36,9 +36,11 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Run complete test suite before packaging
         run: |
+          sudo apt-get update
+          sudo apt-get install --yes libegl1 libgl1
           python -m pip install --upgrade pip
           python -m pip install ".[dev]"
-          python -m pytest -q
+          QT_QPA_PLATFORM=offscreen python -m pytest -q
       - name: Validate shared release metadata
         run: python scripts/validate_release_metadata.py
 
