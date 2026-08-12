@@ -9,7 +9,6 @@ import shutil
 import subprocess
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 METADATA = PROJECT_ROOT / "packaging" / "metadata"
 FROZEN_NAME = "SchedPlusStandard"
@@ -44,7 +43,14 @@ def create_appdir(*, frozen_dir: Path, appdir: Path) -> Path:
 
     desktop = (METADATA / f"{APPLICATION_ID}.desktop").read_text(encoding="utf-8")
     desktop = desktop.replace("Exec=schedplus-full", "Exec=SchedPlus")
+    desktop = desktop.replace("Categories=Office;Calendar;Utility;", "Categories=Office;Calendar;")
     (appdir / f"{APPLICATION_ID}.desktop").write_text(desktop, encoding="utf-8")
+    metainfo_directory = appdir / "usr" / "share" / "metainfo"
+    metainfo_directory.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(
+        METADATA / f"{APPLICATION_ID}.metainfo.xml",
+        metainfo_directory / f"{APPLICATION_ID}.metainfo.xml",
+    )
     icon = PROJECT_ROOT / "assets" / "icons" / "icon-256.png"
     shutil.copy2(icon, appdir / f"{APPLICATION_ID}.png")
     shutil.copy2(icon, appdir / ".DirIcon")
@@ -57,7 +63,7 @@ def build(*, frozen_dir: Path, output_dir: Path, version: str, appimagetool: Pat
     artifact = output_dir / f"SchedPlus-{version}-{architecture()}.AppImage"
     environment = {**os.environ, "ARCH": architecture()}
     appimagetool = appimagetool.resolve()
-    subprocess.run([str(appimagetool), "--comp", "xz", str(appdir), str(artifact)], check=True, env=environment)
+    subprocess.run([str(appimagetool), "--comp", "zstd", str(appdir), str(artifact)], check=True, env=environment)
     checksum = artifact.with_suffix(artifact.suffix + ".sha256")
     with artifact.open("rb") as source:
         digest = hashlib.file_digest(source, "sha256").hexdigest()

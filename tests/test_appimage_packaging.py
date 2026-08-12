@@ -21,9 +21,14 @@ def test_appdir_contains_portable_standard_launch_metadata(tmp_path):
     desktop = (appdir / "dev.zford.SchedPlus.desktop").read_text()
     assert "Exec=SchedPlus" in desktop
     assert "Icon=dev.zford.SchedPlus" in desktop
+    assert "Categories=Office;Calendar;" in desktop
+    assert "Categories=Office;Calendar;Utility;" not in desktop
     assert (appdir / "dev.zford.SchedPlus.png").is_file()
     assert (appdir / ".DirIcon").is_file()
     assert (appdir / "usr" / "lib" / "schedplus" / "SchedPlusStandard").is_file()
+    assert (
+        appdir / "usr" / "share" / "metainfo" / "dev.zford.SchedPlus.metainfo.xml"
+    ).is_file()
 
 
 def test_appdir_rejects_the_wrong_frozen_edition(tmp_path):
@@ -57,7 +62,7 @@ def test_builder_resolves_relative_appimagetool_path(monkeypatch, tmp_path):
     )
 
     assert invoked[0][0] == str(tool.resolve())
-    assert invoked[0][1:3] == ["--comp", "xz"]
+    assert invoked[0][1:3] == ["--comp", "zstd"]
 
 
 def test_appimage_smoke_test_uses_host_graphics_runtime_without_x11():

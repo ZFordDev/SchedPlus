@@ -25,7 +25,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libegl1 libgl1 libfuse2 squashfs-tools
+          sudo apt-get install --yes appstream libegl1 libgl1 libfuse2 squashfs-tools
           python -m pip install --upgrade pip pyinstaller
           python -m pip install ".[standard]"
       - name: Build frozen Standard edition
@@ -73,6 +73,7 @@ jobs:
           test -x squashfs-root/AppRun
           test -f squashfs-root/dev.zford.SchedPlus.desktop
           test -f squashfs-root/dev.zford.SchedPlus.png
+          test -f squashfs-root/usr/share/metainfo/dev.zford.SchedPlus.metainfo.xml
       - name: Smoke-test portable launch without a host display server
         run: |
           APPIMAGE="$(find artifacts/appimage -name '*.AppImage' -print -quit)"
