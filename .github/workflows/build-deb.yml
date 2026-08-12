@@ -1,89 +1,76 @@
-name: Build Debian Package
+name: Build Debian packages
 
 on:
+  pull_request:
+    paths:
+      - .github/workflows/build-deb.yml
+      - assets/**
+      - packaging/**
+      - scripts/build_debian_package.py
+      - src/**
+      - pyproject.toml
   push:
     tags:
-      - 'release-*'
-      - 'pre-release-*'
+      - release-*
+      - pre-release-*
+  workflow_dispatch:
 
 jobs:
-  package-deb:
+  package:
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - edition: standard
+            frozen_directory: SchedPlusStandard
+            package: schedplus
+          - edition: lite
+            frozen_directory: SchedPlusLite
+            package: schedplus-lite
+          - edition: cli
+            frozen_directory: SchedPlusCli
+            package: schedplus-cli
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install System Build Tools
+      - name: Install packaging tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
-          pip install .
-
-      - name: Extract absolute version
-        id: get_version
-        run: |
-          VERSION=$(python3 -c "
-          for line in open('pyproject.toml'):
-              if line.strip().startswith('version ='):
-                  print(line.split('=')[1].strip().strip('\"\''))
-                  break
-          ")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Extracted version: $VERSION"
-
-      - name: Determine Release Status
-        id: check_type
-        run: |
-          if [[ "${{ github.ref_name }}" == pre-release-* ]]; then
-            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
-            echo "Status: Flagging as Pre-release"
+          sudo apt-get install --yes lintian
+          python -m pip install --upgrade pip pyinstaller
+          if [ "${{ matrix.edition }}" = cli ]; then
+            python -m pip install .
           else
-            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
-            echo "Status: Flagging as Stable Production Release"
+            python -m pip install ".[${{ matrix.edition }}]"
           fi
-
-      - name: Compile application with PyInstaller
+      - name: Build frozen edition
+        run: >-
+          pyinstaller --noconfirm --distpath dist --workpath build
+          packaging/pyinstaller/schedplus-${{ matrix.edition }}.spec
+      - name: Build Debian package
+        id: package
         run: |
-          pyinstaller --noconfirm --onedir --windowed --name schedplus --paths=src src/schedplus/__main__.py
-
-      - name: Structure Debian Directory Architecture
+          VERSION="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")"
+          python scripts/build_debian_package.py \
+            --edition "${{ matrix.edition }}" \
+            --frozen-dir "dist/${{ matrix.frozen_directory }}" \
+            --output-dir artifacts/debian \
+            --version "$VERSION"
+      - name: Lint Debian package
+        run: lintian --fail-on error artifacts/debian/*.deb
+      - name: Verify installation, removal, and user data persistence
         run: |
-          mkdir -p debian_build/DEBIAN
-          mkdir -p debian_build/usr/bin
-          cp -r dist/schedplus/* debian_build/usr/bin/
-
-      - name: Generate Debian Control Manifest
-        run: |
-          cat <<EOF > debian_build/DEBIAN/control
-          Package: schedplus
-          Version: ${{ env.VERSION }}
-          Section: utils
-          Priority: optional
-          Architecture: amd64
-          Maintainer: ZFordDev <zforddev@gmail.com>
-          Description: A modern, local-first scheduler for planning tasks and time without an account or network connection.
-          EOF
-
-      - name: Compile Debian Binary Asset
-        run: |
-          dpkg-deb --build debian_build schedplus-${{ env.VERSION }}-linux-amd64.deb
-
-      - name: Upload Package to GitHub Releases
-        uses: softprops/action-gh-release@v3
+          DATA_DIR="$HOME/.local/share/ZFordDev/SchedPlus"
+          mkdir -p "$DATA_DIR"
+          printf preserved > "$DATA_DIR/tasks.db"
+          sudo dpkg --install artifacts/debian/*.deb
+          dpkg-query --show "${{ matrix.package }}"
+          sudo dpkg --remove "${{ matrix.package }}"
+          test "$(cat "$DATA_DIR/tasks.db")" = preserved
+      - uses: actions/upload-artifact@v4
         with:
-          files: schedplus-${{ env.VERSION }}-linux-amd64.deb
-          prerelease: ${{ env.IS_PRERELEASE }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: schedplus-${{ matrix.edition }}-debian
+          path: artifacts/debian/*.deb
