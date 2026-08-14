@@ -2,11 +2,11 @@
 
 from dataclasses import replace
 
-from PyQt6.QtCore import QObject, QTimer, Qt, pyqtSignal
+from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
-    QHBoxLayout,
     QApplication,
+    QHBoxLayout,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -18,14 +18,15 @@ from PyQt6.QtWidgets import (
 
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
-from updater.background import start_automatic_update
-from updater.errors import UpdateError
-from updater.service import launch_prepared_update
+from schedplus.identity import get_application_identity
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.theme import BASE_QSS
+from updater.background import start_automatic_update
+from updater.errors import UpdateError
+from updater.service import launch_prepared_update
 
 
 class _UpdateSignals(QObject):
@@ -37,6 +38,7 @@ class SchedPlusWindow(QMainWindow):
     def __init__(self, scheduler):
         super().__init__()
         self.scheduler = scheduler
+        self.identity = get_application_identity()
         self.settings_store = SettingsStore()
         self.preferences = self.settings_store.load()
 
@@ -44,6 +46,10 @@ class SchedPlusWindow(QMainWindow):
         self.resize(1180, 760)
         self.setMinimumSize(820, 560)
         self.setStyleSheet(BASE_QSS)
+
+        help_menu = self.menuBar().addMenu("Help")
+        self.about_action = help_menu.addAction("About SchedPlus")
+        self.about_action.triggered.connect(self.show_about)
 
         self.status_timer = QTimer(self)
         self.status_timer.setSingleShot(True)
@@ -113,6 +119,9 @@ class SchedPlusWindow(QMainWindow):
         layout.addWidget(self.calendar_nav)
         layout.addStretch()
         layout.addWidget(self.settings_button)
+        self.version_label = QLabel(self.identity.version_label)
+        self.version_label.setObjectName("SidebarVersion")
+        layout.addWidget(self.version_label)
         return sidebar
 
     def _navigation_button(self, text):
@@ -228,6 +237,9 @@ class SchedPlusWindow(QMainWindow):
             self.calendar_page.apply_preferences(self.preferences)
             self.show_page(self.preferences.startup_view)
             self.show_status_message("Settings saved")
+
+    def show_about(self):
+        QMessageBox.about(self, "About SchedPlus", self.identity.details)
 
     def _offer_prepared_update(self, build_info, prepared):
         prompt = QMessageBox(self)

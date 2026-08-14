@@ -9,6 +9,7 @@ from typing import TextIO
 
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
+from schedplus.identity import get_application_identity
 from updater.errors import UpdateError
 
 COMMANDS = {"add", "list", "edit", "delete", "update"}
@@ -22,6 +23,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="schedplus",
         description="Manage SchedPlus tasks from the command line.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=get_application_identity().version_label,
     )
     subparsers = parser.add_subparsers(dest="command", metavar="COMMAND", required=True)
 

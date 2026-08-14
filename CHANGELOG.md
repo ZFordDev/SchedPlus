@@ -1,7 +1,19 @@
 # Changelog
 
-## Unreleased
+## Unreleased (v0.8.1)
 
+### Added
+
+- Added a shared application identity provider backed by packaged
+  `build-info.json` metadata, with installed package metadata as the version
+  fallback.
+- Displayed `SchedPlus vX.Y.Z` in the PyQt sidebar, Tkinter footer, and Full
+  edition interface selector.
+- Added About details for the installed edition, update channel, package
+  format, platform, and architecture.
+- Added `schedplus --version` to the command-line interface.
+
+## Pre-Release version 0.8.0
 - Added unified tag/version validation, pre-package testing, independent Linux,
   Windows, and Snap builds, exact source archives, release-payload validation,
   unified checksums, an SPDX source SBOM, and draft candidate GitHub Releases.

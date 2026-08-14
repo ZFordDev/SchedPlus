@@ -21,6 +21,11 @@ QLabel#SidebarCaption {
     color: #94A3B8;
     font-size: 9pt;
 }
+QLabel#SidebarVersion {
+    color: #94A3B8;
+    font-size: 9pt;
+    padding: 10px 12px 0 12px;
+}
 QPushButton#NavigationButton {
     background: transparent;
     color: #CBD5E1;

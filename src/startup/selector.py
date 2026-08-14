@@ -6,6 +6,8 @@ Popup selector window for choosing the UI mode.
 Bypass this with direct commands see modes.py
 """
 
+from schedplus.identity import get_application_identity
+
 from .modes import StartupMode
 
 try:
@@ -27,9 +29,10 @@ class StartupSelector:
             raise RuntimeError("Tkinter is not available on this system.")
 
         self.result = None
+        self.identity = get_application_identity()
         self.root = tk.Tk()
-        self.root.title("Select Mode")
-        self.root.geometry("300x240")
+        self.root.title(f"{self.identity.version_label} — Select Interface")
+        self.root.geometry("300x270")
         self.root.resizable(False, False)
 
         # Center window
@@ -44,19 +47,31 @@ class StartupSelector:
         frame = ttk.Frame(self.root, padding=20)
         frame.pack(expand=True, fill="both")
 
-        ttk.Label(frame, text="Choose Startup Mode", font=("Segoe UI", 12)).pack(pady=(0, 10))
+        ttk.Label(frame, text="Choose Startup Mode", font=("Segoe UI", 12)).pack(
+            pady=(0, 10)
+        )
 
-        ttk.Button(frame, text="Basic | Tkinter",
-                   command=lambda: self._select(StartupMode.TK)).pack(fill="x", pady=4)
+        ttk.Button(
+            frame, text="Basic | Tkinter", command=lambda: self._select(StartupMode.TK)
+        ).pack(fill="x", pady=4)
 
-        ttk.Button(frame, text="Advanced | PyQt",
-                   command=lambda: self._select(StartupMode.PYQT)).pack(fill="x", pady=4)
+        ttk.Button(
+            frame,
+            text="Advanced | PyQt",
+            command=lambda: self._select(StartupMode.PYQT),
+        ).pack(fill="x", pady=4)
 
-        ttk.Button(frame, text="Command Line Help",
-                   command=lambda: self._select(StartupMode.CLI)).pack(fill="x", pady=4)
+        ttk.Button(
+            frame,
+            text="Command Line Help",
+            command=lambda: self._select(StartupMode.CLI),
+        ).pack(fill="x", pady=4)
 
-        ttk.Button(frame, text="Close",
-                   command=self._close).pack(fill="x", pady=(10, 0))
+        ttk.Button(frame, text="Close", command=self._close).pack(
+            fill="x", pady=(10, 0)
+        )
+
+        ttk.Label(frame, text=self.identity.version_label).pack(pady=(12, 0))
 
     def _select(self, mode):
         self.result = mode
