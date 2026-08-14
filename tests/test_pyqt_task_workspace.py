@@ -97,6 +97,8 @@ def test_window_has_navigation_and_shortcuts(app):
     assert window.pages.count() == 2
     assert len(window.shortcuts) == 7
     assert window.windowTitle() == "SchedPlus — Advanced"
+    assert window.version_label.text().startswith("SchedPlus v")
+    assert window.about_action.text() == "About SchedPlus"
 
 
 def test_native_calendar_renders_month_week_and_day(app):
@@ -135,9 +137,7 @@ def test_calendar_emits_reschedule_request(app):
     workspace = CalendarWorkspace(MemoryScheduler([task]), UiPreferences())
     requests = []
     workspace.reschedule_requested.connect(
-        lambda moved, new_date, new_time: requests.append(
-            (moved, new_date, new_time)
-        )
+        lambda moved, new_date, new_time: requests.append((moved, new_date, new_time))
     )
 
     workspace.week_table.task_dropped.emit(task, "2026-09-14", "13:30")

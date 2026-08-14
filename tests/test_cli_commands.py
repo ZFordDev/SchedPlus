@@ -23,6 +23,21 @@ def execute(arguments, scheduler):
     return code, stdout.getvalue(), stderr.getvalue()
 
 
+def test_version_uses_shared_application_identity(scheduler, monkeypatch, capsys):
+    from cli import commands
+
+    class Identity:
+        version_label = "SchedPlus v9.8.7"
+
+    monkeypatch.setattr(commands, "get_application_identity", lambda: Identity())
+
+    with pytest.raises(SystemExit) as exit_info:
+        run_command(["--version"], scheduler)
+
+    assert exit_info.value.code == 0
+    assert capsys.readouterr().out == "SchedPlus v9.8.7\n"
+
+
 def test_add_creates_validated_task(scheduler):
     code, stdout, stderr = execute(
         ["add", "Buy milk", "--date", "2026-08-03", "--time", "14:00"],
@@ -126,7 +141,9 @@ def test_ambiguous_id_prefix_is_rejected(scheduler):
     assert len(scheduler.tasks) == 2
 
 
-@pytest.mark.parametrize("command", [["edit", "missing", "--text", "New"], ["delete", "missing"]])
+@pytest.mark.parametrize(
+    "command", [["edit", "missing", "--text", "New"], ["delete", "missing"]]
+)
 def test_missing_ids_are_reported(command, scheduler):
     code, stdout, stderr = execute(command, scheduler)
 

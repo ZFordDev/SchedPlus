@@ -6,10 +6,13 @@ import tkinter as tk
 from datetime import date, datetime
 from tkinter import messagebox, ttk
 
+from tkcalendar import Calendar
+
 from logic.scheduler import Scheduler
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
-from tkcalendar import Calendar
+from schedplus.identity import get_application_identity
+from ui.shortcuts import bind_enter_key
 from updater.background import start_automatic_update
 from updater.config import load_build_info
 from updater.errors import UpdateError
@@ -19,7 +22,6 @@ from updater.preferences import (
     save_update_preferences,
 )
 from updater.service import launch_prepared_update
-from ui.shortcuts import bind_enter_key
 
 LOGGER = logging.getLogger(__name__)
 
@@ -148,6 +150,7 @@ def _center_window(window: tk.Toplevel | tk.Tk) -> None:
 
 
 def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
+    identity = get_application_identity()
     root = tk.Tk()
     root.title("SchedPlus")
     root.geometry("680x600")
@@ -344,8 +347,14 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     scrollbar.grid(row=1, column=1, sticky="ns")
     task_list.configure(yscrollcommand=scrollbar.set)
 
-    status = ttk.Label(container, text="Ready", style="Status.TLabel")
-    status.grid(row=3, column=0, sticky="w", pady=(10, 0))
+    footer = ttk.Frame(container, style="App.TFrame")
+    footer.grid(row=3, column=0, sticky="ew", pady=(10, 0))
+    footer.columnconfigure(0, weight=1)
+    status = ttk.Label(footer, text="Ready", style="Status.TLabel")
+    status.grid(row=0, column=0, sticky="w")
+    ttk.Label(footer, text=identity.version_label, style="Status.TLabel").grid(
+        row=0, column=1, sticky="e"
+    )
 
     def update_task_count() -> None:
         count = len(task_list.get_children())
@@ -412,6 +421,14 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         state="normal" if load_build_info().internally_managed else "disabled",
     )
     application_menu.add_cascade(label="Settings", menu=settings_menu)
+    help_menu = tk.Menu(application_menu, tearoff=False)
+    help_menu.add_command(
+        label="About SchedPlus",
+        command=lambda: messagebox.showinfo(
+            "About SchedPlus", identity.details, parent=root
+        ),
+    )
+    application_menu.add_cascade(label="Help", menu=help_menu)
     root.configure(menu=application_menu)
 
     start_automatic_update(

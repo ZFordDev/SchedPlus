@@ -29,6 +29,7 @@ SchedPlus gives you a focused place to organise tasks and plan your time without
 - **SQLite persistence** stored in the platform-appropriate user data directory
 - **Offline-friendly workflow** with task data kept on your computer
 - **Multiple interfaces** including lightweight Tkinter, the advanced PyQt task workspace, and a scriptable CLI
+- **Consistent package identity** showing the installed version, edition, and update channel without reading project files at runtime
 - **Cross-platform foundation** targeting Windows and Linux
 - **Shared scheduling core** that keeps persistence and interface code separated
 
@@ -127,7 +128,13 @@ interface selector, or launch an interface directly:
 schedplus         # Open the interface selector
 schedplus --tk    # Launch the Tkinter interface
 schedplus --py    # Launch the PyQt interface
+schedplus --version
 ```
+
+The installed version is always visible in the desktop footer or sidebar and
+in the Full-edition selector. Open **Help → About SchedPlus** in a desktop
+interface to see the edition, update channel, package format, platform, and
+architecture reported by the installed build.
 
 Tasks can also be managed directly from a terminal without launching a UI:
 
@@ -153,7 +160,8 @@ schedplus update check
 All commands use the same validation and SQLite backend as the desktop
 interfaces. Validation and database failures are written to stderr, and each
 command returns a process-friendly exit status. Run `schedplus --help` or
-`schedplus COMMAND --help` for complete options.
+`schedplus COMMAND --help` for complete options, or `schedplus --version` to
+print the installed application version.
 
 Non-Store packaged builds can check for verified updates in the background and
 offer to restart after a release is ready. Store packages use Store updates
