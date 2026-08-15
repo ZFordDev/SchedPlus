@@ -32,5 +32,28 @@ CREATE TABLE entries (
 
 The schema is intentionally minimal. UUIDs provide stable linking keys, ISO
 timestamps support sorting and synchronization, and the task fields remain
-UI-independent. Future features can use additional tables linked through the
-entry ID without changing the core table.
+UI-independent.
+
+## Schema migrations
+
+The current schema version is stored in SQLite's `PRAGMA user_version`.
+Released migration functions live in the ordered `MIGRATIONS` tuple in
+`logic/storage/migrations.py`. Never edit or reorder a released migration; add
+one new callable at the end so every database follows the same version path.
+
+Initialization performs an integrity check before migration. When an existing
+database is behind the application schema, SchedPlus creates a consistent
+`tasks_pre_migration_v<old>_to_v<new>_<timestamp>.db` backup in the data
+directory, then runs every missing migration and version update in one
+transaction. Any failure rolls the transaction back and leaves both the
+original database and backup available.
+
+Databases from v0.7.3 and v0.8.0 have the version-zero form of the `entries`
+table and are adopted by migration 1 without changing task rows. A build will
+not downgrade a newer database: when `user_version` is greater than the version
+it supports, it exits the storage operation without modifying or backing up the
+database and asks the user to install a newer SchedPlus release.
+
+Corruption handling is separate from schema migration. A failed integrity check
+still preserves the damaged file as `tasks_corrupted_<timestamp>.db` and creates
+a clean database at the current schema version.

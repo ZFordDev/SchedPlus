@@ -194,6 +194,12 @@ does not delete it. Back up `tasks.db` while SchedPlus is closed before a major
 upgrade; installations from 0.7.3 and earlier automatically move the old
 in-application database to the appropriate user-data location when possible.
 
+SchedPlus records its SQLite schema version and applies required migrations in
+order inside a transaction. Before changing an existing schema, it creates a
+timestamped `tasks_pre_migration_v<old>_to_v<new>_*.db` backup beside
+`tasks.db`. A failed migration rolls back, and an older SchedPlus build refuses
+to open a database written with a newer schema version without modifying it.
+
 ## System requirements
 
 - Windows 10 or later, or a modern Linux distribution

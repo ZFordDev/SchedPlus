@@ -24,6 +24,11 @@
 - Added manual update checks, automatic-check preferences, and persistent last
   update results to the desktop and command-line interfaces.
 - Added an end-to-end upgrade test from v0.8.1 to a signed test release.
+- Added ordered, transactional SQLite schema migrations tracked with
+  `PRAGMA user_version`, including automatic pre-migration backups and safe
+  refusal of databases created by newer SchedPlus versions.
+- Added upgrade coverage for databases created by v0.7.3 and v0.8.0, migration
+  rollback and ordering tests, and continued corruption-recovery coverage.
 
 ### Fixed
 
