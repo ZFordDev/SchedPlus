@@ -240,6 +240,22 @@ pip install -e ".[dev]"
 The development profile includes both desktop interfaces along with the test,
 formatting, and linting tools.
 
+## Release verification
+
+Tagged builds are assembled as draft releases. Run the **Post-release
+installation and upgrade smoke tests** workflow with that draft tag before
+stable publication. Its mandatory matrix installs the released Debian,
+AppImage, Windows portable, and Windows installer artifacts; upgrades a
+populated v0.8.0 database; verifies its task and schema; checks application
+removal separately from retained user data; and confirms Snap and Microsoft
+Store builds remain externally updated. Diagnostic artifacts contain only
+sanitized logs.
+
+Stable publication is performed by the workflow's dependent promotion job and
+cannot run unless all mandatory checks pass. Native Store, signing, confinement,
+display, and cross-distribution checks that hosted runners cannot reproduce are
+listed in the [post-release manual checklist](packaging/post-release-checklist.md).
+
 ## Project status and roadmap
 
 SchedPlus is actively developed and open to contributions. Current work is focused on strengthening the desktop experience and expanding SchedPlus beyond task management into a complete scheduling platform.
