@@ -1,11 +1,13 @@
 """Primary advanced native window for SchedPlus."""
 
-from dataclasses import replace
+from dataclasses import asdict, replace
+from pathlib import Path
 
 from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -16,12 +18,19 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from logic.data_transfer import (
+    DataTransferError,
+    create_backup,
+    export_tasks,
+    import_tasks,
+    restore_backup,
+)
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from schedplus.identity import get_application_identity
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
 from ui.pyqt.calendar_view import CalendarWorkspace
-from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore
+from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore, UiPreferences
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.theme import BASE_QSS
 from updater.background import start_automatic_update, start_update_check
@@ -47,6 +56,17 @@ class SchedPlusWindow(QMainWindow):
         self.resize(1180, 760)
         self.setMinimumSize(820, 560)
         self.setStyleSheet(BASE_QSS)
+
+        data_menu = self.menuBar().addMenu("Data")
+        self.backup_action = data_menu.addAction("Create backup…")
+        self.restore_action = data_menu.addAction("Restore backup…")
+        data_menu.addSeparator()
+        self.export_action = data_menu.addAction("Export tasks…")
+        self.import_action = data_menu.addAction("Import tasks…")
+        self.backup_action.triggered.connect(self.backup_data)
+        self.restore_action.triggered.connect(self.restore_data)
+        self.export_action.triggered.connect(self.export_data)
+        self.import_action.triggered.connect(self.import_data)
 
         help_menu = self.menuBar().addMenu("Help")
         self.check_update_action = help_menu.addAction("Check for updates")
@@ -234,15 +254,86 @@ class SchedPlusWindow(QMainWindow):
         dialog = SettingsDialog(self.preferences, self)
         if dialog.exec():
             self.preferences = dialog.preferences()
-            self.settings_store.save(self.preferences)
             try:
+                self.settings_store.save(self.preferences)
                 dialog.save_update_preferences()
-            except UpdateError as exc:
-                QMessageBox.warning(self, "Unable to save update settings", str(exc))
+            except (DataTransferError, UpdateError) as exc:
+                QMessageBox.warning(self, "Unable to save settings", str(exc))
             self.task_list.apply_preferences(self.preferences)
             self.calendar_page.apply_preferences(self.preferences)
             self.show_page(self.preferences.startup_view)
             self.show_status_message("Settings saved")
+
+    def backup_data(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Create SchedPlus backup", "SchedPlus-backup.json", "JSON (*.json)"
+        )
+        if path:
+            self._run_data_action(
+                "Backup created",
+                lambda: create_backup(Path(path), ui_preferences=asdict(self.preferences)),
+            )
+
+    def restore_data(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Restore SchedPlus backup", "", "JSON (*.json)"
+        )
+        if not path or QMessageBox.question(
+            self,
+            "Replace current data?",
+            "Restore will replace all current tasks and preferences. Continue?",
+        ) != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            result = restore_backup(
+                Path(path), current_ui_preferences=asdict(self.preferences)
+            )
+            if result.ui_preferences is not None:
+                self.preferences = UiPreferences(**result.ui_preferences)
+                self.settings_store.save(self.preferences)
+            self.scheduler.load_tasks()
+            self.refresh_views()
+            QMessageBox.information(
+                self,
+                "Backup restored",
+                f"Restored {result.restored} task(s).\n\n"
+                f"Previous data was backed up to:\n{result.safety_backup}",
+            )
+        except (DataTransferError, StorageError, TypeError) as exc:
+            QMessageBox.critical(self, "Unable to restore backup", str(exc))
+
+    def export_data(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export SchedPlus tasks", "SchedPlus-tasks.json", "JSON (*.json)"
+        )
+        if path:
+            self._run_data_action("Tasks exported", lambda: export_tasks(Path(path)))
+
+    def import_data(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Import SchedPlus tasks", "", "JSON (*.json)"
+        )
+        if not path:
+            return
+        try:
+            result = import_tasks(Path(path))
+            self.scheduler.load_tasks()
+            self.refresh_views()
+            QMessageBox.information(
+                self,
+                "Import complete",
+                f"Imported {result.imported}; skipped {result.duplicates} duplicate(s) "
+                f"and {result.conflicts} conflict(s).",
+            )
+        except (DataTransferError, StorageError) as exc:
+            QMessageBox.critical(self, "Unable to import tasks", str(exc))
+
+    def _run_data_action(self, success_message, operation):
+        try:
+            operation()
+            self.show_status_message(success_message)
+        except (DataTransferError, StorageError) as exc:
+            QMessageBox.critical(self, "Data operation failed", str(exc))
 
     def show_about(self):
         QMessageBox.about(self, "About SchedPlus", self.identity.details)

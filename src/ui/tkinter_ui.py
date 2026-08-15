@@ -4,10 +4,18 @@ import logging
 import queue
 import tkinter as tk
 from datetime import date, datetime
-from tkinter import messagebox, ttk
+from pathlib import Path
+from tkinter import filedialog, messagebox, ttk
 
 from tkcalendar import Calendar
 
+from logic.data_transfer import (
+    DataTransferError,
+    create_backup,
+    export_tasks,
+    import_tasks,
+    restore_backup,
+)
 from logic.scheduler import Scheduler
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
@@ -34,6 +42,14 @@ ACCENT = "#2563EB"
 ACCENT_ACTIVE = "#1D4ED8"
 BORDER = "#DCE1E8"
 SUCCESS = "#16794A"
+
+
+def _tk_data_action(root, operation, success_message: str) -> None:
+    try:
+        operation()
+        messagebox.showinfo("SchedPlus", success_message, parent=root)
+    except (DataTransferError, StorageError) as exc:
+        messagebox.showerror("Data operation failed", str(exc), parent=root)
 
 
 def _configure_styles(root: tk.Tk) -> None:
@@ -374,9 +390,13 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         count = len(task_list.get_children())
         task_count.configure(text=f"{count} task" if count == 1 else f"{count} tasks")
 
-    for task in scheduler.get_tasks():
-        task_list.insert("", "end", values=(task.date, task.time, task.text))
-    update_task_count()
+    def refresh_task_list() -> None:
+        task_list.delete(*task_list.get_children())
+        for task in scheduler.get_tasks():
+            task_list.insert("", "end", values=(task.date, task.time, task.text))
+        update_task_count()
+
+    refresh_task_list()
 
     def set_status(message: str, *, success: bool = False) -> None:
         status.configure(
@@ -432,6 +452,75 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             )
 
     application_menu = tk.Menu(root)
+    data_menu = tk.Menu(application_menu, tearoff=False)
+
+    def choose_backup() -> None:
+        path = filedialog.asksaveasfilename(
+            parent=root,
+            title="Create SchedPlus backup",
+            defaultextension=".json",
+            filetypes=(("JSON", "*.json"),),
+        )
+        if path:
+            _tk_data_action(root, lambda: create_backup(Path(path)), "Backup created")
+
+    def choose_restore() -> None:
+        path = filedialog.askopenfilename(
+            parent=root, title="Restore SchedPlus backup", filetypes=(("JSON", "*.json"),)
+        )
+        if not path or not messagebox.askyesno(
+            "Replace current data?",
+            "Restore will replace all current tasks and preferences. Continue?",
+            parent=root,
+        ):
+            return
+        try:
+            result = restore_backup(Path(path))
+            scheduler.load_tasks()
+            refresh_task_list()
+            messagebox.showinfo(
+                "Backup restored",
+                f"Restored {result.restored} task(s).\n\nPrevious data:\n{result.safety_backup}",
+                parent=root,
+            )
+        except (DataTransferError, StorageError) as exc:
+            messagebox.showerror("Unable to restore backup", str(exc), parent=root)
+
+    def choose_export() -> None:
+        path = filedialog.asksaveasfilename(
+            parent=root,
+            title="Export SchedPlus tasks",
+            defaultextension=".json",
+            filetypes=(("JSON", "*.json"),),
+        )
+        if path:
+            _tk_data_action(root, lambda: export_tasks(Path(path)), "Tasks exported")
+
+    def choose_import() -> None:
+        path = filedialog.askopenfilename(
+            parent=root, title="Import SchedPlus tasks", filetypes=(("JSON", "*.json"),)
+        )
+        if not path:
+            return
+        try:
+            result = import_tasks(Path(path))
+            scheduler.load_tasks()
+            refresh_task_list()
+            messagebox.showinfo(
+                "Import complete",
+                f"Imported {result.imported}; skipped {result.duplicates} duplicate(s) "
+                f"and {result.conflicts} conflict(s).",
+                parent=root,
+            )
+        except (DataTransferError, StorageError) as exc:
+            messagebox.showerror("Unable to import tasks", str(exc), parent=root)
+
+    data_menu.add_command(label="Create backup…", command=choose_backup)
+    data_menu.add_command(label="Restore backup…", command=choose_restore)
+    data_menu.add_separator()
+    data_menu.add_command(label="Export tasks…", command=choose_export)
+    data_menu.add_command(label="Import tasks…", command=choose_import)
+    application_menu.add_cascade(label="Data", menu=data_menu)
     settings_menu = tk.Menu(application_menu, tearoff=False)
     settings_menu.add_checkbutton(
         label="Check for updates automatically",

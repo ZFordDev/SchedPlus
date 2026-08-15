@@ -57,3 +57,21 @@ database and asks the user to install a newer SchedPlus release.
 Corruption handling is separate from schema migration. A failed integrity check
 still preserves the damaged file as `tasks_corrupted_<timestamp>.db` and creates
 a clean database at the current schema version.
+
+## User backups and task exports
+
+User-created backups are UTF-8 JSON objects identified by
+`"format": "schedplus-backup"` and `"format_version": 1`. They contain the
+application version, creation time, complete task records, automatic-update
+preference, and portable PyQt UI preferences when available. Restore validates
+the format, version, preferences, every field, and every task before making any
+change. It then creates `backups/SchedPlus-before-restore-<timestamp>.json`
+under the user data directory before replacing tasks through the current
+database schema.
+
+Portable task exports use `"format": "schedplus-task-export"`, version 1, and
+contain task records but no preferences. Import is additive: a new ID is
+inserted, an identical existing ID is skipped as a duplicate, and an existing
+ID with different values is skipped as a conflict. Equal task content under a
+different ID remains a separate task. These operations only access local files;
+they do not upload or transmit data.

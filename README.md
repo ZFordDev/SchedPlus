@@ -152,6 +152,14 @@ schedplus edit 7c94a2 --text "Buy milk and bread" --time 15:00
 # Delete a task
 schedplus delete 7c94a2
 
+# Back up or restore tasks and local preferences
+schedplus backup SchedPlus-backup.json
+schedplus restore SchedPlus-backup.json --yes
+
+# Export or import portable task data
+schedplus export SchedPlus-tasks.json
+schedplus import SchedPlus-tasks.json
+
 # Inspect updater state (self-updating packaged builds only)
 schedplus update status
 schedplus update check
@@ -199,6 +207,14 @@ order inside a transaction. Before changing an existing schema, it creates a
 timestamped `tasks_pre_migration_v<old>_to_v<new>_*.db` backup beside
 `tasks.db`. A failed migration rolls back, and an older SchedPlus build refuses
 to open a database written with a newer schema version without modifying it.
+
+The **Data** menu in either desktop interface can create and restore a complete
+local backup or export and import tasks. Backup and task-export files are
+versioned JSON and never leave your computer. Restore validates the entire file
+before replacing tasks and automatically saves the current data under the
+application data directory first. Import never overwrites an existing ID:
+identical records are counted as duplicates, records with the same ID but
+different values are counted as conflicts, and both are skipped.
 
 ## System requirements
 

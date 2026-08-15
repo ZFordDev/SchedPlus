@@ -5,14 +5,32 @@ from __future__ import annotations
 import argparse
 import sys
 from dataclasses import replace
+from pathlib import Path
 from typing import TextIO
 
+from logic.data_transfer import (
+    DataTransferError,
+    create_backup,
+    export_tasks,
+    import_tasks,
+    restore_backup,
+)
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from schedplus.identity import get_application_identity
 from updater.errors import UpdateError
 
-COMMANDS = {"add", "list", "edit", "delete", "update"}
+COMMANDS = {
+    "add",
+    "list",
+    "edit",
+    "delete",
+    "backup",
+    "restore",
+    "export",
+    "import",
+    "update",
+}
 
 
 class CommandError(ValueError):
@@ -62,6 +80,33 @@ def build_parser() -> argparse.ArgumentParser:
     delete_parser.add_argument("id", help="Full task ID or unambiguous ID prefix")
     delete_parser.set_defaults(handler=_delete_task)
 
+    backup_parser = subparsers.add_parser(
+        "backup", help="Back up tasks and preferences"
+    )
+    backup_parser.add_argument("path", type=Path, help="Destination .json file")
+    backup_parser.set_defaults(handler=_backup_data)
+
+    restore_parser = subparsers.add_parser(
+        "restore", help="Restore a SchedPlus backup"
+    )
+    restore_parser.add_argument("path", type=Path, help="Backup .json file")
+    restore_parser.add_argument(
+        "--yes", action="store_true", help="Confirm replacement of current data"
+    )
+    restore_parser.set_defaults(handler=_restore_data)
+
+    export_parser = subparsers.add_parser(
+        "export", help="Export tasks as portable JSON"
+    )
+    export_parser.add_argument("path", type=Path, help="Destination .json file")
+    export_parser.set_defaults(handler=_export_data)
+
+    import_parser = subparsers.add_parser(
+        "import", help="Import tasks from portable JSON"
+    )
+    import_parser.add_argument("path", type=Path, help="Task export .json file")
+    import_parser.set_defaults(handler=_import_data)
+
     update_parser = subparsers.add_parser("update", help="Manage application updates")
     update_commands = update_parser.add_subparsers(
         dest="update_command", metavar="ACTION", required=True
@@ -93,7 +138,7 @@ def run_command(
 
     try:
         return options.handler(options, scheduler, stdout)
-    except (CommandError, ValidationError) as exc:
+    except (CommandError, DataTransferError, ValidationError) as exc:
         print(f"Error: {exc}", file=stderr)
         return 2
     except StorageError as exc:
@@ -159,6 +204,41 @@ def _delete_task(options, scheduler, stdout):
     task = _resolve_task(scheduler, options.id)
     scheduler.delete_task(task.id)
     print(f"Deleted {task.id}: {task.text}", file=stdout)
+    return 0
+
+
+def _backup_data(options, scheduler, stdout):
+    create_backup(options.path)
+    print(f"Backup created: {options.path}", file=stdout)
+    return 0
+
+
+def _restore_data(options, scheduler, stdout):
+    if not options.yes:
+        raise CommandError("restore replaces current data; rerun with --yes to confirm")
+    result = restore_backup(options.path)
+    scheduler.load_tasks()
+    print(
+        f"Restored {result.restored} task(s). Previous data: {result.safety_backup}",
+        file=stdout,
+    )
+    return 0
+
+
+def _export_data(options, scheduler, stdout):
+    export_tasks(options.path)
+    print(f"Tasks exported: {options.path}", file=stdout)
+    return 0
+
+
+def _import_data(options, scheduler, stdout):
+    result = import_tasks(options.path)
+    scheduler.load_tasks()
+    print(
+        f"Imported {result.imported}; skipped {result.duplicates} duplicate(s) "
+        f"and {result.conflicts} conflict(s).",
+        file=stdout,
+    )
     return 0
 
 
