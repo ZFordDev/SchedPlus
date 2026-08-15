@@ -10,7 +10,7 @@ inside the AppDir.
 python scripts/build_appimage.py \
   --frozen-dir dist/SchedPlusStandard \
   --output-dir artifacts/appimage \
-  --version 0.8.0 \
+  --version 0.8.1 \
   --appimagetool ./appimagetool-x86_64.AppImage
 ```
 
@@ -47,3 +47,8 @@ The AppImage is read-only at runtime. SchedPlus stores tasks outside the image
 at `~/.local/share/ZFordDev/SchedPlus/tasks.db`; it never needs write access to
 the directory containing the AppImage. A Lite AppImage is intentionally not
 provided unless there is demonstrated demand.
+
+Tagged release AppImages embed the stable or preview signed-manifest identity.
+SchedPlus verifies the matching AppImage's signed SHA-256 and byte size before
+opening its download location. Replacing or relaunching an AppImage remains an
+explicit user action.

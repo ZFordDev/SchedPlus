@@ -24,9 +24,10 @@ from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.theme import BASE_QSS
-from updater.background import start_automatic_update
+from updater.background import start_automatic_update, start_update_check
 from updater.errors import UpdateError
 from updater.service import launch_prepared_update
+from updater.state import read_state
 
 
 class _UpdateSignals(QObject):
@@ -48,7 +49,12 @@ class SchedPlusWindow(QMainWindow):
         self.setStyleSheet(BASE_QSS)
 
         help_menu = self.menuBar().addMenu("Help")
+        self.check_update_action = help_menu.addAction("Check for updates")
+        self.update_status_action = help_menu.addAction("Last update result")
+        help_menu.addSeparator()
         self.about_action = help_menu.addAction("About SchedPlus")
+        self.check_update_action.triggered.connect(self.check_for_updates)
+        self.update_status_action.triggered.connect(self.show_update_status)
         self.about_action.triggered.connect(self.show_about)
 
         self.status_timer = QTimer(self)
@@ -241,6 +247,24 @@ class SchedPlusWindow(QMainWindow):
     def show_about(self):
         QMessageBox.about(self, "About SchedPlus", self.identity.details)
 
+    def check_for_updates(self):
+        self.show_status_message("Checking for updates…")
+        self.update_thread = start_update_check(
+            self.update_signals.ready.emit, self.update_signals.failed.emit
+        )
+
+    def show_update_status(self):
+        try:
+            state = read_state()
+            details = f"Status: {state.status}"
+            if state.target_version:
+                details += f"\nTarget version: {state.target_version}"
+            if state.message:
+                details += f"\n{state.message}"
+        except UpdateError as exc:
+            details = str(exc)
+        QMessageBox.information(self, "Last update result", details)
+
     def _offer_prepared_update(self, build_info, prepared):
         prompt = QMessageBox(self)
         prompt.setIcon(QMessageBox.Icon.Information)
@@ -248,13 +272,20 @@ class SchedPlusWindow(QMainWindow):
         prompt.setText(
             f"SchedPlus {prepared.check.latest_version} is ready to install."
         )
-        prompt.setInformativeText(
-            "SchedPlus will close and restart after installing the update."
-        )
+        if prepared.action == "download":
+            prompt.setInformativeText(
+                "The verified package has been downloaded. Open its folder to install it with your package tools."
+            )
+        else:
+            prompt.setInformativeText(
+                "SchedPlus will close after handing off the verified update."
+            )
         prompt.setStandardButtons(
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel
         )
-        prompt.button(QMessageBox.StandardButton.Yes).setText("Restart and update")
+        prompt.button(QMessageBox.StandardButton.Yes).setText(
+            "Open download" if prepared.action == "download" else "Close and update"
+        )
         prompt.button(QMessageBox.StandardButton.Cancel).setText("Later")
         prompt.setDefaultButton(QMessageBox.StandardButton.Yes)
         if prompt.exec() != QMessageBox.StandardButton.Yes:
@@ -265,7 +296,8 @@ class SchedPlusWindow(QMainWindow):
         except UpdateError as exc:
             QMessageBox.critical(self, "Unable to install update", str(exc))
             return
-        QApplication.instance().quit()
+        if prepared.action != "download":
+            QApplication.instance().quit()
 
     def toggle_full_screen(self):
         self.showNormal() if self.isFullScreen() else self.showFullScreen()

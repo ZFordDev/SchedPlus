@@ -88,7 +88,7 @@ def load_build_info() -> BuildInfo:
     info = BuildInfo(
         version=str(values.get("version") or _installed_version()),
         edition=str(values.get("edition", "full")),
-        package_format=str(values.get("package_format", "source")),
+        package_format=str(values.get("format", values.get("package_format", "source"))),
         platform=str(values.get("platform", sys.platform)),
         architecture=str(architecture),
         channel=str(values.get("channel", "stable")),

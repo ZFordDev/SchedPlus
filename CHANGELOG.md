@@ -12,6 +12,18 @@
 - Added About details for the installed edition, update channel, package
   format, platform, and architecture.
 - Added `schedplus --version` to the command-line interface.
+- Enabled signed stable and preview update manifests for approved releases,
+  with Ed25519 manifest verification and signed SHA-256 artifact metadata.
+- Embedded package-aware `build-info.json` metadata in Windows portable and
+  installer builds, Debian packages, AppImage, Snap, and Microsoft Store MSIX.
+- Added managed Windows portable updates using an independent updater, atomic
+  activation, startup health confirmation, and last-known-good rollback.
+- Added verified Debian and AppImage download handoff. Standalone Windows
+  installer updates remain disabled until public Authenticode signing is
+  configured; Microsoft Store MSIX updates remain Store-managed.
+- Added manual update checks, automatic-check preferences, and persistent last
+  update results to the desktop and command-line interfaces.
+- Added an end-to-end upgrade test from v0.8.1 to a signed test release.
 
 ## Pre-Release version 0.8.0
 - Added unified tag/version validation, pre-package testing, independent Linux,

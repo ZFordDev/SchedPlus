@@ -13,7 +13,7 @@ from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from schedplus.identity import get_application_identity
 from ui.shortcuts import bind_enter_key
-from updater.background import start_automatic_update
+from updater.background import start_automatic_update, start_update_check
 from updater.config import load_build_info
 from updater.errors import UpdateError
 from updater.preferences import (
@@ -22,6 +22,7 @@ from updater.preferences import (
     save_update_preferences,
 )
 from updater.service import launch_prepared_update
+from updater.state import read_state
 
 LOGGER = logging.getLogger(__name__)
 
@@ -147,6 +148,19 @@ def _center_window(window: tk.Toplevel | tk.Tk) -> None:
     x = max(0, (window.winfo_screenwidth() - width) // 2)
     y = max(0, (window.winfo_screenheight() - height) // 2)
     window.geometry(f"+{x}+{y}")
+
+
+def _update_status_text() -> str:
+    try:
+        state = read_state()
+    except UpdateError as exc:
+        return str(exc)
+    lines = [f"Status: {state.status}"]
+    if state.target_version:
+        lines.append(f"Target version: {state.target_version}")
+    if state.message:
+        lines.append(state.message)
+    return "\n".join(lines)
 
 
 def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
@@ -373,10 +387,14 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     update_events: queue.SimpleQueue = queue.SimpleQueue()
 
     def offer_prepared_update(build_info, prepared) -> None:
+        action = (
+            "Open the downloaded package folder?"
+            if prepared.action == "download"
+            else "Close SchedPlus and install it now?"
+        )
         accepted = messagebox.askyesno(
             "SchedPlus update ready",
-            f"SchedPlus {prepared.check.latest_version} is ready to install.\n\n"
-            "Restart now to complete the update?",
+            f"SchedPlus {prepared.check.latest_version} is ready to install.\n\n{action}",
             parent=root,
         )
         if not accepted:
@@ -387,7 +405,8 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         except UpdateError as exc:
             messagebox.showerror("Unable to install update", str(exc), parent=root)
             return
-        root.destroy()
+        if prepared.action != "download":
+            root.destroy()
 
     def poll_update_events() -> None:
         while not update_events.empty():
@@ -419,6 +438,22 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         variable=automatic_updates,
         command=save_automatic_update_setting,
         state="normal" if load_build_info().internally_managed else "disabled",
+    )
+    settings_menu.add_command(
+        label="Check for updates now",
+        command=lambda: start_update_check(
+            lambda info, prepared: update_events.put(("ready", (info, prepared))),
+            lambda message: update_events.put(("error", message)),
+        ),
+        state="normal" if load_build_info().internally_managed else "disabled",
+    )
+    settings_menu.add_command(
+        label="Last update result",
+        command=lambda: messagebox.showinfo(
+            "Last update result",
+            _update_status_text(),
+            parent=root,
+        ),
     )
     application_menu.add_cascade(label="Settings", menu=settings_menu)
     help_menu = tk.Menu(application_menu, tearoff=False)

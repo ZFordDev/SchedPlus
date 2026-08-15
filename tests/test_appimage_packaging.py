@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -29,6 +30,17 @@ def test_appdir_contains_portable_standard_launch_metadata(tmp_path):
     assert (
         appdir / "usr" / "share" / "metainfo" / "dev.zford.SchedPlus.metainfo.xml"
     ).is_file()
+    build_info_path = (
+        appdir
+        / "usr"
+        / "lib"
+        / "schedplus"
+        / "_internal"
+        / "schedplus"
+        / "build-info.json"
+    )
+    build_info = json.loads(build_info_path.read_text(encoding="utf-8"))
+    assert build_info["format"] == "appimage"
 
 
 def test_appdir_rejects_the_wrong_frozen_edition(tmp_path):

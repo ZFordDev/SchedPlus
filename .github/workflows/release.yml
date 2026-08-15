@@ -47,14 +47,17 @@ jobs:
   appimage:
     needs: validate
     uses: ./.github/workflows/build-appimage.yml
+    secrets: inherit
 
   debian:
     needs: validate
     uses: ./.github/workflows/build-deb.yml
+    secrets: inherit
 
   windows:
     needs: validate
     uses: ./.github/workflows/build-windows-packages.yml
+    secrets: inherit
 
   snap:
     needs: validate
@@ -95,6 +98,27 @@ jobs:
         run: |
           find . -maxdepth 1 -type f ! -name SHA256SUMS.txt -printf '%f\n' | sort | xargs sha256sum > SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
+      - name: Generate and verify signed update manifest
+        run: |
+          python scripts/update_release_metadata.py manifest \
+            --artifact-directory release-artifacts \
+            --output "release-artifacts/$CHANNEL.json" \
+            --version "$VERSION" --channel "$CHANNEL" \
+            --release-base-url "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}" \
+            --release-notes-url "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from updater.manifest import parse_signed_manifest
+          manifest = Path("release-artifacts", f"{os.environ['CHANNEL']}.json").read_bytes()
+          parse_signed_manifest(manifest, os.environ["UPDATE_PUBLIC_KEY"])
+          PY
+        env:
+          PYTHONPATH: src
+          SCHEDPLUS_UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_PRIVATE_KEY }}
+          UPDATE_PUBLIC_KEY: ${{ vars.UPDATE_PUBLIC_KEY }}
+          VERSION: ${{ needs.validate.outputs.version }}
+          CHANNEL: ${{ startsWith(github.ref_name, 'pre-release-') && 'preview' || 'stable' }}
       - name: Create draft candidate release
         uses: softprops/action-gh-release@v2
         with:

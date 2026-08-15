@@ -6,9 +6,15 @@ import argparse
 import shutil
 import subprocess
 import tempfile
-import tomllib
 from pathlib import Path
 from xml.sax.saxutils import escape
+
+import tomllib
+
+try:
+    from scripts.update_release_metadata import embed_packaged_build_info
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from update_release_metadata import embed_packaged_build_info
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -85,6 +91,15 @@ def stage_package(
     if frozen_dir.name != "SchedPlusStandard" or not (frozen_dir / "SchedPlusStandard.exe").is_file():
         raise ValueError("--frozen-dir must be a SchedPlusStandard PyInstaller onedir directory")
     shutil.copytree(frozen_dir, stage, dirs_exist_ok=True)
+    embed_packaged_build_info(
+        stage,
+        version=package_version().removesuffix(".0"),
+        edition="standard",
+        platform="win32",
+        architecture="x86_64",
+        package_format="msix-store",
+        externally_managed=True,
+    )
     (stage / "AppxManifest.xml").write_text(
         render_manifest(
             identity_name=identity_name,

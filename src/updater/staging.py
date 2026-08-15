@@ -51,3 +51,29 @@ def extract_managed_zip(archive: Path, staging_directory: Path) -> Path:
             f"Unable to stage the downloaded update: {exc}"
         ) from exc
     return staging_directory
+
+
+def normalize_managed_payload(
+    extracted: Path, staging_directory: Path, launch_relative_path: str
+) -> Path:
+    """Select the application tree from either update-only or distributable ZIPs."""
+    extracted = extracted.resolve()
+    staging_directory = staging_directory.resolve()
+    direct = extracted / launch_relative_path
+    candidates = [direct] if direct.is_file() else []
+    candidates.extend(
+        path
+        for path in extracted.glob("*/current")
+        if (path / launch_relative_path).is_file()
+    )
+    if len(candidates) != 1:
+        raise UpdateVerificationError(
+            "The managed update does not contain one unambiguous application payload."
+        )
+    payload = candidates[0].parent if candidates[0] == direct else candidates[0]
+    if staging_directory.exists():
+        shutil.rmtree(staging_directory)
+    shutil.move(str(payload), str(staging_directory))
+    if extracted.exists():
+        shutil.rmtree(extracted)
+    return staging_directory

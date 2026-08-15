@@ -10,6 +10,11 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+try:
+    from scripts.update_release_metadata import embed_packaged_build_info
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from update_release_metadata import embed_packaged_build_info
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 WINDOWS_PACKAGING = PROJECT_ROOT / "packaging" / "windows"
@@ -49,7 +54,22 @@ def build_portables(*, frozen_root: Path, output_dir: Path, version: str) -> lis
         staging = output_dir / _portable_name(edition, version)
         if staging.exists():
             shutil.rmtree(staging)
-        shutil.copytree(frozen, staging)
+        current = staging / "current"
+        shutil.copytree(frozen, current)
+        updater = frozen_root / "SchedPlusUpdater.exe"
+        if updater.is_file():
+            shutil.copy2(updater, staging / updater.name)
+        embed_packaged_build_info(
+            current,
+            version=version,
+            edition=edition.key,
+            platform="win32",
+            architecture=ARCHITECTURE,
+            package_format="managed-zip",
+            updater_executable="../SchedPlusUpdater.exe",
+            install_root="..",
+            launch_relative_path=f"{edition.frozen_directory}.exe",
+        )
         _source_info(staging)
         archive = shutil.make_archive(str(staging), "zip", output_dir, staging.name)
         shutil.rmtree(staging)
@@ -62,13 +82,29 @@ def build_installer(*, frozen_root: Path, output_dir: Path, version: str, iscc: 
     if not frozen.is_dir():
         raise ValueError(f"missing standard frozen directory: {frozen}")
     output_dir.mkdir(parents=True, exist_ok=True)
+    staged = output_dir / "installer-payload"
+    if staged.exists():
+        shutil.rmtree(staged)
+    shutil.copytree(frozen, staged)
+    embed_packaged_build_info(
+        staged,
+        version=version,
+        edition="standard",
+        platform="win32",
+        architecture=ARCHITECTURE,
+        package_format="windows-installer",
+        updates_supported=False,
+    )
     environment = {
         **os.environ,
         "SCHEDPLUS_VERSION": version,
-        "SCHEDPLUS_FROZEN_DIR": str(frozen),
+        "SCHEDPLUS_FROZEN_DIR": str(staged.resolve()),
         "SCHEDPLUS_OUTPUT_DIR": str(output_dir.resolve()),
     }
-    subprocess.run([str(iscc.resolve()), str(WINDOWS_PACKAGING / "SchedPlus.iss")], check=True, env=environment)
+    try:
+        subprocess.run([str(iscc.resolve()), str(WINDOWS_PACKAGING / "SchedPlus.iss")], check=True, env=environment)
+    finally:
+        shutil.rmtree(staged, ignore_errors=True)
     artifact = output_dir / f"SchedPlus-Setup-{version}-windows-{ARCHITECTURE}.exe"
     if not artifact.is_file():
         raise RuntimeError(f"Inno Setup did not create {artifact}")

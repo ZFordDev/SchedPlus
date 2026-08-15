@@ -1,5 +1,7 @@
+import json
 import zipfile
 from pathlib import Path
+
 import tomllib
 
 from scripts import build_windows_packages, validate_windows_artifacts
@@ -26,6 +28,12 @@ def test_portable_packages_include_source_information(tmp_path):
     for artifact in artifacts:
         with zipfile.ZipFile(artifact) as archive:
             assert any(name.endswith("/SOURCE.txt") for name in archive.namelist())
+            build_info_name = next(
+                name for name in archive.namelist() if name.endswith("schedplus/build-info.json")
+            )
+            build_info = json.loads(archive.read(build_info_name))
+            assert build_info["format"] == "managed-zip"
+            assert build_info["version"] == "0.8.0"
 
 
 def test_windows_artifact_validator_checks_source_and_checksums(tmp_path):

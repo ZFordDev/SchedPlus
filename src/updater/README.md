@@ -8,9 +8,9 @@ A managed portable build uses metadata shaped like:
 
 ```json
 {
-  "version": "0.8.0",
+  "version": "0.8.1",
   "edition": "standard",
-  "package_format": "managed",
+  "format": "managed-zip",
   "platform": "win32",
   "architecture": "x86_64",
   "channel": "stable",
@@ -34,8 +34,22 @@ keys and compact separators. Artifact SHA-256 and exact byte size are covered by
 that signature. Private signing keys belong in the release system and must never
 be committed or embedded in SchedPlus.
 
-The first implementation supports directory-managed ZIP installations. AppImage,
-Debian, and Windows installer adapters belong to their respective packaging
-issues because each must use its platform's installation and elevation model.
-Snap and Microsoft Store MSIX packages must set `updates_enabled` to `false` and
-use Store updates exclusively.
+Package handoff is deliberately format-aware:
+
+- Windows managed ZIPs use the independent updater, atomic directory swap,
+  health confirmation, and rollback.
+- Standalone Windows installer builds remain opted out until public
+  Authenticode signing is configured. Microsoft Store MSIX uses Store updates.
+- Debian and AppImage builds download and verify the matching package, then
+  expose it for installation through normal platform tools.
+- Snap and Microsoft Store MSIX packages set `updates_enabled` to `false` and
+  use Store updates exclusively.
+- Source installations never enable the updater.
+
+Approved release workflows read the Ed25519 private key only from the masked
+`UPDATE_SIGNING_PRIVATE_KEY` secret. It is never written to an artifact or
+printed. The matching public key is configured as the `UPDATE_PUBLIC_KEY`
+repository variable and embedded in release packages. If public Windows signing
+is configured later, CI uses masked certificate/password secrets and deletes
+the temporary PFX before the job completes; their absence does not block a
+release.

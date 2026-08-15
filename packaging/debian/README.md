@@ -8,7 +8,7 @@ python scripts/build_debian_package.py \
   --edition standard \
   --frozen-dir dist/SchedPlusStandard \
   --output-dir artifacts/debian \
-  --version 0.8.0
+  --version 0.8.1
 ```
 
 Packages install the frozen application under `/usr/lib/<package>/` and a small
@@ -35,3 +35,8 @@ Debian metadata issues directly. The remaining unavoidable lintian findings
 (embedded runtime libraries, their upstream RUNPATH, stripping and dependency
 analysis) are listed in package-specific overrides under
 `/usr/share/lintian/overrides/`. They are explicit exceptions, not ignored CI.
+
+Tagged release packages embed their edition, architecture, channel, signed
+manifest URL, and verification key. SchedPlus can download and verify the exact
+matching `.deb`, then opens its location for installation with the user's normal
+APT or desktop package tools; it never attempts privileged installation itself.
