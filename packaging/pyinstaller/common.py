@@ -19,6 +19,7 @@ ASSETS = [
 ICON = str(PROJECT_ROOT / "assets" / "windows" / "SchedPlus.ico")
 VERSION_INFO = str(PROJECT_ROOT / "packaging" / "pyinstaller" / "version_info.txt")
 UPDATER_HIDDEN_IMPORTS = [
+    "updater",
     "updater.background",
     "updater.checker",
     "updater.config",

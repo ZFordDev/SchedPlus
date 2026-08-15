@@ -6,7 +6,15 @@ from PyInstaller.building.build_main import Analysis, EXE, PYZ
 
 project_root = Path(SPECPATH).parents[1]
 analysis = Analysis(
-    [str(project_root / "packaging" / "pyinstaller" / "entry_points" / "updater.py")],
+    [
+        str(
+            project_root
+            / "packaging"
+            / "pyinstaller"
+            / "entry_points"
+            / "updater_launcher.py"
+        )
+    ],
     pathex=[str(project_root / "src")],
     binaries=[],
     datas=[],

@@ -54,6 +54,7 @@ def test_every_frozen_profile_explicitly_collects_the_updater_package():
 
     assert "UPDATER_HIDDEN_IMPORTS" in source
     for module in (
+        "updater",
         "updater.config",
         "updater.manifest",
         "updater.service",
@@ -61,6 +62,13 @@ def test_every_frozen_profile_explicitly_collects_the_updater_package():
         "updater.update",
     ):
         assert f'"{module}"' in source
+
+
+def test_updater_entry_point_does_not_shadow_the_updater_package():
+    entry_points = SPEC_DIRECTORY / "entry_points"
+
+    assert (entry_points / "updater_launcher.py").is_file()
+    assert not (entry_points / "updater.py").exists()
 
 
 @pytest.mark.parametrize("edition", EDITION_CONFIG)
