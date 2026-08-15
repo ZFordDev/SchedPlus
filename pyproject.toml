@@ -53,7 +53,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ZFordDev/schedplus"
+Homepage = "https://schedplus.app/"
 Documentation = "https://docs.zford.dev/zforddev/schedplus"
 Repository = "https://github.com/ZFordDev/schedplus.git"
 "Bug Tracker" = "https://github.com/ZFordDev/schedplus/issues"

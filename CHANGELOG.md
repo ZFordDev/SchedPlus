@@ -1,8 +1,27 @@
 # Changelog
 
-## Unreleased (v0.8.1)
+## Unreleased (v0.9.0)
+
+### Plan
+- Add task completion, history, and safe deletion [#132]
+- Bring the Lite interface to complete task-management parity [#133]
+- Expand the task model with notes, priority, and duration [#134]
+- Add categories and local organization [#135]
+- Add recurring tasks [#136]
+- Add offline reminders and native notifications [#137]
+- Add undo and recovery for common task actions [#138]
+- Complete settings, About, diagnostics, and data-location controls [#139]
+- Perform an accessibility and keyboard-navigation pass [#140]
+- Add configurable date, time, and week preferences [#141]
+- Complete release documentation and offline privacy guarantees [#142]
 
 ### Added
+-
+
+### Fixed
+-
+
+## Pre-Release version 0.8.1
 
 - Added a shared application identity provider backed by packaged
   `build-info.json` metadata, with installed package metadata as the version
@@ -37,9 +56,6 @@
   Store-policy smoke gates for supported Linux and Windows artifacts.
 - Added sanitized diagnostic-log artifacts, an all-checks-required stable
   promotion job, and a manual real-host and Store verification checklist.
-
-### Fixed
-
 - Fixed frozen Standard, Lite, Full, and CLI artifacts failing at startup
   because updater modules were not explicitly collected by PyInstaller.
 - Fixed MSIX packaging-test collection importing release-only cryptographic

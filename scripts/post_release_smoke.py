@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
+import json
+import os
 import re
 import sqlite3
+import urllib.request
 from pathlib import Path
 
 SMOKE_TASK_ID = "00000000-0000-0000-0000-000000000081"
@@ -74,6 +78,49 @@ def sanitize_log(source: Path, output: Path, replacements: list[str]) -> None:
     output.write_text(text, encoding="utf-8")
 
 
+def download_release_asset(
+    *,
+    repository: str,
+    token: str,
+    tag: str,
+    pattern: str,
+    directory: Path,
+) -> Path:
+    """Download one asset from a published or draft release."""
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "User-Agent": "SchedPlus-post-release-smoke",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    request = urllib.request.Request(
+        f"https://api.github.com/repos/{repository}/releases?per_page=100",
+        headers=headers,
+    )
+    with urllib.request.urlopen(request) as response:
+        releases = json.load(response)
+    release = next((item for item in releases if item.get("tag_name") == tag), None)
+    if release is None:
+        raise ValueError(f"release not found: {tag}")
+    matches = [
+        asset
+        for asset in release.get("assets", [])
+        if fnmatch.fnmatchcase(asset.get("name", ""), pattern)
+    ]
+    if len(matches) != 1:
+        raise ValueError(
+            f"expected one asset matching {pattern!r}, found {len(matches)}"
+        )
+    asset = matches[0]
+    asset_headers = {**headers, "Accept": "application/octet-stream"}
+    asset_request = urllib.request.Request(asset["url"], headers=asset_headers)
+    directory.mkdir(parents=True, exist_ok=True)
+    destination = directory / asset["name"]
+    with urllib.request.urlopen(asset_request) as response:
+        destination.write_bytes(response.read())
+    return destination
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -87,13 +134,25 @@ def main() -> int:
     sanitize.add_argument("--source", type=Path, required=True)
     sanitize.add_argument("--output", type=Path, required=True)
     sanitize.add_argument("--redact", action="append", default=[])
+    download = commands.add_parser("download")
+    download.add_argument("--tag", required=True)
+    download.add_argument("--pattern", required=True)
+    download.add_argument("--directory", type=Path, required=True)
     options = parser.parse_args()
     if options.command == "seed":
         seed_legacy_database(options.database, options.release)
     elif options.command == "verify":
         verify_upgraded_database(options.database, options.schema)
-    else:
+    elif options.command == "sanitize":
         sanitize_log(options.source, options.output, options.redact)
+    else:
+        download_release_asset(
+            repository=os.environ["GITHUB_REPOSITORY"],
+            token=os.environ["GITHUB_TOKEN"],
+            tag=options.tag,
+            pattern=options.pattern,
+            directory=options.directory,
+        )
     return 0
 
 

@@ -34,7 +34,7 @@ def test_post_release_smoke_workflow_gates_stable_promotion():
     ).read_text(encoding="utf-8")
 
     assert "Post-release installation and upgrade smoke tests" in workflow
-    assert "release download" in workflow
+    assert "post_release_smoke.py download" in workflow
     assert "seed --database" in workflow
     assert "verify --database" in workflow
     assert "Remove application without removing user data" in workflow

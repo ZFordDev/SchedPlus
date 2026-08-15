@@ -54,7 +54,9 @@ jobs:
       - name: Download draft release package
         env:
           TAG: ${{ inputs.tag }}
-        run: gh release download "$TAG" --pattern '${{ matrix.pattern }}' --dir smoke-assets
+        run: >-
+          python scripts/post_release_smoke.py download --tag "$TAG"
+          --pattern '${{ matrix.pattern }}' --directory smoke-assets
       - name: Fresh install and launch
         shell: bash
         run: |
@@ -154,7 +156,9 @@ jobs:
         env:
           TAG: ${{ inputs.tag }}
         run: |
-          gh release download $env:TAG --pattern 'SchedPlus-${{ matrix.edition }}-*-windows-x86_64.zip' --dir smoke-assets
+          python scripts/post_release_smoke.py download --tag $env:TAG `
+            --pattern 'SchedPlus-${{ matrix.edition }}-*-windows-x86_64.zip' `
+            --directory smoke-assets
           Expand-Archive (Get-ChildItem smoke-assets/*.zip).FullName -DestinationPath portable
       - name: Fresh launch, populated upgrade, and portable removal
         shell: pwsh
@@ -208,7 +212,9 @@ jobs:
         shell: pwsh
         env:
           TAG: ${{ inputs.tag }}
-        run: gh release download $env:TAG --pattern 'SchedPlus-Setup-*-windows-x86_64.exe' --dir smoke-assets
+        run: >-
+          python scripts/post_release_smoke.py download --tag $env:TAG
+          --pattern 'SchedPlus-Setup-*-windows-x86_64.exe' --directory smoke-assets
       - name: Fresh install, populated upgrade, and uninstall
         shell: pwsh
         run: |
