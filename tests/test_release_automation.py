@@ -43,5 +43,8 @@ def test_post_release_smoke_workflow_gates_stable_promotion():
     assert "Store packages use external updates" in workflow
     assert "if: always()" in workflow
     assert "sanitize diagnostic log" in workflow.lower()
+    assert "${{ runner.temp }}" not in workflow
+    assert "XDG_DATA_HOME=$RUNNER_TEMP" in workflow
+    assert "APPDATA=$env:RUNNER_TEMP" in workflow
     assert "needs: [linux-packages, windows-portable, windows-installer, store-policy]" in workflow
     assert 'gh release edit "$TAG"' in workflow

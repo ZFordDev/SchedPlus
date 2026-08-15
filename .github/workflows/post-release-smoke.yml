@@ -46,10 +46,11 @@ jobs:
             command: AppRun
     env:
       GH_TOKEN: ${{ github.token }}
-      XDG_DATA_HOME: ${{ runner.temp }}/schedplus-data
       QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v4
+      - name: Isolate Linux smoke-test data
+        run: echo "XDG_DATA_HOME=$RUNNER_TEMP/schedplus-data" >> "$GITHUB_ENV"
       - name: Download draft release package
         env:
           TAG: ${{ inputs.tag }}
@@ -140,10 +141,14 @@ jobs:
             executable: SchedPlusCli.exe
     env:
       GH_TOKEN: ${{ github.token }}
-      APPDATA: ${{ runner.temp }}\schedplus-portable-data
       QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v4
+      - name: Isolate Windows portable smoke-test data
+        shell: pwsh
+        run: |
+          "APPDATA=$env:RUNNER_TEMP\schedplus-portable-data" |
+            Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Download and extract portable package
         shell: pwsh
         env:
