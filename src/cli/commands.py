@@ -167,7 +167,7 @@ def _update_application(options, scheduler, stdout):
     from updater.config import load_build_info, resolve_install_root
     from updater.installer import rollback_managed_update
     from updater.service import launch_prepared_update, prepare_update
-    from updater.state import read_state
+    from updater.state import UpdateState, read_state, write_state
 
     info = load_build_info()
     if options.update_command == "status":
@@ -181,11 +181,27 @@ def _update_application(options, scheduler, stdout):
             print(state.message, file=stdout)
         return 0
     if options.update_command == "check":
-        result = check_for_update(info)
+        try:
+            result = check_for_update(info)
+        except UpdateError as exc:
+            write_state(
+                UpdateState("failed", current_version=info.version, message=str(exc))
+            )
+            raise
         if result.available:
             print(f"SchedPlus {result.latest_version} is available.", file=stdout)
+            message = "A compatible update is available."
         else:
             print(f"SchedPlus {info.version} is up to date.", file=stdout)
+            message = "No newer compatible release was found."
+        write_state(
+            UpdateState(
+                "available" if result.available else "up_to_date",
+                current_version=info.version,
+                target_version=result.latest_version,
+                message=message,
+            )
+        )
         return 0
     if options.update_command == "rollback":
         rollback_managed_update(resolve_install_root(info))
@@ -194,10 +210,13 @@ def _update_application(options, scheduler, stdout):
 
     prepared = prepare_update(info)
     launch_prepared_update(info, prepared)
-    print(
-        f"SchedPlus {prepared.check.latest_version} is ready. Closing to install it.",
-        file=stdout,
-    )
+    if prepared.action == "download":
+        print(f"Verified update downloaded to {prepared.staged_path}", file=stdout)
+    else:
+        print(
+            f"SchedPlus {prepared.check.latest_version} is ready. Closing to install it.",
+            file=stdout,
+        )
     return 0
 
 

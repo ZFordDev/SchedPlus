@@ -17,6 +17,11 @@ on:
 jobs:
   package:
     runs-on: windows-latest
+    env:
+      SCHEDPLUS_ENABLE_UPDATES: ${{ startsWith(github.ref, 'refs/tags/') && '1' || '0' }}
+      SCHEDPLUS_UPDATE_CHANNEL: ${{ startsWith(github.ref_name, 'pre-release-') && 'preview' || 'stable' }}
+      SCHEDPLUS_UPDATE_PUBLIC_KEY: ${{ vars.UPDATE_PUBLIC_KEY }}
+      WINDOWS_SIGNING_AVAILABLE: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE != '' && secrets.WINDOWS_SIGNING_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,12 +41,40 @@ jobs:
           pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-lite.spec
           pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-full.spec
           pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-cli.spec
+          pyinstaller --noconfirm --distpath dist --workpath build packaging/pyinstaller/schedplus-updater.spec
       - name: Build portable ZIPs and Standard installer
         shell: pwsh
         run: |
           $version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])"
           $iscc = (Get-Command ISCC.exe -ErrorAction Stop).Source
           python scripts/build_windows_packages.py --frozen-root dist --output-dir artifacts/windows --version $version --iscc $iscc
+      - name: Authenticode-sign release installer
+        if: startsWith(github.ref, 'refs/tags/') && env.WINDOWS_SIGNING_AVAILABLE == 'true'
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}
+          WINDOWS_SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERTIFICATE)) { throw 'Windows signing certificate is not configured' }
+          $certificate = Join-Path $env:RUNNER_TEMP 'schedplus-signing.pfx'
+          try {
+            [IO.File]::WriteAllBytes($certificate, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERTIFICATE))
+            $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Recurse -Filter signtool.exe |
+              Sort-Object FullName -Descending | Select-Object -First 1
+            if ($null -eq $signtool) { throw 'signtool.exe was not found' }
+            $installer = Get-ChildItem artifacts/windows/SchedPlus-Setup-*-windows-x86_64.exe | Select-Object -First 1
+            & $signtool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_SIGNING_PASSWORD $installer.FullName
+            if ($LASTEXITCODE -ne 0) { throw 'Authenticode signing failed' }
+            & $signtool.FullName verify /pa /v $installer.FullName
+            if ($LASTEXITCODE -ne 0) { throw 'Authenticode verification failed' }
+            $checksum = Get-ChildItem artifacts/windows -File | Where-Object Name -ne 'SHA256SUMS.txt' | Sort-Object Name | ForEach-Object {
+              $hash = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant()
+              "$hash *$($_.Name)"
+            }
+            $checksum | Set-Content -Encoding ascii artifacts/windows/SHA256SUMS.txt
+          } finally {
+            Remove-Item -Force -ErrorAction SilentlyContinue $certificate
+          }
       - name: Validate release artifacts and checksums
         shell: pwsh
         run: |

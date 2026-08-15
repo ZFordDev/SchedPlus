@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "schedplus"
-version = "0.8.0"
+version = "0.8.1"
 description = "Modern, local-first scheduling and productivity application"
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
@@ -70,6 +70,9 @@ schedplus-cli = "startup.controller:boot_cli"
 [tool.setuptools]
 package-dir = {"" = "src"}
 license-files = ["LICENSE", "LICENSES/*", "NOTICE"]
+
+[tool.setuptools.package-data]
+schedplus = ["build-info.json"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

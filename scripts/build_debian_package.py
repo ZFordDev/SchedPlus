@@ -6,9 +6,14 @@ import argparse
 import gzip
 import shutil
 import subprocess
-import sys
+import sys  # Imported for command-line entry-point tests.
 from dataclasses import dataclass
 from pathlib import Path
+
+try:
+    from scripts.update_release_metadata import embed_packaged_build_info
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from update_release_metadata import embed_packaged_build_info
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -121,6 +126,14 @@ def build(*, edition: str, frozen_dir: Path, output_dir: Path, version: str) -> 
         shutil.rmtree(stage)
     application_dir = stage / "usr" / "lib" / edition.name
     shutil.copytree(frozen_dir, application_dir)
+    embed_packaged_build_info(
+        application_dir,
+        version=version,
+        edition={"schedplus": "standard", "schedplus-lite": "lite", "schedplus-cli": "cli"}[edition.name],
+        platform="linux",
+        architecture=architecture,
+        package_format="deb",
+    )
     _normalize_shared_library_modes(application_dir)
 
     _write(stage / "DEBIAN" / "control", _control(edition, version, architecture))

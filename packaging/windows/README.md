@@ -7,7 +7,7 @@ a normal Standard installer. Standard is the primary GitHub download.
 python scripts/build_windows_packages.py `
   --frozen-root dist `
   --output-dir artifacts/windows `
-  --version 0.8.0 `
+  --version 0.8.1 `
   --iscc "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
@@ -38,3 +38,11 @@ release signing system or GitHub protected secrets—never in source control.
 Unsigned development artifacts may trigger SmartScreen because reputation is
 not established; they must be clearly marked as test builds. Verify signatures
 and timestamps before publishing a release.
+
+If the optional `WINDOWS_SIGNING_CERTIFICATE` and `WINDOWS_SIGNING_PASSWORD`
+secrets contain a publicly trusted certificate, CI Authenticode-signs and
+verifies the Standard installer before recalculating checksums. Without them,
+the installer is published without internal-update support. Microsoft Store
+MSIX remains Store-signed and Store-managed. Portable ZIPs use a managed layout
+with `current/`, a separate `SchedPlusUpdater.exe`, and embedded signed
+update-feed metadata so activation can roll back after a failed health check.

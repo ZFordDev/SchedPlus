@@ -4,7 +4,6 @@ import pytest
 
 from scripts.validate_frozen_artifact import EDITION_CONFIG, REQUIRED_SUFFIXES, validate
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPEC_DIRECTORY = PROJECT_ROOT / "packaging" / "pyinstaller"
 
@@ -48,6 +47,28 @@ def test_windows_builds_embed_the_icon_and_version_resource():
 
     assert "version=VERSION_INFO if sys.platform == \"win32\" else None" in source
     assert "icon=ICON if sys.platform == \"win32\" else None" in source
+
+
+def test_every_frozen_profile_explicitly_collects_the_updater_package():
+    source = (SPEC_DIRECTORY / "common.py").read_text(encoding="utf-8")
+
+    assert "UPDATER_HIDDEN_IMPORTS" in source
+    for module in (
+        "updater",
+        "updater.config",
+        "updater.manifest",
+        "updater.service",
+        "updater.state",
+        "updater.update",
+    ):
+        assert f'"{module}"' in source
+
+
+def test_updater_entry_point_does_not_shadow_the_updater_package():
+    entry_points = SPEC_DIRECTORY / "entry_points"
+
+    assert (entry_points / "updater_launcher.py").is_file()
+    assert not (entry_points / "updater.py").exists()
 
 
 @pytest.mark.parametrize("edition", EDITION_CONFIG)

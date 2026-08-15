@@ -9,6 +9,11 @@ import shutil
 import subprocess
 from pathlib import Path
 
+try:
+    from scripts.update_release_metadata import embed_packaged_build_info
+except ModuleNotFoundError:  # Direct ``python scripts/...`` execution.
+    from update_release_metadata import embed_packaged_build_info
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 METADATA = PROJECT_ROOT / "packaging" / "metadata"
 FROZEN_NAME = "SchedPlusStandard"
@@ -25,7 +30,7 @@ def _write(path: Path, content: str) -> None:
     path.chmod(0o755)
 
 
-def create_appdir(*, frozen_dir: Path, appdir: Path) -> Path:
+def create_appdir(*, frozen_dir: Path, appdir: Path, version: str = "0.0.0") -> Path:
     frozen_dir = frozen_dir.resolve()
     if frozen_dir.name != FROZEN_NAME:
         raise ValueError(f"AppImage requires the {FROZEN_NAME!r} frozen directory")
@@ -36,6 +41,14 @@ def create_appdir(*, frozen_dir: Path, appdir: Path) -> Path:
 
     application_dir = appdir / "usr" / "lib" / "schedplus"
     shutil.copytree(frozen_dir, application_dir)
+    embed_packaged_build_info(
+        application_dir,
+        version=version,
+        edition="standard",
+        platform="linux",
+        architecture=architecture(),
+        package_format="appimage",
+    )
     _write(
         appdir / "AppRun",
         "#!/bin/sh\nexec \"$(dirname \"$0\")/usr/lib/schedplus/SchedPlusStandard\" \"$@\"\n",
@@ -58,7 +71,7 @@ def create_appdir(*, frozen_dir: Path, appdir: Path) -> Path:
 
 
 def build(*, frozen_dir: Path, output_dir: Path, version: str, appimagetool: Path) -> tuple[Path, Path]:
-    appdir = create_appdir(frozen_dir=frozen_dir, appdir=output_dir / "SchedPlus.AppDir")
+    appdir = create_appdir(frozen_dir=frozen_dir, appdir=output_dir / "SchedPlus.AppDir", version=version)
     output_dir.mkdir(parents=True, exist_ok=True)
     artifact = output_dir / f"SchedPlus-{version}-{architecture()}.AppImage"
     environment = {**os.environ, "ARCH": architecture()}

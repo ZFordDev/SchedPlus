@@ -19,7 +19,7 @@ from updater.errors import (
 from updater.health import confirm_startup_health, consume_health_argument
 from updater.installer import apply_managed_update, rollback_managed_update
 from updater.manifest import canonical_payload, parse_signed_manifest
-from updater.staging import extract_managed_zip
+from updater.staging import extract_managed_zip, normalize_managed_payload
 
 
 def _key_pair():
@@ -127,6 +127,20 @@ def test_zip_staging_rejects_path_traversal(tmp_path):
     assert not (tmp_path / "outside.txt").exists()
 
 
+def test_distributable_portable_zip_selects_nested_current_payload(tmp_path):
+    extracted = tmp_path / "unpacked"
+    payload = extracted / "SchedPlus-Standard-0.8.2-test-windows-x86_64" / "current"
+    payload.mkdir(parents=True)
+    (payload / "SchedPlusStandard.exe").write_bytes(b"launcher")
+
+    staged = normalize_managed_payload(
+        extracted, tmp_path / "staged", "SchedPlusStandard.exe"
+    )
+
+    assert (staged / "SchedPlusStandard.exe").read_bytes() == b"launcher"
+    assert not extracted.exists()
+
+
 def test_health_tokens_are_consumed_and_confined(tmp_path):
     token = tmp_path / "temp" / ("health-" + "a" * 32 + ".ok")
     arguments, value = consume_health_argument(
@@ -199,3 +213,39 @@ def test_failed_health_check_rolls_back(tmp_path, monkeypatch):
         )
 
     assert (root / "current" / "version.txt").read_text() == "old"
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="uses a POSIX test launcher")
+def test_081_to_signed_test_release_runs_end_to_end(tmp_path, monkeypatch):
+    """Exercise signed discovery, compatibility selection, swap, and health check."""
+    monkeypatch.setattr("updater.state.user_data_directory", lambda: tmp_path / "data")
+    private, public = _key_pair()
+    raw_manifest = _signed_manifest(private, version="0.8.2-test")
+    info = replace(_build_info(public), version="0.8.1")
+
+    result = check_for_update(info, raw_manifest=raw_manifest)
+    assert result.available
+    assert result.latest_version == "0.8.2-test"
+
+    root = tmp_path / "install"
+    current = root / "current"
+    staged = root / "temp" / "staged"
+    current.mkdir(parents=True)
+    staged.mkdir(parents=True)
+    (current / "version.txt").write_text("0.8.1", encoding="utf-8")
+    launcher = staged / "schedplus"
+    launcher.write_text("#!/bin/sh\nprintf 'ok\\n' > \"$2\"\n", encoding="utf-8")
+    launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR)
+    (staged / "version.txt").write_text("0.8.2-test", encoding="utf-8")
+
+    apply_managed_update(
+        root,
+        staged,
+        "schedplus",
+        current_version=info.version,
+        target_version=result.latest_version,
+        health_timeout=2,
+    )
+
+    assert (root / "current" / "version.txt").read_text() == "0.8.2-test"
+    assert (root / "_old" / "version.txt").read_text() == "0.8.1"

@@ -21,6 +21,10 @@ desktop/AppStream metadata, `LICENSE`, `LICENSES/`, and `NOTICE`. The frozen
 directory is an internal package format; a Debian package, AppImage, Snap,
 Windows installer, or Store package wraps it later.
 
+Every profile explicitly collects the shared updater modules required during
+startup and package-identity loading. Embedded build policy still decides
+whether a particular package is internally or externally updated.
+
 ## GPL source obligations
 
 SchedPlus desktop distributions are GPL-3.0-only. When distributing any frozen

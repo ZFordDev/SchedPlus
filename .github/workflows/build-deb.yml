@@ -15,6 +15,10 @@ on:
 jobs:
   package:
     runs-on: ubuntu-latest
+    env:
+      SCHEDPLUS_ENABLE_UPDATES: ${{ startsWith(github.ref, 'refs/tags/') && '1' || '0' }}
+      SCHEDPLUS_UPDATE_CHANNEL: ${{ startsWith(github.ref_name, 'pre-release-') && 'preview' || 'stable' }}
+      SCHEDPLUS_UPDATE_PUBLIC_KEY: ${{ vars.UPDATE_PUBLIC_KEY }}
     strategy:
       fail-fast: false
       matrix:

@@ -155,6 +155,7 @@ schedplus delete 7c94a2
 # Inspect updater state (self-updating packaged builds only)
 schedplus update status
 schedplus update check
+schedplus update install
 ```
 
 All commands use the same validation and SQLite backend as the desktop
@@ -163,10 +164,19 @@ command returns a process-friendly exit status. Run `schedplus --help` or
 `schedplus COMMAND --help` for complete options, or `schedplus --version` to
 print the installed application version.
 
-Non-Store packaged builds can check for verified updates in the background and
-offer to restart after a release is ready. Store packages use Store updates
-instead. Self-updating is intentionally disabled for source checkouts, so
-development files are never replaced automatically.
+Supported packaged builds verify an Ed25519-signed release manifest and the
+downloaded artifact's signed SHA-256 digest before presenting an update.
+Windows portable builds activate updates atomically and roll back if the new
+release fails its startup health check. Debian and AppImage builds open the
+verified download for installation with the platform's normal tools. Microsoft
+Store MSIX and Snap packages continue to use Store-managed updates, and source
+checkouts stay opted out. The standalone Windows installer remains opted out
+until public Authenticode signing is configured.
+
+Use **Help → Check for updates** and **Help → Last update result** in PyQt, or
+the equivalent **Settings** menu commands in Tkinter. Automatic checks can be
+enabled or disabled in Settings. Update failures are reported without blocking
+application startup.
 
 ## Your data, upgrades, and removal
 
