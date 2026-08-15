@@ -7,30 +7,20 @@ from __future__ import annotations
 import logging
 import os
 import sqlite3
+from collections.abc import Callable
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 from ..scheduler import Task
+from .migrations import SchemaVersionError, migrate_database
 from .paths import DatabaseMigrationError, prepare_database
 
-
 LOGGER = logging.getLogger(__name__)
-SCHEMA_SQL = """
-CREATE TABLE IF NOT EXISTS entries (
-    id TEXT PRIMARY KEY,
-    date TEXT NOT NULL,
-    time TEXT NOT NULL,
-    text TEXT NOT NULL,
-    createdAt TEXT NOT NULL,
-    updatedAt TEXT NOT NULL
-)
-"""
-
 T = TypeVar("T")
 
 
@@ -77,7 +67,9 @@ class _CorruptionDetected(sqlite3.DatabaseError):
 
 def _configure_logging(data_directory: Path) -> None:
     """Configure one rotating storage log without duplicating handlers."""
-    if any(getattr(handler, "_schedplus_storage", False) for handler in LOGGER.handlers):
+    if any(
+        getattr(handler, "_schedplus_storage", False) for handler in LOGGER.handlers
+    ):
         return
 
     try:
@@ -107,15 +99,21 @@ def _connect(path: Path) -> sqlite3.Connection:
     return connection
 
 
-def _initialize_once(path: Path) -> None:
-    with closing(_connect(path)) as connection:
-        with connection:
-            connection.execute(SCHEMA_SQL)
+def _quick_check(connection: sqlite3.Connection) -> None:
+    results = connection.execute("PRAGMA quick_check").fetchall()
+    if results != [("ok",)]:
+        details = "; ".join(str(row[0]) for row in results)
+        raise _CorruptionDetected(details or "database integrity check failed")
 
-        results = connection.execute("PRAGMA quick_check").fetchall()
-        if results != [("ok",)]:
-            details = "; ".join(str(row[0]) for row in results)
-            raise _CorruptionDetected(details or "database integrity check failed")
+
+def _initialize_once(path: Path) -> None:
+    existed = path.exists()
+    with closing(_connect(path)) as connection:
+        _quick_check(connection)
+        backup = migrate_database(connection, path, database_existed=existed)
+        if backup is not None:
+            LOGGER.info("Created pre-migration database backup at %s", backup)
+        _quick_check(connection)
 
 
 def _sqlite_code(exc: sqlite3.Error) -> int | None:
@@ -132,6 +130,9 @@ def _is_corruption(exc: sqlite3.Error) -> bool:
 
 def _storage_error(exc: BaseException) -> StorageError:
     if isinstance(exc, DatabaseMigrationError):
+        return StorageError(StorageErrorKind.UNAVAILABLE, str(exc))
+
+    if isinstance(exc, SchemaVersionError):
         return StorageError(StorageErrorKind.UNAVAILABLE, str(exc))
 
     if isinstance(exc, OSError):
@@ -157,7 +158,8 @@ def _storage_error(exc: BaseException) -> StorageError:
                 "Close other SchedPlus windows, wait a moment, and try again.",
             )
         if code in {sqlite3.SQLITE_READONLY, sqlite3.SQLITE_PERM} or any(
-            phrase in message for phrase in ("readonly", "read-only", "permission denied")
+            phrase in message
+            for phrase in ("readonly", "read-only", "permission denied")
         ):
             return StorageError(
                 StorageErrorKind.READ_ONLY,
@@ -239,9 +241,13 @@ def _run(operation: Callable[[sqlite3.Connection], T]) -> T:
     try:
         path = prepare_database()
         _configure_logging(path.parent)
+        existed = path.exists()
         with closing(_connect(path)) as connection:
+            _quick_check(connection)
+            backup = migrate_database(connection, path, database_existed=existed)
+            if backup is not None:
+                LOGGER.info("Created pre-migration database backup at %s", backup)
             with connection:
-                connection.execute(SCHEMA_SQL)
                 return operation(connection)
     except (DatabaseMigrationError, OSError) as exc:
         LOGGER.exception("Database path operation failed")
@@ -317,15 +323,11 @@ def get_entry(task_id: str) -> Task | None:
 
 
 def list_entries() -> list[Task]:
-    rows = _run(
-        lambda connection: connection.execute(
-            """
+    rows = _run(lambda connection: connection.execute("""
             SELECT id, date, time, text, createdAt, updatedAt
             FROM entries
             ORDER BY date ASC, time ASC
-            """
-        ).fetchall()
-    )
+            """).fetchall())
     return [_task_from_row(row) for row in rows]
 
 
