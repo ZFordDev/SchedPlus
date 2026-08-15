@@ -1,6 +1,6 @@
 """Persistent preferences and their PyQt editor."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 from PyQt6.QtCore import QSettings
 from PyQt6.QtWidgets import (
@@ -13,12 +13,13 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
+from logic.data_transfer import load_ui_preferences, save_ui_preferences
+from updater.config import load_build_info
 from updater.preferences import (
     UpdatePreferences,
     load_update_preferences,
     save_update_preferences,
 )
-from updater.config import load_build_info
 
 SORT_FIELDS = {
     "date": "Date",
@@ -50,7 +51,10 @@ class SettingsStore:
         self._settings = QSettings("ZFordDev", "SchedPlus")
 
     def load(self) -> UiPreferences:
-        return UiPreferences(
+        portable = load_ui_preferences()
+        if portable is not None:
+            return UiPreferences(**portable)
+        preferences = UiPreferences(
             sort_field=self._choice("tasks/sort_field", SORT_FIELDS, "date"),
             sort_order=self._choice(
                 "tasks/sort_order", {"ascending": "", "descending": ""}, "ascending"
@@ -68,8 +72,10 @@ class SettingsStore:
             workday_start=self._hour("calendar/workday_start", 7),
             workday_end=self._hour("calendar/workday_end", 20),
         )
+        return preferences
 
     def save(self, preferences: UiPreferences) -> None:
+        save_ui_preferences(asdict(preferences))
         self._settings.setValue("tasks/sort_field", preferences.sort_field)
         self._settings.setValue("tasks/sort_order", preferences.sort_order)
         self._settings.setValue("tasks/filter", preferences.task_filter)

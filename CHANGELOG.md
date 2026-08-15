@@ -29,6 +29,10 @@
   refusal of databases created by newer SchedPlus versions.
 - Added upgrade coverage for databases created by v0.7.3 and v0.8.0, migration
   rollback and ordering tests, and continued corruption-recovery coverage.
+- Added offline, versioned JSON backup and restore for tasks and local
+  preferences, including validation and an automatic pre-restore safety backup.
+- Added portable JSON task export and non-destructive import to PyQt, Lite, and
+  CLI, with explicit duplicate and ID-conflict reporting.
 
 ### Fixed
 

@@ -331,6 +331,45 @@ def list_entries() -> list[Task]:
     return [_task_from_row(row) for row in rows]
 
 
+def replace_entries(tasks: list[Task]) -> None:
+    """Replace all tasks atomically after callers have validated the payload."""
+    def replace(connection: sqlite3.Connection) -> None:
+        connection.execute("DELETE FROM entries")
+        connection.executemany(
+            "INSERT INTO entries (id, date, time, text, createdAt, updatedAt) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            [_task_values(task) for task in tasks],
+        )
+
+    _run(replace)
+
+
+def import_entries(tasks: list[Task]) -> tuple[int, int, int]:
+    """Insert new IDs; return imported, duplicate, and conflicting counts."""
+    def merge(connection: sqlite3.Connection) -> tuple[int, int, int]:
+        imported = duplicates = conflicts = 0
+        for task in tasks:
+            row = connection.execute(
+                "SELECT id, date, time, text, createdAt, updatedAt "
+                "FROM entries WHERE id = ?",
+                (task.id,),
+            ).fetchone()
+            if row is None:
+                connection.execute(
+                    "INSERT INTO entries (id, date, time, text, createdAt, updatedAt) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    _task_values(task),
+                )
+                imported += 1
+            elif row == _task_values(task):
+                duplicates += 1
+            else:
+                conflicts += 1
+        return imported, duplicates, conflicts
+
+    return _run(merge)
+
+
 def reset_database() -> None:
     """Remove all task data and create a clean database."""
     try:
@@ -355,3 +394,7 @@ def _task_from_row(row: tuple) -> Task:
         createdAt=row[4],
         updatedAt=row[5],
     )
+
+
+def _task_values(task: Task) -> tuple[str, str, str, str, str, str]:
+    return (task.id, task.date, task.time, task.text, task.createdAt, task.updatedAt)
