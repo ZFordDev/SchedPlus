@@ -5,8 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PyInstaller.building.build_main import Analysis, COLLECT, EXE, PYZ
-
+from PyInstaller.building.build_main import COLLECT, EXE, PYZ, Analysis
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSETS = [
@@ -19,6 +18,21 @@ ASSETS = [
 ]
 ICON = str(PROJECT_ROOT / "assets" / "windows" / "SchedPlus.ico")
 VERSION_INFO = str(PROJECT_ROOT / "packaging" / "pyinstaller" / "version_info.txt")
+UPDATER_HIDDEN_IMPORTS = [
+    "updater.background",
+    "updater.checker",
+    "updater.config",
+    "updater.downloader",
+    "updater.errors",
+    "updater.health",
+    "updater.installer",
+    "updater.manifest",
+    "updater.preferences",
+    "updater.service",
+    "updater.staging",
+    "updater.state",
+    "updater.update",
+]
 
 
 def build(
@@ -35,7 +49,7 @@ def build(
         pathex=[str(PROJECT_ROOT / "src")],
         binaries=[],
         datas=ASSETS,
-        hiddenimports=hiddenimports or [],
+        hiddenimports=[*UPDATER_HIDDEN_IMPORTS, *(hiddenimports or [])],
         hookspath=[],
         hooksconfig={},
         runtime_hooks=[],

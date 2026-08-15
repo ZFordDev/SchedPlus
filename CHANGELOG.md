@@ -25,6 +25,13 @@
   update results to the desktop and command-line interfaces.
 - Added an end-to-end upgrade test from v0.8.1 to a signed test release.
 
+### Fixed
+
+- Fixed frozen Standard, Lite, Full, and CLI artifacts failing at startup
+  because updater modules were not explicitly collected by PyInstaller.
+- Fixed MSIX packaging-test collection importing release-only cryptographic
+  dependencies before they are needed.
+
 ## Pre-Release version 0.8.0
 - Added unified tag/version validation, pre-package testing, independent Linux,
   Windows, and Snap builds, exact source archives, release-payload validation,

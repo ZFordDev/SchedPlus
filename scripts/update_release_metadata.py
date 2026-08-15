@@ -10,10 +10,6 @@ import os
 import re
 from pathlib import Path
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
-from updater.manifest import canonical_payload
-
 FORMATS = {
     ".AppImage": ("standard", "linux", "appimage"),
     ".deb": (None, "linux", "deb"),
@@ -160,6 +156,10 @@ def generate_signed_manifest(
     private_key_b64: str,
 ) -> Path:
     """Generate a signed manifest without writing or logging private material."""
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    from updater.manifest import canonical_payload
+
     private_bytes = base64.b64decode(private_key_b64, validate=True)
     if len(private_bytes) != 32:
         raise ValueError("signing key must be a base64 Ed25519 private key")
