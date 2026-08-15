@@ -1,0 +1,275 @@
+name: Post-release installation and upgrade smoke tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Draft release tag to verify
+        required: true
+        type: string
+      promote_stable:
+        description: Publish the verified stable draft
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  linux-packages:
+    name: Linux ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debian Standard
+            kind: deb
+            pattern: schedplus_*_amd64.deb
+            package: schedplus
+            command: schedplus
+          - name: Debian Lite
+            kind: deb
+            pattern: schedplus-lite_*_amd64.deb
+            package: schedplus-lite
+            command: schedplus-lite
+          - name: Debian CLI
+            kind: deb
+            pattern: schedplus-cli_*_amd64.deb
+            package: schedplus-cli
+            command: schedplus-cli
+          - name: AppImage Standard
+            kind: appimage
+            pattern: '*.AppImage'
+            package: appimage
+            command: AppRun
+    env:
+      GH_TOKEN: ${{ github.token }}
+      XDG_DATA_HOME: ${{ runner.temp }}/schedplus-data
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download draft release package
+        env:
+          TAG: ${{ inputs.tag }}
+        run: gh release download "$TAG" --pattern '${{ matrix.pattern }}' --dir smoke-assets
+      - name: Fresh install and launch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ '${{ matrix.kind }}' = deb ]; then
+            sudo dpkg --install smoke-assets/*.deb
+            executable='/usr/bin/${{ matrix.command }}'
+          else
+            appimage="$(find smoke-assets -name '*.AppImage' -print -quit)"
+            chmod +x "$appimage"
+            "$appimage" --appimage-extract >/dev/null
+            executable="$PWD/squashfs-root/AppRun"
+          fi
+          if [ '${{ matrix.command }}' = schedplus-cli ]; then
+            "$executable" --help
+          else
+            "$executable" >"$RUNNER_TEMP/fresh-launch.log" 2>&1 &
+            pid=$!
+            sleep 4
+            kill -0 "$pid"
+            kill "$pid" || true
+          fi
+          test -f "$XDG_DATA_HOME/ZFordDev/SchedPlus/tasks.db"
+      - name: Upgrade populated v0.8.0 database and preserve tasks
+        shell: bash
+        run: |
+          set -euo pipefail
+          database="$XDG_DATA_HOME/ZFordDev/SchedPlus/tasks.db"
+          rm --force -- "$database"
+          python scripts/post_release_smoke.py seed --database "$database" --release 0.8.0
+          if [ '${{ matrix.kind }}' = deb ]; then
+            sudo dpkg --install smoke-assets/*.deb
+            executable='/usr/bin/${{ matrix.command }}'
+          else
+            executable="$PWD/squashfs-root/AppRun"
+          fi
+          if [ '${{ matrix.command }}' = schedplus-cli ]; then
+            "$executable" list
+          else
+            "$executable" >"$RUNNER_TEMP/upgrade-launch.log" 2>&1 &
+            pid=$!
+            sleep 4
+            kill -0 "$pid"
+            kill "$pid" || true
+          fi
+          python scripts/post_release_smoke.py verify --database "$database" --schema 1
+      - name: Remove application without removing user data
+        shell: bash
+        run: |
+          if [ '${{ matrix.kind }}' = deb ]; then
+            sudo dpkg --remove '${{ matrix.package }}'
+            test ! -e '/usr/bin/${{ matrix.command }}'
+          else
+            rm --recursive --force -- squashfs-root smoke-assets
+          fi
+          test -f "$XDG_DATA_HOME/ZFordDev/SchedPlus/tasks.db"
+      - name: Sanitize diagnostic log
+        if: always()
+        run: >-
+          python scripts/post_release_smoke.py sanitize
+          --source "$XDG_DATA_HOME/ZFordDev/SchedPlus/schedplus.log"
+          --output "smoke-logs/${{ matrix.package }}.log"
+          --redact "$HOME" --redact "$RUNNER_TEMP" --redact "$GITHUB_WORKSPACE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: post-release-${{ matrix.package }}-sanitized-logs
+          path: smoke-logs/*.log
+
+  windows-portable:
+    name: Windows portable ${{ matrix.edition }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - edition: Standard
+            executable: SchedPlusStandard.exe
+          - edition: Lite
+            executable: SchedPlusLite.exe
+          - edition: Full
+            executable: SchedPlusFull.exe
+          - edition: CLI
+            executable: SchedPlusCli.exe
+    env:
+      GH_TOKEN: ${{ github.token }}
+      APPDATA: ${{ runner.temp }}\schedplus-portable-data
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and extract portable package
+        shell: pwsh
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          gh release download $env:TAG --pattern 'SchedPlus-${{ matrix.edition }}-*-windows-x86_64.zip' --dir smoke-assets
+          Expand-Archive (Get-ChildItem smoke-assets/*.zip).FullName -DestinationPath portable
+      - name: Fresh launch, populated upgrade, and portable removal
+        shell: pwsh
+        run: |
+          $exe = (Get-ChildItem portable -Recurse -Filter '${{ matrix.executable }}' | Select-Object -First 1).FullName
+          if ('${{ matrix.edition }}' -eq 'CLI') {
+            & $exe --help
+          } else {
+            $process = Start-Process $exe -PassThru
+            Start-Sleep 4
+            if ($process.HasExited) { throw 'portable application exited during smoke test' }
+            Stop-Process $process.Id
+          }
+          $database = Join-Path $env:APPDATA 'ZFordDev\SchedPlus\tasks.db'
+          Remove-Item -Force -ErrorAction SilentlyContinue $database
+          python scripts/post_release_smoke.py seed --database $database --release 0.8.0
+          if ('${{ matrix.edition }}' -eq 'CLI') {
+            & $exe list
+          } else {
+            $process = Start-Process $exe -PassThru
+            Start-Sleep 4
+            if ($process.HasExited) { throw 'portable upgrade launch failed' }
+            Stop-Process $process.Id
+          }
+          python scripts/post_release_smoke.py verify --database $database --schema 1
+          Remove-Item -Recurse -Force portable
+          if (!(Test-Path $database)) { throw 'portable removal deleted user data' }
+      - name: Sanitize diagnostic log
+        if: always()
+        shell: pwsh
+        run: |
+          python scripts/post_release_smoke.py sanitize `
+            --source "$env:APPDATA\ZFordDev\SchedPlus\schedplus.log" `
+            --output "smoke-logs\portable-${{ matrix.edition }}.log" `
+            --redact $env:USERPROFILE --redact $env:RUNNER_TEMP --redact $env:GITHUB_WORKSPACE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: post-release-windows-portable-${{ matrix.edition }}-sanitized-logs
+          path: smoke-logs/*.log
+
+  windows-installer:
+    name: Windows installed Standard
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download installer
+        shell: pwsh
+        env:
+          TAG: ${{ inputs.tag }}
+        run: gh release download $env:TAG --pattern 'SchedPlus-Setup-*-windows-x86_64.exe' --dir smoke-assets
+      - name: Fresh install, populated upgrade, and uninstall
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem smoke-assets/*.exe | Select-Object -First 1).FullName
+          $arguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-')
+          Start-Process $installer -ArgumentList $arguments -Wait
+          $root = Join-Path $env:LOCALAPPDATA 'Programs\SchedPlus'
+          $exe = Join-Path $root 'SchedPlusStandard.exe'
+          if (!(Test-Path $exe)) { throw 'fresh installation failed' }
+          $process = Start-Process $exe -PassThru
+          Start-Sleep 4
+          if ($process.HasExited) { throw 'installed application exited during smoke test' }
+          Stop-Process $process.Id
+          $database = Join-Path $env:APPDATA 'ZFordDev\SchedPlus\tasks.db'
+          Remove-Item -Force -ErrorAction SilentlyContinue $database
+          python scripts/post_release_smoke.py seed --database $database --release 0.8.0
+          Start-Process $installer -ArgumentList $arguments -Wait
+          $process = Start-Process $exe -PassThru
+          Start-Sleep 4
+          if ($process.HasExited) { throw 'installed upgrade launch failed' }
+          Stop-Process $process.Id
+          python scripts/post_release_smoke.py verify --database $database --schema 1
+          Start-Process (Join-Path $root 'unins000.exe') -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
+          if (Test-Path $exe) { throw 'uninstall retained application files' }
+          if (!(Test-Path $database)) { throw 'uninstall removed user data' }
+      - name: Sanitize diagnostic log
+        if: always()
+        shell: pwsh
+        run: |
+          python scripts/post_release_smoke.py sanitize `
+            --source "$env:APPDATA\ZFordDev\SchedPlus\schedplus.log" `
+            --output 'smoke-logs\windows-installer.log' `
+            --redact $env:USERPROFILE --redact $env:RUNNER_TEMP --redact $env:GITHUB_WORKSPACE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: post-release-windows-installer-sanitized-logs
+          path: smoke-logs/*.log
+
+  store-policy:
+    name: Store packages use external updates
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install policy-test dependencies
+        run: python -m pip install pytest cryptography packaging
+      - name: Verify Snap and Microsoft Store updater policy
+        run: >-
+          python -m pytest tests/test_snap_packaging.py tests/test_msix_packaging.py
+          tests/test_update_release_metadata.py tests/test_updater.py -q
+
+  promote-stable:
+    name: Promote stable only after mandatory smoke tests
+    if: inputs.promote_stable
+    needs: [linux-packages, windows-portable, windows-installer, store-policy]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Publish verified stable draft
+        run: |
+          case "$TAG" in release-*) ;; *) echo 'Only release-* tags can be promoted to stable' >&2; exit 1;; esac
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false

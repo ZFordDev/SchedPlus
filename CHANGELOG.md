@@ -33,6 +33,10 @@
   preferences, including validation and an automatic pre-restore safety backup.
 - Added portable JSON task export and non-destructive import to PyQt, Lite, and
   CLI, with explicit duplicate and ID-conflict reporting.
+- Added post-release fresh-install, populated-database upgrade, uninstall, and
+  Store-policy smoke gates for supported Linux and Windows artifacts.
+- Added sanitized diagnostic-log artifacts, an all-checks-required stable
+  promotion job, and a manual real-host and Store verification checklist.
 
 ### Fixed
 

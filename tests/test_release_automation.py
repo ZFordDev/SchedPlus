@@ -26,3 +26,22 @@ def test_release_verifier_reports_missing_payload(tmp_path):
 
     assert any("AppImage" in error for error in errors)
     assert any("source.tar.gz" in error for error in errors)
+
+
+def test_post_release_smoke_workflow_gates_stable_promotion():
+    workflow = (
+        PROJECT_ROOT / ".github" / "workflows" / "post-release-smoke.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "Post-release installation and upgrade smoke tests" in workflow
+    assert "release download" in workflow
+    assert "seed --database" in workflow
+    assert "verify --database" in workflow
+    assert "Remove application without removing user data" in workflow
+    assert "Windows portable ${{ matrix.edition }}" in workflow
+    assert "Windows installed Standard" in workflow
+    assert "Store packages use external updates" in workflow
+    assert "if: always()" in workflow
+    assert "sanitize diagnostic log" in workflow.lower()
+    assert "needs: [linux-packages, windows-portable, windows-installer, store-policy]" in workflow
+    assert 'gh release edit "$TAG"' in workflow
