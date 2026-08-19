@@ -106,7 +106,7 @@ jobs:
           if ((Get-Content -Raw $database) -ne 'preserved-task-data') { throw 'upgrade changed user data' }
           Start-Process -FilePath (Join-Path $installRoot 'unins000.exe') -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
           if ((Get-Content -Raw $database) -ne 'preserved-task-data') { throw 'uninstall removed user data' }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: schedplus-windows-packages
           path: artifacts/windows/*

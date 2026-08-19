@@ -120,7 +120,7 @@ jobs:
           --source "$XDG_DATA_HOME/ZFordDev/SchedPlus/schedplus.log"
           --output "smoke-logs/${{ matrix.package }}.log"
           --redact "$HOME" --redact "$RUNNER_TEMP" --redact "$GITHUB_WORKSPACE"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: post-release-${{ matrix.package }}-sanitized-logs
@@ -194,7 +194,7 @@ jobs:
             --source "$env:APPDATA\ZFordDev\SchedPlus\schedplus.log" `
             --output "smoke-logs\portable-${{ matrix.edition }}.log" `
             --redact $env:USERPROFILE --redact $env:RUNNER_TEMP --redact $env:GITHUB_WORKSPACE
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: post-release-windows-portable-${{ matrix.edition }}-sanitized-logs
@@ -248,7 +248,7 @@ jobs:
             --source "$env:APPDATA\ZFordDev\SchedPlus\schedplus.log" `
             --output 'smoke-logs\windows-installer.log' `
             --redact $env:USERPROFILE --redact $env:RUNNER_TEMP --redact $env:GITHUB_WORKSPACE
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: post-release-windows-installer-sanitized-logs

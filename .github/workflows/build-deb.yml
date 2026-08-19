@@ -71,7 +71,7 @@ jobs:
           dpkg-query --show "${{ matrix.package }}"
           sudo dpkg --remove "${{ matrix.package }}"
           test "$(cat "$DATA_DIR/tasks.db")" = preserved
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: schedplus-${{ matrix.edition }}-debian
           path: artifacts/debian/*.deb

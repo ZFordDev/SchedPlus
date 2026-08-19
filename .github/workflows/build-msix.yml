@@ -70,7 +70,7 @@ jobs:
           if (Test-Path expanded-msix/tasks.db) { throw 'MSIX must not contain user task data' }
           $manifest = Get-Content -Raw expanded-msix/AppxManifest.xml
           if ($manifest -match 'appExecutionAlias') { throw 'Store package must not declare an execution alias' }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: schedplus-standard-msix
           path: artifacts/msix/*.msix
