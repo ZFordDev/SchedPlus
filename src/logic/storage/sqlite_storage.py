@@ -273,8 +273,8 @@ def create_entry(task: Task) -> None:
     _run(
         lambda connection: connection.execute(
             """
-            INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 task.id,
@@ -291,6 +291,7 @@ def create_entry(task: Task) -> None:
                 task.category,
                 task.recurrence,
                 task.recurrenceEnd,
+                task.reminder,
             ),
         )
     )
@@ -303,11 +304,11 @@ def update_entry(task: Task) -> None:
             """
             UPDATE entries
             SET date = ?, time = ?, text = ?, updatedAt = ?, completed = ?, completedAt = ?,
-                notes = ?, priority = ?, duration = ?, category = ?, recurrence = ?, recurrenceEnd = ?
+                notes = ?, priority = ?, duration = ?, category = ?, recurrence = ?, recurrenceEnd = ?, reminder = ?
             WHERE id = ?
             """,
             (task.date, task.time, task.text, updated_at, task.completed, task.completedAt,
-             task.notes, task.priority, task.duration, task.category, task.recurrence, task.recurrenceEnd, task.id),
+             task.notes, task.priority, task.duration, task.category, task.recurrence, task.recurrenceEnd, task.reminder, task.id),
         )
     )
     task.updatedAt = updated_at
@@ -324,7 +325,7 @@ def delete_entry(task_id: str) -> None:
 def get_entry(task_id: str) -> Task | None:
     row = _run(
         lambda connection: connection.execute(
-            "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd "
+            "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder "
             "FROM entries WHERE id = ?",
             (task_id,),
         ).fetchone()
@@ -334,7 +335,7 @@ def get_entry(task_id: str) -> Task | None:
 
 def list_entries() -> list[Task]:
     rows = _run(lambda connection: connection.execute("""
-            SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd
+            SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder
             FROM entries
             ORDER BY date ASC, time ASC
             """).fetchall())
@@ -346,8 +347,8 @@ def replace_entries(tasks: list[Task]) -> None:
     def replace(connection: sqlite3.Connection) -> None:
         connection.execute("DELETE FROM entries")
         connection.executemany(
-            "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [_task_values(task) for task in tasks],
         )
 
@@ -360,14 +361,14 @@ def import_entries(tasks: list[Task]) -> tuple[int, int, int]:
         imported = duplicates = conflicts = 0
         for task in tasks:
             row = connection.execute(
-                "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd "
+                "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder "
                 "FROM entries WHERE id = ?",
                 (task.id,),
             ).fetchone()
             if row is None:
                 connection.execute(
-                    "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     _task_values(task),
                 )
                 imported += 1
@@ -441,10 +442,11 @@ def _task_from_row(row: tuple) -> Task:
         category=row[11] if len(row) > 11 else "",
         recurrence=row[12] if len(row) > 12 else "",
         recurrenceEnd=row[13] if len(row) > 13 else "",
+        reminder=row[14] if len(row) > 14 else "",
     )
 
 
 def _task_values(task: Task) -> tuple:
     return (task.id, task.date, task.time, task.text, task.createdAt, task.updatedAt,
             task.completed, task.completedAt, task.notes, task.priority, task.duration, task.category,
-            task.recurrence, task.recurrenceEnd)
+            task.recurrence, task.recurrenceEnd, task.reminder)

@@ -100,6 +100,11 @@ def _launch_mode(mode: StartupMode, arguments: list[str] | None = None):
 
     startup_notice = recovery.message if recovery else None
 
+    from logic.reminder_service import ReminderService
+
+    reminder_service = ReminderService(scheduler)
+    reminder_service.start()
+
     if mode == StartupMode.TK:
         try:
             from ui.tkinter_ui import run_ui

@@ -72,6 +72,12 @@ class TaskDialog(QDialog):
         self.recurrence_end_input.setSpecialValueText("No end date")
         self.recurrence_end_input.setToolTip("When recurrence stops (empty = forever)")
 
+        self.reminder_input = QSpinBox()
+        self.reminder_input.setRange(0, 1440)
+        self.reminder_input.setSuffix(" min")
+        self.reminder_input.setSpecialValueText("—")
+        self.reminder_input.setToolTip("Minutes before due time to notify (0 = off)")
+
         form.addRow("Task", self.text_input)
         form.addRow("Date", self.date_input)
         form.addRow("Time", self.time_input)
@@ -81,6 +87,7 @@ class TaskDialog(QDialog):
         form.addRow("Category", self.category_input)
         form.addRow("Repeat", self.recurrence_input)
         form.addRow("Repeat until", self.recurrence_end_input)
+        form.addRow("Remind before", self.reminder_input)
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(
@@ -113,6 +120,11 @@ class TaskDialog(QDialog):
                 end_date = QDate.fromString(recurrence_end, "yyyy-MM-dd")
                 if end_date.isValid():
                     self.recurrence_end_input.setDate(end_date)
+            reminder = getattr(task, "reminder", "") or ""
+            try:
+                self.reminder_input.setValue(int(reminder))
+            except (ValueError, TypeError):
+                self.reminder_input.setValue(0)
         else:
             selected_date = QDate.fromString(initial_date or "", "yyyy-MM-dd")
             selected_time = QTime.fromString(initial_time or "", "HH:mm")
@@ -125,12 +137,13 @@ class TaskDialog(QDialog):
 
         self.text_input.setFocus()
 
-    def get_values(self) -> tuple[str, str, str, str, str, str, str, str, str]:
+    def get_values(self) -> tuple[str, str, str, str, str, str, str, str, str, str]:
         duration = self.duration_input.value()
         recurrence = self.recurrence_input.currentText()
         recurrence_end = ""
         if recurrence:
             recurrence_end = self.recurrence_end_input.date().toString("yyyy-MM-dd")
+        reminder = self.reminder_input.value()
         return (
             self.date_input.date().toString("yyyy-MM-dd"),
             self.time_input.time().toString("HH:mm"),
@@ -141,6 +154,7 @@ class TaskDialog(QDialog):
             self.category_input.text(),
             recurrence,
             recurrence_end,
+            str(reminder) if reminder > 0 else "",
         )
 
 

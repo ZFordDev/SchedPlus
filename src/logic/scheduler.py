@@ -34,6 +34,7 @@ class Task:
     category: str = ""
     recurrence: str = ""
     recurrenceEnd: str = ""
+    reminder: str = ""
 
 class Scheduler:
     """
