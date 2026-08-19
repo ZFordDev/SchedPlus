@@ -37,7 +37,7 @@ jobs:
           unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Exec=schedplus'
           unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Icon=${SNAP}/meta/gui/schedplus.png'
           unsquashfs -ll "${{ steps.snapcraft.outputs.snap }}" | grep -F 'meta/gui/schedplus.png'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: schedplus-standard-snap
           path: ${{ steps.snapcraft.outputs.snap }}
