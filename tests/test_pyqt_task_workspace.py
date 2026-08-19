@@ -65,13 +65,19 @@ def test_edit_dialog_is_prepopulated(app):
 
     dialog = EditTaskDialog(task)
 
-    assert dialog.get_values() == ("2026-08-12", "09:05", "Plan release")
+    values = dialog.get_values()
+    assert values[0] == "2026-08-12"
+    assert values[1] == "09:05"
+    assert values[2] == "Plan release"
 
 
 def test_add_dialog_accepts_calendar_slot_defaults(app):
     dialog = AddTaskDialog(initial_date="2026-09-14", initial_time="13:30")
 
-    assert dialog.get_values() == ("2026-09-14", "13:30", "")
+    values = dialog.get_values()
+    assert values[0] == "2026-09-14"
+    assert values[1] == "13:30"
+    assert values[2] == ""
 
 
 def test_settings_dialog_round_trips_preferences(app):
@@ -84,6 +90,9 @@ def test_settings_dialog_round_trips_preferences(app):
         first_day_of_week="sunday",
         workday_start=6,
         workday_end=22,
+        date_format="MM/dd/yyyy",
+        time_format="h:mm AP",
+        show_week_numbers=False,
     )
 
     dialog = SettingsDialog(preferences)
@@ -95,7 +104,7 @@ def test_window_has_navigation_and_shortcuts(app):
     window = SchedPlusWindow(MemoryScheduler())
 
     assert window.pages.count() == 2
-    assert len(window.shortcuts) == 7
+    assert len(window.shortcuts) == 9
     assert window.windowTitle() == "SchedPlus — Advanced"
     assert window.version_label.text().startswith("SchedPlus v")
     assert window.about_action.text() == "About SchedPlus"

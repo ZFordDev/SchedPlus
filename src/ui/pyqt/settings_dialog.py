@@ -312,10 +312,6 @@ class SettingsDialog(QDialog):
         version = QLabel(f"Version {build.version}")
         layout.addWidget(version)
 
-        if build.commit:
-            commit_label = QLabel(f"Build: {build.commit[:8]}")
-            layout.addWidget(commit_label)
-
         layout.addSpacing(10)
 
         desc = QLabel(

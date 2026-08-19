@@ -93,7 +93,7 @@ def test_appimagetool_download_is_pinned_cached_and_retried():
         encoding="utf-8"
     )
 
-    assert "actions/cache@v4" in workflow
+    assert "actions/cache@v6" in workflow
     assert "gh release download 1.9.1" in workflow
     assert "--repo AppImage/appimagetool" in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow

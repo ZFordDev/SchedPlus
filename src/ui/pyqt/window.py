@@ -79,14 +79,6 @@ class SchedPlusWindow(QMainWindow):
         self.shortcuts_action.triggered.connect(self.show_shortcuts)
         self.about_action.triggered.connect(self.show_about)
 
-        self.backup_action.setAccessibleName("Create backup of all tasks and settings")
-        self.restore_action.setAccessibleName("Restore tasks and settings from a backup file")
-        self.export_action.setAccessibleName("Export tasks to a JSON file")
-        self.import_action.setAccessibleName("Import tasks from a JSON file")
-        self.check_update_action.setAccessibleName("Check for application updates")
-        self.update_status_action.setAccessibleName("Show last update check result")
-        self.about_action.setAccessibleName("Show application information")
-
         self.status_timer = QTimer(self)
         self.status_timer.setSingleShot(True)
         self.status_timer.timeout.connect(self.statusBar().clearMessage)
@@ -240,7 +232,7 @@ class SchedPlusWindow(QMainWindow):
         confirmation = QMessageBox(self)
         confirmation.setIcon(QMessageBox.Icon.Question)
         confirmation.setWindowTitle("Delete task?")
-        confirmation.setText(f"Delete "{task.text}"?")
+        confirmation.setText(f'Delete \u201c{task.text}\u201d?')
         confirmation.setInformativeText("This action cannot be undone.")
         confirmation.setStandardButtons(
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
