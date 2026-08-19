@@ -361,7 +361,16 @@ class SchedPlusWindow(QMainWindow):
             QMessageBox.critical(self, "Data operation failed", str(exc))
 
     def show_about(self):
-        QMessageBox.about(self, "About SchedPlus", self.identity.details)
+        build = self.identity
+        about_text = (
+            f"<h3>SchedPlus</h3>"
+            f"<p>{build.details}</p>"
+            f"<p>A local-first desktop task scheduler.</p>"
+            f"<p>All data is stored on your device. "
+            f"No accounts, no sync, no external services.</p>"
+            f"<p>Open source under the Apache 2.0 license.</p>"
+        )
+        QMessageBox.about(self, "About SchedPlus", about_text)
 
     def check_for_updates(self):
         self.show_status_message("Checking for updates…")

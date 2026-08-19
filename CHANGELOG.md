@@ -32,6 +32,10 @@
 - Offline task reminders with native system notifications (Linux/macOS/Windows) [#137]
 - Background reminder polling service with configurable lead time per task [#137]
 - Undo manager with Ctrl+Z support for add, edit, delete, complete, and reschedule actions [#138]
+- Tabbed settings dialog with General, Data, and About sections [#139]
+- Data tab showing database path, diagnostics, and "Open folder" action [#139]
+- About tab with version, edition, platform, and privacy information [#139]
+- Enhanced About dialog with local-first privacy statement [#139]
 
 ### Fixed
 -

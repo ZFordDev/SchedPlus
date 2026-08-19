@@ -1,6 +1,8 @@
 """Persistent preferences and their PyQt editor."""
 
+import platform
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 from PyQt6.QtCore import QSettings
 from PyQt6.QtWidgets import (
@@ -8,12 +10,21 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFileDialog,
     QFormLayout,
+    QGroupBox,
+    QLabel,
+    QMessageBox,
+    QPushButton,
     QSpinBox,
+    QTabWidget,
     QVBoxLayout,
+    QWidget,
 )
 
 from logic.data_transfer import load_ui_preferences, save_ui_preferences
+from logic.storage.sqlite_storage import initialize_database
+from logic.storage.paths import database_path
 from updater.config import load_build_info
 from updater.preferences import (
     UpdatePreferences,
@@ -105,13 +116,29 @@ class SettingsDialog(QDialog):
     def __init__(self, preferences: UiPreferences, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings")
-        self.setMinimumWidth(420)
+        self.setMinimumSize(480, 440)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(18)
-        form = QFormLayout()
-        form.setSpacing(12)
+        layout.setContentsMargins(16, 16, 16, 16)
+
+        tabs = QTabWidget()
+        tabs.addTab(self._build_general_tab(preferences), "General")
+        tabs.addTab(self._build_data_tab(), "Data")
+        tabs.addTab(self._build_about_tab(), "About")
+        layout.addWidget(tabs)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Save
+            | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def _build_general_tab(self, preferences: UiPreferences) -> QWidget:
+        widget = QWidget()
+        form = QFormLayout(widget)
+        form.setSpacing(10)
 
         self.sort_field = QComboBox()
         for value, label in SORT_FIELDS.items():
@@ -184,15 +211,84 @@ class SettingsDialog(QDialog):
         form.addRow("Visible day starts", self.workday_start)
         form.addRow("Visible day ends", self.workday_end)
         form.addRow("Application updates", self.check_updates)
-        layout.addLayout(form)
+        return widget
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel
+    def _build_data_tab(self) -> QWidget:
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setSpacing(14)
+
+        group = QGroupBox("Database location")
+        group_layout = QFormLayout(group)
+        db_path = database_path()
+        db_label = QLabel(str(db_path))
+        db_label.setTextInteractionFlags(
+            db_label.textInteractionFlags()
         )
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
+        group_layout.addRow("Path:", db_label)
+
+        open_button = QPushButton("Open folder")
+        open_button.clicked.connect(self._open_db_folder)
+        group_layout.addRow("", open_button)
+        layout.addWidget(group)
+
+        info_group = QGroupBox("Diagnostics")
+        info_layout = QFormLayout(info_group)
+        info_layout.addRow("Platform:", QLabel(platform.platform()))
+        info_layout.addRow("Python:", QLabel(platform.python_version()))
+        try:
+            recovery = initialize_database()
+            task_count = recovery.task_count if hasattr(recovery, "task_count") else "—"
+        except Exception:
+            task_count = "—"
+        info_layout.addRow("Tasks:", QLabel(str(task_count)))
+        layout.addWidget(info_group)
+
+        layout.addStretch()
+        return widget
+
+    def _build_about_tab(self) -> QWidget:
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setSpacing(10)
+
+        build = load_build_info()
+        title = QLabel("SchedPlus")
+        title.setStyleSheet("font-size: 18px; font-weight: bold;")
+        layout.addWidget(title)
+
+        version = QLabel(f"Version {build.version}")
+        layout.addWidget(version)
+
+        if build.commit:
+            commit_label = QLabel(f"Build: {build.commit[:8]}")
+            layout.addWidget(commit_label)
+
+        layout.addSpacing(10)
+
+        desc = QLabel(
+            "A local-first desktop task scheduler.\n\n"
+            "All data is stored on your device. No accounts, no sync, "
+            "no external services."
+        )
+        desc.setWordWrap(True)
+        layout.addWidget(desc)
+
+        layout.addStretch()
+        return widget
+
+    def _open_db_folder(self):
+        folder = str(database_path().parent)
+        import sys
+        if sys.platform == "win32":
+            import subprocess
+            subprocess.Popen(["explorer", folder])
+        elif sys.platform == "darwin":
+            import subprocess
+            subprocess.Popen(["open", folder])
+        else:
+            import subprocess
+            subprocess.Popen(["xdg-open", folder])
 
     def preferences(self) -> UiPreferences:
         return UiPreferences(
