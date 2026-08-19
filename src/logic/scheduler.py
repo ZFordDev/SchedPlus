@@ -48,6 +48,8 @@ class Scheduler:
 
     def __init__(self):
         self.tasks: List[Task] = []
+        from .undo_manager import UndoManager
+        self.undo_manager = UndoManager(self)
 
     # ---------------------------------------------------------
     # Create

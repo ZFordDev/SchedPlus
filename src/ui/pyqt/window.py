@@ -167,6 +167,7 @@ class SchedPlusWindow(QMainWindow):
             "Ctrl+F": self.task_list.focus_search,
             "Ctrl+,": self.open_settings,
             "F11": self.toggle_full_screen,
+            "Ctrl+Z": self.undo_last_action,
         }
         self.shortcuts = []
         for sequence, callback in shortcuts.items():
@@ -192,6 +193,7 @@ class SchedPlusWindow(QMainWindow):
                     from dataclasses import replace
                     task = replace(task, notes=notes, priority=priority, duration=duration, category=category, recurrence=recurrence, recurrenceEnd=recurrence_end, reminder=reminder)
                     self.scheduler.update_task(task)
+                self.scheduler.undo_manager.record_add(task.id)
                 self.refresh_views()
                 self.show_status_message("Task added successfully")
             except ValidationError as exc:
@@ -206,6 +208,7 @@ class SchedPlusWindow(QMainWindow):
         if dialog.exec():
             draft.date, draft.time, draft.text, draft.notes, draft.priority, draft.duration, draft.category, draft.recurrence, draft.recurrenceEnd, draft.reminder = dialog.get_values()
             try:
+                self.scheduler.undo_manager.record_edit(task)
                 self.scheduler.update_task(draft)
                 self.refresh_views()
                 self.show_status_message("Task updated successfully")
@@ -228,6 +231,7 @@ class SchedPlusWindow(QMainWindow):
         if confirmation.exec() != QMessageBox.StandardButton.Yes:
             return
         try:
+            self.scheduler.undo_manager.record_delete(task)
             self.scheduler.delete_task(task.id)
             self.refresh_views()
             self.show_status_message("Task deleted")
@@ -237,10 +241,12 @@ class SchedPlusWindow(QMainWindow):
     def complete_task(self, task):
         try:
             if task.completed == "true":
+                self.scheduler.undo_manager.record_uncomplete(task.id)
                 self.scheduler.uncomplete_task(task.id)
                 self.refresh_views()
                 self.show_status_message("Task marked as incomplete")
             else:
+                self.scheduler.undo_manager.record_complete(task.id)
                 self.scheduler.complete_task(task.id)
                 self.refresh_views()
                 self.show_status_message("Task marked as complete")
@@ -412,7 +418,16 @@ class SchedPlusWindow(QMainWindow):
     def toggle_full_screen(self):
         self.showNormal() if self.isFullScreen() else self.showFullScreen()
 
+    def undo_last_action(self):
+        result = self.scheduler.undo_manager.undo()
+        if result:
+            self.refresh_views()
+            self.show_status_message(result)
+        else:
+            self.show_status_message("Nothing to undo")
+
     def reschedule_task(self, task, date, time):
+        self.scheduler.undo_manager.record_edit(task)
         draft = replace(task, date=date, time=time)
         try:
             self.scheduler.update_task(draft)

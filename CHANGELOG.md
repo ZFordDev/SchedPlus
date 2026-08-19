@@ -31,6 +31,7 @@
 - Auto-generation of next occurrence on task completion for recurring tasks [#136]
 - Offline task reminders with native system notifications (Linux/macOS/Windows) [#137]
 - Background reminder polling service with configurable lead time per task [#137]
+- Undo manager with Ctrl+Z support for add, edit, delete, complete, and reschedule actions [#138]
 
 ### Fixed
 -
