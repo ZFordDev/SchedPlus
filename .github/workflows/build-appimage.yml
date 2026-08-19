@@ -38,7 +38,7 @@ jobs:
           packaging/pyinstaller/schedplus-standard.spec
       - name: Restore pinned appimagetool
         id: appimagetool-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: appimagetool-x86_64.AppImage
           key: appimagetool-1.9.1-x86_64
