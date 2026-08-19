@@ -35,6 +35,11 @@ control.
 - Upgrade through signed, package-aware release metadata where supported.
 - Recover from failed schema migrations, damaged databases, and managed
   portable-update failures.
+- Track task completion history with undo support for all common actions.
+- Organize tasks with notes, priority levels, duration estimates, and categories.
+- Set recurring tasks (daily, weekly, monthly, yearly) with optional end dates.
+- Receive offline reminders via native system notifications.
+- Configure date/time formats, week numbers, and accessibility preferences.
 
 SchedPlus is offline-first. Future online accounts, synchronization, web, and
 mobile capabilities are planned as optional additions rather than requirements
@@ -92,10 +97,16 @@ editing, deletion, restore, import, update, sorting, and exit-code details.
 
 ## Data and privacy
 
+SchedPlus is a local-first application. All task data, backups, and preferences
+are stored exclusively on your device. Nothing is uploaded, synced, or
+transmitted to external servers by SchedPlus.
+
 SchedPlus does not store tasks inside its installation directory. Package
 upgrades and ordinary uninstallation retain the user data directory. The
 desktop **Data** menu and CLI provide local backup, restore, export, and import.
 Nothing in those operations is uploaded by SchedPlus.
+
+For the complete privacy policy, see [PRIVACY.md](PRIVACY.md).
 
 Snap and Microsoft Store packages use Store-managed updates. Supported Debian,
 AppImage, and Windows portable builds verify signed update metadata and artifact

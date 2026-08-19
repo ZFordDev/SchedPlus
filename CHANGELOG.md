@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (v0.9.0)
+## v0.9.0 (2026-08-19)
 
 ### Plan
 - Bring the Lite interface to complete task-management parity [#133]
@@ -42,6 +42,11 @@
 - Configurable date format (ISO, US, EU, DE) and time format (24h/12h) in settings [#141]
 - Week number toggle in calendar view [#141]
 - Format preferences applied to task list, dialogs, and calendar [#141]
+
+### Added (docs)
+- PRIVACY.md with offline privacy guarantee and data location details [#142]
+- Updated README highlights with v0.9.0 features [#142]
+- Local-first privacy statement in README Data and privacy section [#142]
 
 ### Fixed
 -
