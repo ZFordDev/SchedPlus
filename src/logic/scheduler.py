@@ -28,6 +28,9 @@ class Task:
     updatedAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     completed: str = ""
     completedAt: str = ""
+    notes: str = ""
+    priority: str = ""
+    duration: str = ""
 
 class Scheduler:
     """

@@ -36,8 +36,15 @@ def _migration_2(connection: sqlite3.Connection) -> None:
     connection.execute("ALTER TABLE entries ADD COLUMN completedAt TEXT NOT NULL DEFAULT ''")
 
 
+def _migration_3(connection: sqlite3.Connection) -> None:
+    """Add notes, priority, and duration columns."""
+    connection.execute("ALTER TABLE entries ADD COLUMN notes TEXT NOT NULL DEFAULT ''")
+    connection.execute("ALTER TABLE entries ADD COLUMN priority TEXT NOT NULL DEFAULT ''")
+    connection.execute("ALTER TABLE entries ADD COLUMN duration TEXT NOT NULL DEFAULT ''")
+
+
 # Never edit or reorder a released migration. Add the next numbered callable.
-MIGRATIONS: tuple[Migration, ...] = (_migration_1, _migration_2)
+MIGRATIONS: tuple[Migration, ...] = (_migration_1, _migration_2, _migration_3)
 CURRENT_SCHEMA_VERSION = len(MIGRATIONS)
 
 

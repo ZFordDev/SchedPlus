@@ -23,6 +23,8 @@
 - Status column in task table views across all interfaces [#132]
 - Edit and delete actions in the Lite (Tkinter) interface [#133]
 - Search bar and filter dropdown in the Lite interface task list [#133]
+- Task notes, priority (low/medium/high), and duration fields with schema migration [#134]
+- Notes, priority, and duration editors in PyQt and Tkinter edit dialogs [#134]
 
 ### Fixed
 -

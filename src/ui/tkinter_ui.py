@@ -526,8 +526,32 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             row=3, column=0, columnspan=2, sticky="w"
         )
         edit_text = ttk.Entry(content)
-        edit_text.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(4, 12))
+        edit_text.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(4, 10))
         edit_text.insert(0, task.text)
+        ttk.Label(content, text="Notes", style="Field.TLabel").grid(
+            row=5, column=0, columnspan=2, sticky="w"
+        )
+        edit_notes = ttk.Entry(content)
+        edit_notes.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(4, 10))
+        edit_notes.insert(0, getattr(task, "notes", "") or "")
+        ttk.Label(content, text="Priority", style="Field.TLabel").grid(
+            row=7, column=0, sticky="w"
+        )
+        ttk.Label(content, text="Duration (min)", style="Field.TLabel").grid(
+            row=7, column=1, sticky="w"
+        )
+        priority_var = tk.StringVar(value=getattr(task, "priority", "") or "")
+        priority_combo = ttk.Combobox(
+            content,
+            textvariable=priority_var,
+            values=["", "low", "medium", "high"],
+            state="readonly",
+            width=12,
+        )
+        priority_combo.grid(row=8, column=0, sticky="ew", padx=(0, 8), pady=(4, 10))
+        edit_duration = ttk.Entry(content)
+        edit_duration.grid(row=8, column=1, sticky="ew", padx=(8, 0), pady=(4, 10))
+        edit_duration.insert(0, getattr(task, "duration", "") or "")
 
         def save_edit() -> None:
             try:
@@ -536,6 +560,9 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
                     date=edit_date.get().strip(),
                     time=edit_time.get().strip(),
                     text=edit_text.get().strip(),
+                    notes=edit_notes.get().strip(),
+                    priority=priority_var.get(),
+                    duration=edit_duration.get().strip(),
                 )
                 scheduler.update_task(updated)
                 refresh_task_list()

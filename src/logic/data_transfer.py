@@ -157,7 +157,7 @@ def _parse_tasks(value: object) -> list[Task]:
     tasks = []
     seen_ids: set[str] = set()
     required = {"id", "date", "time", "text", "createdAt", "updatedAt"}
-    optional = {"completed", "completedAt"}
+    optional = {"completed", "completedAt", "notes", "priority", "duration"}
     for index, item in enumerate(value, start=1):
         if not isinstance(item, dict):
             raise DataTransferError(f"Task {index} has invalid fields.")
@@ -174,8 +174,8 @@ def _parse_tasks(value: object) -> list[Task]:
             datetime.fromisoformat(item["createdAt"])
             datetime.fromisoformat(item["updatedAt"])
             task_kwargs = {key: item[key] for key in required}
-            task_kwargs["completed"] = item.get("completed", "")
-            task_kwargs["completedAt"] = item.get("completedAt", "")
+            for opt in optional:
+                task_kwargs[opt] = item.get(opt, "")
             task = validate_task(Task(**task_kwargs))
         except (TypeError, ValueError, ValidationError) as exc:
             raise DataTransferError(f"Task {index} is invalid: {exc}") from exc

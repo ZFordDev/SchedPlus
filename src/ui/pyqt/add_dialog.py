@@ -2,12 +2,14 @@
 
 from PyQt6.QtCore import QDate, QTime, Qt
 from PyQt6.QtWidgets import (
+    QComboBox,
     QDateEdit,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QLabel,
     QLineEdit,
+    QSpinBox,
     QTimeEdit,
     QVBoxLayout,
 )
@@ -17,7 +19,7 @@ class TaskDialog(QDialog):
     def __init__(self, task=None, parent=None, initial_date=None, initial_time=None):
         super().__init__(parent)
         self.setWindowTitle("Edit task" if task else "Create task")
-        self.setMinimumWidth(440)
+        self.setMinimumWidth(480)
         self.setModal(True)
 
         layout = QVBoxLayout(self)
@@ -43,9 +45,25 @@ class TaskDialog(QDialog):
         self.time_input = QTimeEdit()
         self.time_input.setDisplayFormat("HH:mm")
 
+        self.notes_input = QLineEdit()
+        self.notes_input.setPlaceholderText("Optional notes")
+        self.notes_input.setClearButtonEnabled(True)
+
+        self.priority_input = QComboBox()
+        self.priority_input.addItems(["", "low", "medium", "high"])
+
+        self.duration_input = QSpinBox()
+        self.duration_input.setRange(0, 9999)
+        self.duration_input.setSuffix(" min")
+        self.duration_input.setSpecialValueText("—")
+        self.duration_input.setToolTip("Estimated duration in minutes")
+
         form.addRow("Task", self.text_input)
         form.addRow("Date", self.date_input)
         form.addRow("Time", self.time_input)
+        form.addRow("Notes", self.notes_input)
+        form.addRow("Priority", self.priority_input)
+        form.addRow("Duration", self.duration_input)
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(
@@ -60,6 +78,15 @@ class TaskDialog(QDialog):
             self.text_input.setText(task.text)
             self.date_input.setDate(QDate.fromString(task.date, "yyyy-MM-dd"))
             self.time_input.setTime(QTime.fromString(task.time, "HH:mm"))
+            self.notes_input.setText(getattr(task, "notes", "") or "")
+            priority = getattr(task, "priority", "") or ""
+            idx = self.priority_input.findText(priority)
+            self.priority_input.setCurrentIndex(max(0, idx))
+            duration_str = getattr(task, "duration", "") or ""
+            try:
+                self.duration_input.setValue(int(duration_str))
+            except (ValueError, TypeError):
+                self.duration_input.setValue(0)
         else:
             selected_date = QDate.fromString(initial_date or "", "yyyy-MM-dd")
             selected_time = QTime.fromString(initial_time or "", "HH:mm")
@@ -72,11 +99,15 @@ class TaskDialog(QDialog):
 
         self.text_input.setFocus()
 
-    def get_values(self) -> tuple[str, str, str]:
+    def get_values(self) -> tuple[str, str, str, str, str, str]:
+        duration = self.duration_input.value()
         return (
             self.date_input.date().toString("yyyy-MM-dd"),
             self.time_input.time().toString("HH:mm"),
             self.text_input.text(),
+            self.notes_input.text(),
+            self.priority_input.currentText(),
+            str(duration) if duration > 0 else "",
         )
 
 

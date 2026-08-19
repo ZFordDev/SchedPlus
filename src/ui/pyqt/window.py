@@ -185,9 +185,13 @@ class SchedPlusWindow(QMainWindow):
             self, initial_date=initial_date, initial_time=initial_time
         )
         if dialog.exec():
-            date, time, text = dialog.get_values()
+            date, time, text, notes, priority, duration = dialog.get_values()
             try:
-                self.scheduler.add_task(date, time, text)
+                task = self.scheduler.add_task(date, time, text)
+                if notes or priority or duration:
+                    from dataclasses import replace
+                    task = replace(task, notes=notes, priority=priority, duration=duration)
+                    self.scheduler.update_task(task)
                 self.refresh_views()
                 self.show_status_message("Task added successfully")
             except ValidationError as exc:
@@ -196,10 +200,11 @@ class SchedPlusWindow(QMainWindow):
                 self._show_storage_error("Unable to add task", exc)
 
     def open_edit_dialog(self, task):
-        draft = replace(task)
+        from dataclasses import replace as dc_replace
+        draft = dc_replace(task)
         dialog = EditTaskDialog(draft, self)
         if dialog.exec():
-            draft.date, draft.time, draft.text = dialog.get_values()
+            draft.date, draft.time, draft.text, draft.notes, draft.priority, draft.duration = dialog.get_values()
             try:
                 self.scheduler.update_task(draft)
                 self.refresh_views()
