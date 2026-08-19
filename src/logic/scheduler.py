@@ -31,6 +31,7 @@ class Task:
     notes: str = ""
     priority: str = ""
     duration: str = ""
+    category: str = ""
 
 class Scheduler:
     """

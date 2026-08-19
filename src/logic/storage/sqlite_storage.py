@@ -273,8 +273,8 @@ def create_entry(task: Task) -> None:
     _run(
         lambda connection: connection.execute(
             """
-            INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 task.id,
@@ -288,6 +288,7 @@ def create_entry(task: Task) -> None:
                 task.notes,
                 task.priority,
                 task.duration,
+                task.category,
             ),
         )
     )
@@ -300,11 +301,11 @@ def update_entry(task: Task) -> None:
             """
             UPDATE entries
             SET date = ?, time = ?, text = ?, updatedAt = ?, completed = ?, completedAt = ?,
-                notes = ?, priority = ?, duration = ?
+                notes = ?, priority = ?, duration = ?, category = ?
             WHERE id = ?
             """,
             (task.date, task.time, task.text, updated_at, task.completed, task.completedAt,
-             task.notes, task.priority, task.duration, task.id),
+             task.notes, task.priority, task.duration, task.category, task.id),
         )
     )
     task.updatedAt = updated_at
@@ -321,7 +322,7 @@ def delete_entry(task_id: str) -> None:
 def get_entry(task_id: str) -> Task | None:
     row = _run(
         lambda connection: connection.execute(
-            "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration "
+            "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category "
             "FROM entries WHERE id = ?",
             (task_id,),
         ).fetchone()
@@ -331,7 +332,7 @@ def get_entry(task_id: str) -> Task | None:
 
 def list_entries() -> list[Task]:
     rows = _run(lambda connection: connection.execute("""
-            SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration
+            SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category
             FROM entries
             ORDER BY date ASC, time ASC
             """).fetchall())
@@ -343,8 +344,8 @@ def replace_entries(tasks: list[Task]) -> None:
     def replace(connection: sqlite3.Connection) -> None:
         connection.execute("DELETE FROM entries")
         connection.executemany(
-            "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [_task_values(task) for task in tasks],
         )
 
@@ -357,14 +358,14 @@ def import_entries(tasks: list[Task]) -> tuple[int, int, int]:
         imported = duplicates = conflicts = 0
         for task in tasks:
             row = connection.execute(
-                "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration "
+                "SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category "
                 "FROM entries WHERE id = ?",
                 (task.id,),
             ).fetchone()
             if row is None:
                 connection.execute(
-                    "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO entries (id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     _task_values(task),
                 )
                 imported += 1
@@ -435,9 +436,10 @@ def _task_from_row(row: tuple) -> Task:
         notes=row[8] if len(row) > 8 else "",
         priority=row[9] if len(row) > 9 else "",
         duration=row[10] if len(row) > 10 else "",
+        category=row[11] if len(row) > 11 else "",
     )
 
 
-def _task_values(task: Task) -> tuple[str, str, str, str, str, str, str, str, str, str, str]:
+def _task_values(task: Task) -> tuple:
     return (task.id, task.date, task.time, task.text, task.createdAt, task.updatedAt,
-            task.completed, task.completedAt, task.notes, task.priority, task.duration)
+            task.completed, task.completedAt, task.notes, task.priority, task.duration, task.category)

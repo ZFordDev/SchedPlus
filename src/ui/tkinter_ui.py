@@ -552,6 +552,12 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         edit_duration = ttk.Entry(content)
         edit_duration.grid(row=8, column=1, sticky="ew", padx=(8, 0), pady=(4, 10))
         edit_duration.insert(0, getattr(task, "duration", "") or "")
+        ttk.Label(content, text="Category", style="Field.TLabel").grid(
+            row=9, column=0, columnspan=2, sticky="w"
+        )
+        edit_category = ttk.Entry(content)
+        edit_category.grid(row=10, column=0, columnspan=2, sticky="ew", pady=(4, 10))
+        edit_category.insert(0, getattr(task, "category", "") or "")
 
         def save_edit() -> None:
             try:
@@ -563,6 +569,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
                     notes=edit_notes.get().strip(),
                     priority=priority_var.get(),
                     duration=edit_duration.get().strip(),
+                    category=edit_category.get().strip(),
                 )
                 scheduler.update_task(updated)
                 refresh_task_list()

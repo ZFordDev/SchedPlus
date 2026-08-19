@@ -25,6 +25,8 @@
 - Search bar and filter dropdown in the Lite interface task list [#133]
 - Task notes, priority (low/medium/high), and duration fields with schema migration [#134]
 - Notes, priority, and duration editors in PyQt and Tkinter edit dialogs [#134]
+- Task category field for local organization with schema migration [#135]
+- Category input in PyQt and Tkinter edit dialogs [#135]
 
 ### Fixed
 -
