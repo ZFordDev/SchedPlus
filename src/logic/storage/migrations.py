@@ -48,8 +48,14 @@ def _migration_4(connection: sqlite3.Connection) -> None:
     connection.execute("ALTER TABLE entries ADD COLUMN category TEXT NOT NULL DEFAULT ''")
 
 
+def _migration_5(connection: sqlite3.Connection) -> None:
+    """Add recurrence columns for recurring tasks."""
+    connection.execute("ALTER TABLE entries ADD COLUMN recurrence TEXT NOT NULL DEFAULT ''")
+    connection.execute("ALTER TABLE entries ADD COLUMN recurrenceEnd TEXT NOT NULL DEFAULT ''")
+
+
 # Never edit or reorder a released migration. Add the next numbered callable.
-MIGRATIONS: tuple[Migration, ...] = (_migration_1, _migration_2, _migration_3, _migration_4)
+MIGRATIONS: tuple[Migration, ...] = (_migration_1, _migration_2, _migration_3, _migration_4, _migration_5)
 CURRENT_SCHEMA_VERSION = len(MIGRATIONS)
 
 

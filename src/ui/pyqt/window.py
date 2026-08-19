@@ -185,12 +185,12 @@ class SchedPlusWindow(QMainWindow):
             self, initial_date=initial_date, initial_time=initial_time
         )
         if dialog.exec():
-            date, time, text, notes, priority, duration, category = dialog.get_values()
+            date, time, text, notes, priority, duration, category, recurrence, recurrence_end = dialog.get_values()
             try:
                 task = self.scheduler.add_task(date, time, text)
-                if notes or priority or duration or category:
+                if notes or priority or duration or category or recurrence:
                     from dataclasses import replace
-                    task = replace(task, notes=notes, priority=priority, duration=duration, category=category)
+                    task = replace(task, notes=notes, priority=priority, duration=duration, category=category, recurrence=recurrence, recurrenceEnd=recurrence_end)
                     self.scheduler.update_task(task)
                 self.refresh_views()
                 self.show_status_message("Task added successfully")
@@ -204,7 +204,7 @@ class SchedPlusWindow(QMainWindow):
         draft = dc_replace(task)
         dialog = EditTaskDialog(draft, self)
         if dialog.exec():
-            draft.date, draft.time, draft.text, draft.notes, draft.priority, draft.duration, draft.category = dialog.get_values()
+            draft.date, draft.time, draft.text, draft.notes, draft.priority, draft.duration, draft.category, draft.recurrence, draft.recurrenceEnd = dialog.get_values()
             try:
                 self.scheduler.update_task(draft)
                 self.refresh_views()

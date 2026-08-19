@@ -62,6 +62,16 @@ class TaskDialog(QDialog):
         self.category_input.setPlaceholderText("e.g. Work, Personal, Errands")
         self.category_input.setClearButtonEnabled(True)
 
+        self.recurrence_input = QComboBox()
+        self.recurrence_input.addItems(["", "daily", "weekly", "monthly", "yearly"])
+
+        self.recurrence_end_input = QDateEdit()
+        self.recurrence_end_input.setCalendarPopup(True)
+        self.recurrence_end_input.setDisplayFormat("yyyy-MM-dd")
+        self.recurrence_end_input.setDate(QDate.currentDate().addYears(1))
+        self.recurrence_end_input.setSpecialValueText("No end date")
+        self.recurrence_end_input.setToolTip("When recurrence stops (empty = forever)")
+
         form.addRow("Task", self.text_input)
         form.addRow("Date", self.date_input)
         form.addRow("Time", self.time_input)
@@ -69,6 +79,8 @@ class TaskDialog(QDialog):
         form.addRow("Priority", self.priority_input)
         form.addRow("Duration", self.duration_input)
         form.addRow("Category", self.category_input)
+        form.addRow("Repeat", self.recurrence_input)
+        form.addRow("Repeat until", self.recurrence_end_input)
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(
@@ -93,6 +105,14 @@ class TaskDialog(QDialog):
             except (ValueError, TypeError):
                 self.duration_input.setValue(0)
             self.category_input.setText(getattr(task, "category", "") or "")
+            recurrence = getattr(task, "recurrence", "") or ""
+            idx = self.recurrence_input.findText(recurrence)
+            self.recurrence_input.setCurrentIndex(max(0, idx))
+            recurrence_end = getattr(task, "recurrenceEnd", "") or ""
+            if recurrence_end:
+                end_date = QDate.fromString(recurrence_end, "yyyy-MM-dd")
+                if end_date.isValid():
+                    self.recurrence_end_input.setDate(end_date)
         else:
             selected_date = QDate.fromString(initial_date or "", "yyyy-MM-dd")
             selected_time = QTime.fromString(initial_time or "", "HH:mm")
@@ -105,8 +125,12 @@ class TaskDialog(QDialog):
 
         self.text_input.setFocus()
 
-    def get_values(self) -> tuple[str, str, str, str, str, str, str]:
+    def get_values(self) -> tuple[str, str, str, str, str, str, str, str, str]:
         duration = self.duration_input.value()
+        recurrence = self.recurrence_input.currentText()
+        recurrence_end = ""
+        if recurrence:
+            recurrence_end = self.recurrence_end_input.date().toString("yyyy-MM-dd")
         return (
             self.date_input.date().toString("yyyy-MM-dd"),
             self.time_input.time().toString("HH:mm"),
@@ -115,6 +139,8 @@ class TaskDialog(QDialog):
             self.priority_input.currentText(),
             str(duration) if duration > 0 else "",
             self.category_input.text(),
+            recurrence,
+            recurrence_end,
         )
 
 

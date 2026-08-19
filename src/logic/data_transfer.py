@@ -157,7 +157,7 @@ def _parse_tasks(value: object) -> list[Task]:
     tasks = []
     seen_ids: set[str] = set()
     required = {"id", "date", "time", "text", "createdAt", "updatedAt"}
-    optional = {"completed", "completedAt", "notes", "priority", "duration", "category"}
+    optional = {"completed", "completedAt", "notes", "priority", "duration", "category", "recurrence", "recurrenceEnd"}
     for index, item in enumerate(value, start=1):
         if not isinstance(item, dict):
             raise DataTransferError(f"Task {index} has invalid fields.")

@@ -32,6 +32,8 @@ class Task:
     priority: str = ""
     duration: str = ""
     category: str = ""
+    recurrence: str = ""
+    recurrenceEnd: str = ""
 
 class Scheduler:
     """
@@ -92,14 +94,55 @@ class Scheduler:
     # ---------------------------------------------------------
 
     def complete_task(self, task_id: str):
+        from dataclasses import replace
+        from datetime import timedelta
+
         from .storage import sqlite_storage as db
 
         db.complete_entry(task_id)
+        task = None
         for t in self.tasks:
             if t.id == task_id:
                 t.completed = "true"
                 t.completedAt = datetime.now(timezone.utc).isoformat()
+                task = t
                 break
+        if task and task.recurrence and task.date:
+            end = task.recurrenceEnd
+            if not end or task.date <= end:
+                try:
+                    current = datetime.strptime(task.date, "%Y-%m-%d")
+                except ValueError:
+                    return
+                if task.recurrence == "daily":
+                    next_date = current + timedelta(days=1)
+                elif task.recurrence == "weekly":
+                    next_date = current + timedelta(weeks=1)
+                elif task.recurrence == "monthly":
+                    month = current.month + 1
+                    year = current.year
+                    if month > 12:
+                        month = 1
+                        year += 1
+                    next_date = current.replace(year=year, month=month)
+                elif task.recurrence == "yearly":
+                    next_date = current.replace(year=current.year + 1)
+                else:
+                    return
+                next_str = next_date.strftime("%Y-%m-%d")
+                if end and next_str > end:
+                    return
+                new_task = replace(
+                    task,
+                    id=str(uuid.uuid4()),
+                    date=next_str,
+                    completed="",
+                    completedAt="",
+                    createdAt=datetime.now(timezone.utc).isoformat(),
+                    updatedAt=datetime.now(timezone.utc).isoformat(),
+                )
+                db.create_entry(new_task)
+                self.tasks.append(new_task)
 
     def uncomplete_task(self, task_id: str):
         from .storage import sqlite_storage as db

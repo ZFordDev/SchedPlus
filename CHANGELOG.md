@@ -27,6 +27,8 @@
 - Notes, priority, and duration editors in PyQt and Tkinter edit dialogs [#134]
 - Task category field for local organization with schema migration [#135]
 - Category input in PyQt and Tkinter edit dialogs [#135]
+- Recurring tasks (daily/weekly/monthly/yearly) with optional end date and schema migration [#136]
+- Auto-generation of next occurrence on task completion for recurring tasks [#136]
 
 ### Fixed
 -
