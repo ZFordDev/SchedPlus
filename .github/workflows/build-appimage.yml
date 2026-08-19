@@ -23,7 +23,7 @@ jobs:
       SCHEDPLUS_UPDATE_PUBLIC_KEY: ${{ vars.UPDATE_PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - name: Install build dependencies
