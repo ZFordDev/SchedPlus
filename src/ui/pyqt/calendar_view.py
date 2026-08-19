@@ -267,6 +267,7 @@ class CalendarWorkspace(QWidget):
             else Qt.DayOfWeek.Sunday
         )
         self.month_calendar.setFirstDayOfWeek(first_day)
+        self.month_calendar.setWeekNumberVisible(preferences.show_week_numbers)
         index = self.view_combo.findData(preferences.calendar_view)
         self.view_combo.setCurrentIndex(max(0, index))
         self.refresh()

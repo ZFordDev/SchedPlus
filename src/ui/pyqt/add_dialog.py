@@ -16,11 +16,13 @@ from PyQt6.QtWidgets import (
 
 
 class TaskDialog(QDialog):
-    def __init__(self, task=None, parent=None, initial_date=None, initial_time=None):
+    def __init__(self, task=None, parent=None, initial_date=None, initial_time=None, date_format="yyyy-MM-dd", time_format="HH:mm"):
         super().__init__(parent)
         self.setWindowTitle("Edit task" if task else "Create task")
         self.setMinimumWidth(480)
         self.setModal(True)
+        self._date_format = date_format
+        self._time_format = time_format
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -41,11 +43,11 @@ class TaskDialog(QDialog):
 
         self.date_input = QDateEdit()
         self.date_input.setCalendarPopup(True)
-        self.date_input.setDisplayFormat("yyyy-MM-dd")
+        self.date_input.setDisplayFormat(date_format)
         self.date_input.setAccessibleName("Due date")
 
         self.time_input = QTimeEdit()
-        self.time_input.setDisplayFormat("HH:mm")
+        self.time_input.setDisplayFormat(time_format)
         self.time_input.setAccessibleName("Due time")
 
         self.notes_input = QLineEdit()
@@ -154,9 +156,11 @@ class TaskDialog(QDialog):
         if recurrence:
             recurrence_end = self.recurrence_end_input.date().toString("yyyy-MM-dd")
         reminder = self.reminder_input.value()
+        date_str = self.date_input.date().toString("yyyy-MM-dd")
+        time_str = self.time_input.time().toString("HH:mm")
         return (
-            self.date_input.date().toString("yyyy-MM-dd"),
-            self.time_input.time().toString("HH:mm"),
+            date_str,
+            time_str,
             self.text_input.text(),
             self.notes_input.text(),
             self.priority_input.currentText(),
@@ -169,12 +173,13 @@ class TaskDialog(QDialog):
 
 
 class AddTaskDialog(TaskDialog):
-    def __init__(self, parent=None, initial_date=None, initial_time=None):
+    def __init__(self, parent=None, initial_date=None, initial_time=None, date_format="yyyy-MM-dd", time_format="HH:mm"):
         super().__init__(
-            parent=parent, initial_date=initial_date, initial_time=initial_time
+            parent=parent, initial_date=initial_date, initial_time=initial_time,
+            date_format=date_format, time_format=time_format,
         )
 
 
 class EditTaskDialog(TaskDialog):
-    def __init__(self, task, parent=None):
-        super().__init__(task=task, parent=parent)
+    def __init__(self, task, parent=None, date_format="yyyy-MM-dd", time_format="HH:mm"):
+        super().__init__(task=task, parent=parent, date_format=date_format, time_format=time_format)

@@ -21,9 +21,11 @@ from ui.pyqt.settings_dialog import FILTERS, SORT_FIELDS, UiPreferences
 class TaskTableModel(QAbstractTableModel):
     HEADERS = ("Date", "Time", "Task", "Status", "Created")
 
-    def __init__(self, tasks=None, parent=None):
+    def __init__(self, tasks=None, parent=None, date_format="yyyy-MM-dd", time_format="HH:mm"):
         super().__init__(parent)
         self.tasks = list(tasks or [])
+        self.date_format = date_format
+        self.time_format = time_format
 
     def rowCount(self, parent=QModelIndex()):
         return 0 if parent.isValid() else len(self.tasks)
@@ -145,7 +147,7 @@ class TaskListWidget(QWidget):
         controls.addWidget(self.order_button)
         layout.addLayout(controls)
 
-        self.model = TaskTableModel(scheduler.get_tasks(), self)
+        self.model = TaskTableModel(scheduler.get_tasks(), self, preferences.date_format, preferences.time_format)
         self.proxy = TaskFilterProxyModel(self)
         self.proxy.setSourceModel(self.model)
 
@@ -206,6 +208,8 @@ class TaskListWidget(QWidget):
         self.refresh()
 
     def apply_preferences(self, preferences: UiPreferences):
+        self.model.date_format = preferences.date_format
+        self.model.time_format = preferences.time_format
         self.filter_combo.setCurrentIndex(
             max(0, self.filter_combo.findData(preferences.task_filter))
         )

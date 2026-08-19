@@ -197,7 +197,9 @@ class SchedPlusWindow(QMainWindow):
 
     def open_add_dialog(self, initial_date=None, initial_time=None):
         dialog = AddTaskDialog(
-            self, initial_date=initial_date, initial_time=initial_time
+            self, initial_date=initial_date, initial_time=initial_time,
+            date_format=self.preferences.date_format,
+            time_format=self.preferences.time_format,
         )
         if dialog.exec():
             date, time, text, notes, priority, duration, category, recurrence, recurrence_end, reminder = dialog.get_values()
@@ -218,7 +220,10 @@ class SchedPlusWindow(QMainWindow):
     def open_edit_dialog(self, task):
         from dataclasses import replace as dc_replace
         draft = dc_replace(task)
-        dialog = EditTaskDialog(draft, self)
+        dialog = EditTaskDialog(draft, self,
+            date_format=self.preferences.date_format,
+            time_format=self.preferences.time_format,
+        )
         if dialog.exec():
             draft.date, draft.time, draft.text, draft.notes, draft.priority, draft.duration, draft.category, draft.recurrence, draft.recurrenceEnd, draft.reminder = dialog.get_values()
             try:

@@ -39,6 +39,9 @@
 - Accessible names on all interactive widgets for screen reader support [#140]
 - Keyboard shortcuts: Ctrl+Q (quit), Ctrl+Z (undo), F11 (full screen) [#140]
 - Keyboard shortcuts reference dialog in Help menu [#140]
+- Configurable date format (ISO, US, EU, DE) and time format (24h/12h) in settings [#141]
+- Week number toggle in calendar view [#141]
+- Format preferences applied to task list, dialogs, and calendar [#141]
 
 ### Fixed
 -

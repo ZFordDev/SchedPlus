@@ -58,6 +58,21 @@ class UiPreferences:
     first_day_of_week: str = "monday"
     workday_start: int = 7
     workday_end: int = 20
+    date_format: str = "yyyy-MM-dd"
+    time_format: str = "HH:mm"
+    show_week_numbers: bool = True
+
+
+DATE_FORMATS = {
+    "yyyy-MM-dd": "YYYY-MM-DD (ISO)",
+    "MM/dd/yyyy": "MM/DD/YYYY (US)",
+    "dd/MM/yyyy": "DD/MM/YYYY (EU)",
+    "dd.MM.yyyy": "DD.MM.YYYY (DE)",
+}
+TIME_FORMATS = {
+    "HH:mm": "24-hour (HH:mm)",
+    "h:mm AP": "12-hour (h:mm AM/PM)",
+}
 
 
 class SettingsStore:
@@ -67,7 +82,10 @@ class SettingsStore:
     def load(self) -> UiPreferences:
         portable = load_ui_preferences()
         if portable is not None:
-            return UiPreferences(**portable)
+            try:
+                return UiPreferences(**portable)
+            except TypeError:
+                pass
         preferences = UiPreferences(
             sort_field=self._choice("tasks/sort_field", SORT_FIELDS, "date"),
             sort_order=self._choice(
@@ -85,6 +103,9 @@ class SettingsStore:
             ),
             workday_start=self._hour("calendar/workday_start", 7),
             workday_end=self._hour("calendar/workday_end", 20),
+            date_format=self._choice("formats/date", DATE_FORMATS, "yyyy-MM-dd"),
+            time_format=self._choice("formats/time", TIME_FORMATS, "HH:mm"),
+            show_week_numbers=self._bool("formats/week_numbers", True),
         )
         return preferences
 
@@ -98,6 +119,9 @@ class SettingsStore:
         self._settings.setValue("calendar/first_day", preferences.first_day_of_week)
         self._settings.setValue("calendar/workday_start", preferences.workday_start)
         self._settings.setValue("calendar/workday_end", preferences.workday_end)
+        self._settings.setValue("formats/date", preferences.date_format)
+        self._settings.setValue("formats/time", preferences.time_format)
+        self._settings.setValue("formats/week_numbers", preferences.show_week_numbers)
         self._settings.sync()
 
     def _choice(self, key: str, choices: dict, default: str) -> str:
@@ -110,6 +134,12 @@ class SettingsStore:
         except (TypeError, ValueError):
             return default
         return value if 0 <= value <= 23 else default
+
+    def _bool(self, key: str, default: bool) -> bool:
+        value = self._settings.value(key, default)
+        if isinstance(value, bool):
+            return value
+        return str(value).lower() in ("true", "1", "yes")
 
 
 class SettingsDialog(QDialog):
@@ -210,6 +240,28 @@ class SettingsDialog(QDialog):
         form.addRow("First day of week", self.first_day)
         form.addRow("Visible day starts", self.workday_start)
         form.addRow("Visible day ends", self.workday_end)
+
+        self.date_format = QComboBox()
+        for value, label in DATE_FORMATS.items():
+            self.date_format.addItem(label, value)
+        self.date_format.setCurrentIndex(
+            self.date_format.findData(preferences.date_format)
+        )
+
+        self.time_format = QComboBox()
+        for value, label in TIME_FORMATS.items():
+            self.time_format.addItem(label, value)
+        self.time_format.setCurrentIndex(
+            self.time_format.findData(preferences.time_format)
+        )
+
+        self.show_week_numbers = QCheckBox("Show week numbers in calendar")
+        self.show_week_numbers.setChecked(preferences.show_week_numbers)
+
+        form.addRow("Date format", self.date_format)
+        form.addRow("Time format", self.time_format)
+        form.addRow("", self.show_week_numbers)
+
         form.addRow("Application updates", self.check_updates)
         return widget
 
@@ -300,6 +352,9 @@ class SettingsDialog(QDialog):
             first_day_of_week=self.first_day.currentData(),
             workday_start=self.workday_start.value(),
             workday_end=max(self.workday_start.value(), self.workday_end.value()),
+            date_format=self.date_format.currentData(),
+            time_format=self.time_format.currentData(),
+            show_week_numbers=self.show_week_numbers.isChecked(),
         )
 
     def save_update_preferences(self) -> None:
