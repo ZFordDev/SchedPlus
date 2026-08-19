@@ -19,7 +19,7 @@ from ui.pyqt.settings_dialog import FILTERS, SORT_FIELDS, UiPreferences
 
 
 class TaskTableModel(QAbstractTableModel):
-    HEADERS = ("Date", "Time", "Task", "Created")
+    HEADERS = ("Date", "Time", "Task", "Status", "Created")
 
     def __init__(self, tasks=None, parent=None):
         super().__init__(parent)
@@ -36,10 +36,12 @@ class TaskTableModel(QAbstractTableModel):
             return None
         task = self.tasks[index.row()]
         if role == Qt.ItemDataRole.DisplayRole:
-            return (task.date, task.time, task.text, task.createdAt)[index.column()]
+            if index.column() == 3:
+                return "Done" if task.completed == "true" else ""
+            return (task.date, task.time, task.text, "", task.createdAt)[index.column()]
         if role == Qt.ItemDataRole.UserRole:
             return task
-        if role == Qt.ItemDataRole.TextAlignmentRole and index.column() < 2:
+        if role == Qt.ItemDataRole.TextAlignmentRole and index.column() in (0, 1, 3):
             return Qt.AlignmentFlag.AlignCenter
         return None
 
@@ -75,11 +77,17 @@ class TaskFilterProxyModel(QSortFilterProxyModel):
         if self.search_text and self.search_text not in task.text.casefold():
             return False
 
+        is_completed = task.completed == "true"
         today = date.today().isoformat()
+
+        if self.task_filter == "completed":
+            return is_completed
+        if self.task_filter == "active":
+            return not is_completed
         if self.task_filter == "today":
-            return task.date == today
+            return task.date == today and not is_completed
         if self.task_filter == "upcoming":
-            return task.date >= today
+            return task.date >= today and not is_completed
         return True
 
 
@@ -87,8 +95,9 @@ class TaskListWidget(QWidget):
     add_requested = pyqtSignal()
     edit_requested = pyqtSignal(object)
     delete_requested = pyqtSignal(object)
+    complete_requested = pyqtSignal(object)
 
-    SORT_COLUMNS = {"date": 0, "time": 1, "text": 2, "created": 3}
+    SORT_COLUMNS = {"date": 0, "time": 1, "text": 2, "status": 3, "created": 4}
 
     def __init__(self, scheduler, preferences: UiPreferences, parent=None):
         super().__init__(parent)
@@ -164,11 +173,14 @@ class TaskListWidget(QWidget):
         self.add_button.setObjectName("PrimaryButton")
         self.edit_button = QPushButton("Edit")
         self.edit_button.setObjectName("SecondaryButton")
+        self.complete_button = QPushButton("Complete")
+        self.complete_button.setObjectName("SecondaryButton")
         self.delete_button = QPushButton("Delete")
         self.delete_button.setObjectName("DangerButton")
         actions.addWidget(self.add_button)
         actions.addStretch()
         actions.addWidget(self.edit_button)
+        actions.addWidget(self.complete_button)
         actions.addWidget(self.delete_button)
         layout.addLayout(actions)
 
@@ -178,6 +190,7 @@ class TaskListWidget(QWidget):
         self.order_button.toggled.connect(self._apply_sort)
         self.add_button.clicked.connect(self.add_requested)
         self.edit_button.clicked.connect(self._emit_edit)
+        self.complete_button.clicked.connect(self._emit_complete)
         self.delete_button.clicked.connect(self._emit_delete)
         self.table.selectionModel().selectionChanged.connect(self._update_actions)
 
@@ -261,6 +274,11 @@ class TaskListWidget(QWidget):
         if task:
             self.edit_requested.emit(task)
 
+    def _emit_complete(self):
+        task = self.selected_task()
+        if task:
+            self.complete_requested.emit(task)
+
     def _emit_delete(self):
         task = self.selected_task()
         if task:
@@ -269,4 +287,10 @@ class TaskListWidget(QWidget):
     def _update_actions(self, *_args):
         selected = self.selected_task() is not None
         self.edit_button.setEnabled(selected)
+        self.complete_button.setEnabled(selected)
         self.delete_button.setEnabled(selected)
+        if selected:
+            task = self.selected_task()
+            self.complete_button.setText("Uncomplete" if task and task.completed == "true" else "Complete")
+        else:
+            self.complete_button.setText("Complete")

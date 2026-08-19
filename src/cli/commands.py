@@ -24,6 +24,7 @@ COMMANDS = {
     "add",
     "list",
     "edit",
+    "complete",
     "delete",
     "backup",
     "restore",
@@ -67,6 +68,12 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser.add_argument(
         "--descending", action="store_true", help="Reverse the sort order"
     )
+    list_parser.add_argument(
+        "--filter",
+        choices=("all", "active", "completed"),
+        default="all",
+        help="Filter by completion status (default: all)",
+    )
     list_parser.set_defaults(handler=_list_tasks)
 
     edit_parser = subparsers.add_parser("edit", help="Edit a task")
@@ -75,6 +82,10 @@ def build_parser() -> argparse.ArgumentParser:
     edit_parser.add_argument("--date", help="Replacement date in YYYY-MM-DD format")
     edit_parser.add_argument("--time", help="Replacement time in 24-hour HH:MM format")
     edit_parser.set_defaults(handler=_edit_task)
+
+    complete_parser = subparsers.add_parser("complete", help="Mark a task as complete or incomplete")
+    complete_parser.add_argument("id", help="Full task ID or unambiguous ID prefix")
+    complete_parser.set_defaults(handler=_complete_task)
 
     delete_parser = subparsers.add_parser("delete", help="Delete a task")
     delete_parser.add_argument("id", help="Full task ID or unambiguous ID prefix")
@@ -157,6 +168,13 @@ def _add_task(options, scheduler, stdout):
 
 def _list_tasks(options, scheduler, stdout):
     tasks = list(scheduler.get_tasks())
+
+    task_filter = getattr(options, "filter", "all")
+    if task_filter == "active":
+        tasks = [t for t in tasks if t.completed != "true"]
+    elif task_filter == "completed":
+        tasks = [t for t in tasks if t.completed == "true"]
+
     key_functions = {
         "date": lambda task: (task.date, task.time, task.text.casefold()),
         "time": lambda task: (task.time, task.date, task.text.casefold()),
@@ -168,8 +186,11 @@ def _list_tasks(options, scheduler, stdout):
         print("No tasks found.", file=stdout)
         return 0
 
-    headers = ("ID", "DATE", "TIME", "TASK")
-    rows = [(task.id, task.date, task.time, task.text) for task in tasks]
+    headers = ("ID", "DATE", "TIME", "TASK", "STATUS")
+    rows = [
+        (task.id, task.date, task.time, task.text, "Done" if task.completed == "true" else "")
+        for task in tasks
+    ]
     widths = [
         max(len(headers[column]), *(len(str(row[column])) for row in rows))
         for column in range(len(headers))
@@ -204,6 +225,17 @@ def _delete_task(options, scheduler, stdout):
     task = _resolve_task(scheduler, options.id)
     scheduler.delete_task(task.id)
     print(f"Deleted {task.id}: {task.text}", file=stdout)
+    return 0
+
+
+def _complete_task(options, scheduler, stdout):
+    task = _resolve_task(scheduler, options.id)
+    if task.completed == "true":
+        scheduler.uncomplete_task(task.id)
+        print(f"Unmarked {task.id}: {task.text}", file=stdout)
+    else:
+        scheduler.complete_task(task.id)
+        print(f"Completed {task.id}: {task.text}", file=stdout)
     return 0
 
 

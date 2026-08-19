@@ -157,9 +157,15 @@ def _parse_tasks(value: object) -> list[Task]:
     tasks = []
     seen_ids: set[str] = set()
     required = {"id", "date", "time", "text", "createdAt", "updatedAt"}
+    optional = {"completed", "completedAt"}
     for index, item in enumerate(value, start=1):
-        if not isinstance(item, dict) or set(item) != required:
+        if not isinstance(item, dict):
             raise DataTransferError(f"Task {index} has invalid fields.")
+        if not required.issubset(item):
+            raise DataTransferError(f"Task {index} has invalid fields.")
+        unknown = set(item) - required - optional
+        if unknown:
+            raise DataTransferError(f"Task {index} has unknown fields: {unknown}")
         if not all(isinstance(item[key], str) for key in required):
             raise DataTransferError(f"Task {index} fields must be strings.")
         if not item["id"].strip() or item["id"] in seen_ids:
@@ -167,7 +173,10 @@ def _parse_tasks(value: object) -> list[Task]:
         try:
             datetime.fromisoformat(item["createdAt"])
             datetime.fromisoformat(item["updatedAt"])
-            task = validate_task(Task(**item))
+            task_kwargs = {key: item[key] for key in required}
+            task_kwargs["completed"] = item.get("completed", "")
+            task_kwargs["completedAt"] = item.get("completedAt", "")
+            task = validate_task(Task(**task_kwargs))
         except (TypeError, ValueError, ValidationError) as exc:
             raise DataTransferError(f"Task {index} is invalid: {exc}") from exc
         seen_ids.add(task.id)
@@ -179,9 +188,9 @@ def _validate_ui_preferences(value: object) -> dict[str, Any]:
     if not isinstance(value, dict) or set(value) != UI_KEYS:
         raise DataTransferError("Backup UI preferences have invalid fields.")
     choices = {
-        "sort_field": {"date", "time", "text", "created"},
+        "sort_field": {"date", "time", "text", "status", "created"},
         "sort_order": {"ascending", "descending"},
-        "task_filter": {"all", "today", "upcoming"},
+        "task_filter": {"all", "active", "completed", "today", "upcoming"},
         "startup_view": {"tasks", "calendar"},
         "calendar_view": {"month", "week", "day"},
         "first_day_of_week": {"monday", "sunday"},

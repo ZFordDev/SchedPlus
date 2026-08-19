@@ -101,6 +101,7 @@ class SchedPlusWindow(QMainWindow):
         self.task_list.add_requested.connect(self.open_add_dialog)
         self.task_list.edit_requested.connect(self.open_edit_dialog)
         self.task_list.delete_requested.connect(self.delete_task)
+        self.task_list.complete_requested.connect(self.complete_task)
         self.calendar_page.add_requested.connect(self.open_add_dialog)
         self.calendar_page.edit_requested.connect(self.open_edit_dialog)
         self.calendar_page.delete_requested.connect(self.delete_task)
@@ -212,7 +213,7 @@ class SchedPlusWindow(QMainWindow):
         confirmation = QMessageBox(self)
         confirmation.setIcon(QMessageBox.Icon.Question)
         confirmation.setWindowTitle("Delete task?")
-        confirmation.setText(f"Delete “{task.text}”?")
+        confirmation.setText(f"Delete "{task.text}"?")
         confirmation.setInformativeText("This action cannot be undone.")
         confirmation.setStandardButtons(
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
@@ -227,6 +228,19 @@ class SchedPlusWindow(QMainWindow):
             self.show_status_message("Task deleted")
         except StorageError as exc:
             self._show_storage_error("Unable to delete task", exc)
+
+    def complete_task(self, task):
+        try:
+            if task.completed == "true":
+                self.scheduler.uncomplete_task(task.id)
+                self.refresh_views()
+                self.show_status_message("Task marked as incomplete")
+            else:
+                self.scheduler.complete_task(task.id)
+                self.refresh_views()
+                self.show_status_message("Task marked as complete")
+        except StorageError as exc:
+            self._show_storage_error("Unable to update task", exc)
 
     def edit_selected_task(self):
         task = self.task_list.selected_task()

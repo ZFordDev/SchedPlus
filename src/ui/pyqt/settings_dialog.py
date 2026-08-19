@@ -25,10 +25,13 @@ SORT_FIELDS = {
     "date": "Date",
     "time": "Time",
     "text": "Task text",
+    "status": "Status",
     "created": "Date created",
 }
 FILTERS = {
     "all": "All tasks",
+    "active": "Active",
+    "completed": "Completed",
     "today": "Today",
     "upcoming": "Upcoming",
 }

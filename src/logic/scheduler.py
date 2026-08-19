@@ -13,7 +13,7 @@ UIs remain fully decoupled from storage details.
 import uuid
 from dataclasses import dataclass, field
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .validation import validate_task
 
@@ -26,6 +26,8 @@ class Task:
     text: str = ""
     createdAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     updatedAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    completed: str = ""
+    completedAt: str = ""
 
 class Scheduler:
     """
@@ -79,6 +81,30 @@ class Scheduler:
         for i, t in enumerate(self.tasks):
             if t.id == task.id:
                 self.tasks[i] = task
+                break
+
+    # ---------------------------------------------------------
+    # Complete / Uncomplete
+    # ---------------------------------------------------------
+
+    def complete_task(self, task_id: str):
+        from .storage import sqlite_storage as db
+
+        db.complete_entry(task_id)
+        for t in self.tasks:
+            if t.id == task_id:
+                t.completed = "true"
+                t.completedAt = datetime.now(timezone.utc).isoformat()
+                break
+
+    def uncomplete_task(self, task_id: str):
+        from .storage import sqlite_storage as db
+
+        db.uncomplete_entry(task_id)
+        for t in self.tasks:
+            if t.id == task_id:
+                t.completed = ""
+                t.completedAt = ""
                 break
 
     # ---------------------------------------------------------

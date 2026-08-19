@@ -361,16 +361,18 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
 
     task_list = ttk.Treeview(
         tasks_panel,
-        columns=("date", "time", "text"),
+        columns=("date", "time", "text", "status"),
         show="headings",
         selectmode="browse",
     )
     task_list.heading("date", text="Date")
     task_list.heading("time", text="Time")
     task_list.heading("text", text="Task")
+    task_list.heading("status", text="Status")
     task_list.column("date", width=110, minwidth=100, anchor="center", stretch=False)
     task_list.column("time", width=75, minwidth=65, anchor="center", stretch=False)
-    task_list.column("text", width=360, minwidth=180, anchor="w")
+    task_list.column("text", width=300, minwidth=180, anchor="w")
+    task_list.column("status", width=80, minwidth=70, anchor="center", stretch=False)
     task_list.grid(row=1, column=0, sticky="nsew")
 
     scrollbar = ttk.Scrollbar(tasks_panel, orient="vertical", command=task_list.yview)
@@ -386,6 +388,8 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         row=0, column=1, sticky="e"
     )
 
+    show_completed = tk.BooleanVar(value=False)
+
     def update_task_count() -> None:
         count = len(task_list.get_children())
         task_count.configure(text=f"{count} task" if count == 1 else f"{count} tasks")
@@ -393,16 +397,59 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     def refresh_task_list() -> None:
         task_list.delete(*task_list.get_children())
         for task in scheduler.get_tasks():
-            task_list.insert("", "end", values=(task.date, task.time, task.text))
+            is_completed = task.completed == "true"
+            if is_completed and not show_completed.get():
+                continue
+            status = "Done" if is_completed else ""
+            task_list.insert("", "end", values=(task.date, task.time, task.text, status))
         update_task_count()
 
     refresh_task_list()
+
+    task_actions = ttk.Frame(tasks_panel, style="Surface.TFrame")
+    task_actions.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+    task_actions.columnconfigure(0, weight=1)
+    ttk.Checkbutton(
+        task_actions,
+        text="Show completed",
+        variable=show_completed,
+        command=refresh_task_list,
+    ).grid(row=0, column=0, sticky="w")
+    complete_button = ttk.Button(task_actions, text="Mark complete")
+    complete_button.grid(row=0, column=1, sticky="e")
 
     def set_status(message: str, *, success: bool = False) -> None:
         status.configure(
             text=message,
             style="Success.Status.TLabel" if success else "Status.TLabel",
         )
+
+    def complete_selected_task() -> None:
+        selected = task_list.selection()
+        if not selected:
+            set_status("Select a task to mark complete")
+            return
+        item = selected[0]
+        values = task_list.item(item, "values")
+        task_text = values[2]
+        task_to_complete = None
+        for t in scheduler.get_tasks():
+            if t.text == task_text and t.date == values[0] and t.time == values[1]:
+                task_to_complete = t
+                break
+        if not task_to_complete:
+            return
+        try:
+            if task_to_complete.completed == "true":
+                scheduler.uncomplete_task(task_to_complete.id)
+                set_status("Task marked as incomplete", success=True)
+            else:
+                scheduler.complete_task(task_to_complete.id)
+                set_status("Task marked as complete", success=True)
+            refresh_task_list()
+        except StorageError as exc:
+            set_status("Could not update task")
+            messagebox.showerror("Unable to update task", str(exc), parent=root)
 
     update_events: queue.SimpleQueue = queue.SimpleQueue()
 
@@ -595,6 +642,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         return False
 
     add_button.configure(command=add_task)
+    complete_button.configure(command=complete_selected_task)
     bind_enter_key([date_entry, time_entry, task_entry], add_task)
     root.bind("<Escape>", lambda _event: root.focus_set())
     task_entry.focus_set()

@@ -3,7 +3,6 @@
 ## Unreleased (v0.9.0)
 
 ### Plan
-- Add task completion, history, and safe deletion [#132]
 - Bring the Lite interface to complete task-management parity [#133]
 - Expand the task model with notes, priority, and duration [#134]
 - Add categories and local organization [#135]
@@ -16,7 +15,12 @@
 - Complete release documentation and offline privacy guarantees [#142]
 
 ### Added
--
+- Task completion tracking with completed/completedAt fields and schema migration [#132]
+- Complete/Uncomplete actions in PyQt and Tkinter interfaces [#132]
+- "Show completed" toggle in Tkinter UI and "Active"/"Completed" filters in PyQt [#132]
+- CLI `complete` command to mark tasks complete/incomplete by ID prefix [#132]
+- CLI `list --filter` flag to show all, active, or completed tasks [#132]
+- Status column in task table views across all interfaces [#132]
 
 ### Fixed
 -
