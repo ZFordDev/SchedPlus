@@ -21,6 +21,8 @@
 - CLI `complete` command to mark tasks complete/incomplete by ID prefix [#132]
 - CLI `list --filter` flag to show all, active, or completed tasks [#132]
 - Status column in task table views across all interfaces [#132]
+- Edit and delete actions in the Lite (Tkinter) interface [#133]
+- Search bar and filter dropdown in the Lite interface task list [#133]
 
 ### Fixed
 -

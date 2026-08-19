@@ -7,6 +7,8 @@ from datetime import date, datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+from dataclasses import replace
+
 from tkcalendar import Calendar
 
 from logic.data_transfer import (
@@ -359,6 +361,23 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     task_count = ttk.Label(list_header, style="Hint.TLabel")
     task_count.grid(row=0, column=1, sticky="e")
 
+    search_frame = ttk.Frame(tasks_panel, style="Surface.TFrame")
+    search_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+    search_frame.columnconfigure(0, weight=1)
+    search_var = tk.StringVar()
+    search_entry = ttk.Entry(search_frame, textvariable=search_var)
+    search_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+    search_entry.insert(0, "")
+    filter_var = tk.StringVar(value="all")
+    filter_combo = ttk.Combobox(
+        search_frame,
+        textvariable=filter_var,
+        values=["all", "active", "completed"],
+        state="readonly",
+        width=12,
+    )
+    filter_combo.grid(row=0, column=1, sticky="e")
+
     task_list = ttk.Treeview(
         tasks_panel,
         columns=("date", "time", "text", "status"),
@@ -373,10 +392,10 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     task_list.column("time", width=75, minwidth=65, anchor="center", stretch=False)
     task_list.column("text", width=300, minwidth=180, anchor="w")
     task_list.column("status", width=80, minwidth=70, anchor="center", stretch=False)
-    task_list.grid(row=1, column=0, sticky="nsew")
+    task_list.grid(row=2, column=0, sticky="nsew")
 
     scrollbar = ttk.Scrollbar(tasks_panel, orient="vertical", command=task_list.yview)
-    scrollbar.grid(row=1, column=1, sticky="ns")
+    scrollbar.grid(row=2, column=1, sticky="ns")
     task_list.configure(yscrollcommand=scrollbar.set)
 
     footer = ttk.Frame(container, style="App.TFrame")
@@ -396,9 +415,17 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
 
     def refresh_task_list() -> None:
         task_list.delete(*task_list.get_children())
+        search = search_var.get().strip().casefold()
+        filt = filter_var.get()
         for task in scheduler.get_tasks():
             is_completed = task.completed == "true"
             if is_completed and not show_completed.get():
+                continue
+            if filt == "active" and is_completed:
+                continue
+            if filt == "completed" and not is_completed:
+                continue
+            if search and search not in task.text.casefold():
                 continue
             status = "Done" if is_completed else ""
             task_list.insert("", "end", values=(task.date, task.time, task.text, status))
@@ -407,7 +434,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     refresh_task_list()
 
     task_actions = ttk.Frame(tasks_panel, style="Surface.TFrame")
-    task_actions.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+    task_actions.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(10, 0))
     task_actions.columnconfigure(0, weight=1)
     ttk.Checkbutton(
         task_actions,
@@ -415,8 +442,12 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         variable=show_completed,
         command=refresh_task_list,
     ).grid(row=0, column=0, sticky="w")
+    edit_button = ttk.Button(task_actions, text="Edit")
+    edit_button.grid(row=0, column=1, sticky="e", padx=(0, 4))
+    delete_button = ttk.Button(task_actions, text="Delete")
+    delete_button.grid(row=0, column=2, sticky="e", padx=(0, 4))
     complete_button = ttk.Button(task_actions, text="Mark complete")
-    complete_button.grid(row=0, column=1, sticky="e")
+    complete_button.grid(row=0, column=3, sticky="e")
 
     def set_status(message: str, *, success: bool = False) -> None:
         status.configure(
@@ -450,6 +481,100 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         except StorageError as exc:
             set_status("Could not update task")
             messagebox.showerror("Unable to update task", str(exc), parent=root)
+
+    def _selected_task():
+        selected = task_list.selection()
+        if not selected:
+            return None
+        item = selected[0]
+        values = task_list.item(item, "values")
+        for t in scheduler.get_tasks():
+            if t.text == values[2] and t.date == values[0] and t.time == values[1]:
+                return t
+        return None
+
+    def edit_selected_task() -> None:
+        task = _selected_task()
+        if not task:
+            set_status("Select a task to edit")
+            return
+        dialog = tk.Toplevel(root)
+        dialog.title("Edit task")
+        dialog.resizable(False, False)
+        dialog.transient(root)
+        dialog.grab_set()
+        content = ttk.Frame(dialog, padding=20)
+        content.grid(row=0, column=0)
+        content.columnconfigure(0, weight=1)
+        content.columnconfigure(1, weight=1)
+        ttk.Label(content, text="Edit task", style="Section.TLabel").grid(
+            row=0, column=0, columnspan=2, sticky="w", pady=(0, 12)
+        )
+        ttk.Label(content, text="Date", style="Field.TLabel").grid(
+            row=1, column=0, sticky="w"
+        )
+        ttk.Label(content, text="Time", style="Field.TLabel").grid(
+            row=1, column=1, sticky="w"
+        )
+        edit_date = ttk.Entry(content)
+        edit_date.grid(row=2, column=0, sticky="ew", padx=(0, 8), pady=(4, 10))
+        edit_date.insert(0, task.date)
+        edit_time = ttk.Entry(content)
+        edit_time.grid(row=2, column=1, sticky="ew", padx=(8, 0), pady=(4, 10))
+        edit_time.insert(0, task.time)
+        ttk.Label(content, text="Task", style="Field.TLabel").grid(
+            row=3, column=0, columnspan=2, sticky="w"
+        )
+        edit_text = ttk.Entry(content)
+        edit_text.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(4, 12))
+        edit_text.insert(0, task.text)
+
+        def save_edit() -> None:
+            try:
+                updated = replace(
+                    task,
+                    date=edit_date.get().strip(),
+                    time=edit_time.get().strip(),
+                    text=edit_text.get().strip(),
+                )
+                scheduler.update_task(updated)
+                refresh_task_list()
+                set_status("Task updated", success=True)
+                dialog.destroy()
+            except ValidationError as exc:
+                messagebox.showerror("Invalid task", str(exc), parent=dialog)
+            except StorageError as exc:
+                messagebox.showerror("Unable to update task", str(exc), parent=dialog)
+
+        buttons = ttk.Frame(content)
+        buttons.grid(row=5, column=0, columnspan=2, sticky="ew")
+        ttk.Button(buttons, text="Cancel", command=dialog.destroy).grid(
+            row=0, column=0, sticky="w"
+        )
+        ttk.Button(
+            buttons, text="Save", style="Accent.TButton", command=save_edit
+        ).grid(row=0, column=1, sticky="e")
+        dialog.bind("<Escape>", lambda _e: dialog.destroy())
+        edit_text.focus_set()
+        _center_window(dialog)
+
+    def delete_selected_task() -> None:
+        task = _selected_task()
+        if not task:
+            set_status("Select a task to delete")
+            return
+        if not messagebox.askyesno(
+            "Delete task?",
+            f'Delete "{task.text}"?\n\nThis cannot be undone.',
+            parent=root,
+        ):
+            return
+        try:
+            scheduler.delete_task(task.id)
+            refresh_task_list()
+            set_status("Task deleted", success=True)
+        except StorageError as exc:
+            messagebox.showerror("Unable to delete task", str(exc), parent=root)
 
     update_events: queue.SimpleQueue = queue.SimpleQueue()
 
@@ -616,7 +741,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
                 task_entry.get(),
             )
             task_list.insert(
-                "", "end", values=(new_task.date, new_task.time, new_task.text)
+                "", "end", values=(new_task.date, new_task.time, new_task.text, "")
             )
             task_entry.delete(0, tk.END)
             task_entry.focus_set()
@@ -643,6 +768,10 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
 
     add_button.configure(command=add_task)
     complete_button.configure(command=complete_selected_task)
+    edit_button.configure(command=edit_selected_task)
+    delete_button.configure(command=delete_selected_task)
+    search_var.trace_add("write", lambda *_: refresh_task_list())
+    filter_combo.bind("<<ComboboxSelected>>", lambda _: refresh_task_list())
     bind_enter_key([date_entry, time_entry, task_entry], add_task)
     root.bind("<Escape>", lambda _event: root.focus_set())
     task_entry.focus_set()
