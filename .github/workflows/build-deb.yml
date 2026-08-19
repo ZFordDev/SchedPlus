@@ -33,7 +33,7 @@ jobs:
             frozen_directory: SchedPlusCli
             package: schedplus-cli
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

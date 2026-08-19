@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set Snap version from project metadata
         run: python3 scripts/sync_release_versions.py
       - name: Embed externally managed package identity

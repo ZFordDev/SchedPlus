@@ -48,7 +48,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       QT_QPA_PLATFORM: offscreen
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Isolate Linux smoke-test data
         run: echo "XDG_DATA_HOME=$RUNNER_TEMP/schedplus-data" >> "$GITHUB_ENV"
       - name: Download draft release package
@@ -145,7 +145,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       QT_QPA_PLATFORM: offscreen
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Isolate Windows portable smoke-test data
         shell: pwsh
         run: |
@@ -207,7 +207,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       QT_QPA_PLATFORM: offscreen
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Download installer
         shell: pwsh
         env:
@@ -258,7 +258,7 @@ jobs:
     name: Store packages use external updates
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
