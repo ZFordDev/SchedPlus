@@ -72,10 +72,20 @@ class SchedPlusWindow(QMainWindow):
         self.check_update_action = help_menu.addAction("Check for updates")
         self.update_status_action = help_menu.addAction("Last update result")
         help_menu.addSeparator()
+        self.shortcuts_action = help_menu.addAction("Keyboard shortcuts")
         self.about_action = help_menu.addAction("About SchedPlus")
         self.check_update_action.triggered.connect(self.check_for_updates)
         self.update_status_action.triggered.connect(self.show_update_status)
+        self.shortcuts_action.triggered.connect(self.show_shortcuts)
         self.about_action.triggered.connect(self.show_about)
+
+        self.backup_action.setAccessibleName("Create backup of all tasks and settings")
+        self.restore_action.setAccessibleName("Restore tasks and settings from a backup file")
+        self.export_action.setAccessibleName("Export tasks to a JSON file")
+        self.import_action.setAccessibleName("Import tasks from a JSON file")
+        self.check_update_action.setAccessibleName("Check for application updates")
+        self.update_status_action.setAccessibleName("Show last update check result")
+        self.about_action.setAccessibleName("Show application information")
 
         self.status_timer = QTimer(self)
         self.status_timer.setSingleShot(True)
@@ -139,6 +149,9 @@ class SchedPlusWindow(QMainWindow):
         self.tasks_nav = self._navigation_button("Tasks")
         self.calendar_nav = self._navigation_button("Calendar")
         self.settings_button = self._navigation_button("Settings")
+        self.tasks_nav.setAccessibleName("Switch to Tasks view")
+        self.calendar_nav.setAccessibleName("Switch to Calendar view")
+        self.settings_button.setAccessibleName("Open settings")
         self.tasks_nav.clicked.connect(lambda: self.show_page("tasks"))
         self.calendar_nav.clicked.connect(lambda: self.show_page("calendar"))
         self.settings_button.clicked.connect(self.open_settings)
@@ -168,6 +181,7 @@ class SchedPlusWindow(QMainWindow):
             "Ctrl+,": self.open_settings,
             "F11": self.toggle_full_screen,
             "Ctrl+Z": self.undo_last_action,
+            "Ctrl+Q": self.close,
         }
         self.shortcuts = []
         for sequence, callback in shortcuts.items():
@@ -359,6 +373,21 @@ class SchedPlusWindow(QMainWindow):
             self.show_status_message(success_message)
         except (DataTransferError, StorageError) as exc:
             QMessageBox.critical(self, "Data operation failed", str(exc))
+
+    def show_shortcuts(self):
+        shortcuts = (
+            "Ctrl+N — New task\n"
+            "Ctrl+E — Edit selected task\n"
+            "Delete — Delete selected task\n"
+            "Ctrl+Z — Undo last action\n"
+            "Ctrl+F — Search tasks\n"
+            "Ctrl+R — Reload tasks\n"
+            "Ctrl+Q — Quit\n"
+            "Ctrl+, — Settings\n"
+            "F11 — Toggle full screen\n"
+            "Esc — Close dialog"
+        )
+        QMessageBox.information(self, "Keyboard shortcuts", shortcuts)
 
     def show_about(self):
         build = self.identity

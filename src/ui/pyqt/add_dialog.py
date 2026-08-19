@@ -37,33 +37,41 @@ class TaskDialog(QDialog):
         self.text_input = QLineEdit()
         self.text_input.setPlaceholderText("What needs to be done?")
         self.text_input.setClearButtonEnabled(True)
+        self.text_input.setAccessibleName("Task description")
 
         self.date_input = QDateEdit()
         self.date_input.setCalendarPopup(True)
         self.date_input.setDisplayFormat("yyyy-MM-dd")
+        self.date_input.setAccessibleName("Due date")
 
         self.time_input = QTimeEdit()
         self.time_input.setDisplayFormat("HH:mm")
+        self.time_input.setAccessibleName("Due time")
 
         self.notes_input = QLineEdit()
         self.notes_input.setPlaceholderText("Optional notes")
         self.notes_input.setClearButtonEnabled(True)
+        self.notes_input.setAccessibleName("Task notes")
 
         self.priority_input = QComboBox()
         self.priority_input.addItems(["", "low", "medium", "high"])
+        self.priority_input.setAccessibleName("Priority level")
 
         self.duration_input = QSpinBox()
         self.duration_input.setRange(0, 9999)
         self.duration_input.setSuffix(" min")
         self.duration_input.setSpecialValueText("—")
         self.duration_input.setToolTip("Estimated duration in minutes")
+        self.duration_input.setAccessibleName("Duration in minutes")
 
         self.category_input = QLineEdit()
         self.category_input.setPlaceholderText("e.g. Work, Personal, Errands")
         self.category_input.setClearButtonEnabled(True)
+        self.category_input.setAccessibleName("Task category")
 
         self.recurrence_input = QComboBox()
         self.recurrence_input.addItems(["", "daily", "weekly", "monthly", "yearly"])
+        self.recurrence_input.setAccessibleName("Recurrence pattern")
 
         self.recurrence_end_input = QDateEdit()
         self.recurrence_end_input.setCalendarPopup(True)
@@ -71,12 +79,14 @@ class TaskDialog(QDialog):
         self.recurrence_end_input.setDate(QDate.currentDate().addYears(1))
         self.recurrence_end_input.setSpecialValueText("No end date")
         self.recurrence_end_input.setToolTip("When recurrence stops (empty = forever)")
+        self.recurrence_end_input.setAccessibleName("Recurrence end date")
 
         self.reminder_input = QSpinBox()
         self.reminder_input.setRange(0, 1440)
         self.reminder_input.setSuffix(" min")
         self.reminder_input.setSpecialValueText("—")
         self.reminder_input.setToolTip("Minutes before due time to notify (0 = off)")
+        self.reminder_input.setAccessibleName("Reminder lead time in minutes")
 
         form.addRow("Task", self.text_input)
         form.addRow("Date", self.date_input)

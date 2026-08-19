@@ -36,6 +36,9 @@
 - Data tab showing database path, diagnostics, and "Open folder" action [#139]
 - About tab with version, edition, platform, and privacy information [#139]
 - Enhanced About dialog with local-first privacy statement [#139]
+- Accessible names on all interactive widgets for screen reader support [#140]
+- Keyboard shortcuts: Ctrl+Q (quit), Ctrl+Z (undo), F11 (full screen) [#140]
+- Keyboard shortcuts reference dialog in Help menu [#140]
 
 ### Fixed
 -

@@ -127,14 +127,17 @@ class TaskListWidget(QWidget):
         self.filter_combo = QComboBox()
         for value, label in FILTERS.items():
             self.filter_combo.addItem(label, value)
+        self.filter_combo.setAccessibleName("Task filter")
 
         self.sort_combo = QComboBox()
         for value, label in SORT_FIELDS.items():
             self.sort_combo.addItem(f"Sort: {label}", value)
+        self.sort_combo.setAccessibleName("Sort field")
 
         self.order_button = QPushButton("Ascending")
         self.order_button.setCheckable(True)
         self.order_button.setObjectName("SecondaryButton")
+        self.order_button.setAccessibleName("Sort order")
 
         controls.addWidget(self.search_input, 1)
         controls.addWidget(self.filter_combo)
@@ -166,17 +169,22 @@ class TaskListWidget(QWidget):
         self.table.setColumnWidth(2, 460)
         self.table.horizontalHeader().setSectionResizeMode(2, self.table.horizontalHeader().ResizeMode.Stretch)
         self.table.doubleClicked.connect(self._emit_edit)
+        self.table.setAccessibleName("Task list")
         layout.addWidget(self.table, 1)
 
         actions = QHBoxLayout()
         self.add_button = QPushButton("＋ Add task")
         self.add_button.setObjectName("PrimaryButton")
+        self.add_button.setAccessibleName("Add new task")
         self.edit_button = QPushButton("Edit")
         self.edit_button.setObjectName("SecondaryButton")
+        self.edit_button.setAccessibleName("Edit selected task")
         self.complete_button = QPushButton("Complete")
         self.complete_button.setObjectName("SecondaryButton")
+        self.complete_button.setAccessibleName("Complete selected task")
         self.delete_button = QPushButton("Delete")
         self.delete_button.setObjectName("DangerButton")
+        self.delete_button.setAccessibleName("Delete selected task")
         actions.addWidget(self.add_button)
         actions.addStretch()
         actions.addWidget(self.edit_button)
