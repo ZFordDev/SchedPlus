@@ -10,6 +10,7 @@ The Scheduler class delegates all persistence to logic.storage.sqlite_storage.
 UIs remain fully decoupled from storage details.
 """
 
+import calendar
 import uuid
 from dataclasses import dataclass, field
 from typing import List
@@ -18,14 +19,19 @@ from datetime import datetime, timezone
 from .validation import validate_task
 
 
+def _utc_now_iso() -> str:
+    """Naive UTC timestamp matching the format stored by earlier releases."""
+    return datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+
+
 @dataclass
 class Task:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     date: str = ""
     time: str = ""
     text: str = ""
-    createdAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    updatedAt: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    createdAt: str = field(default_factory=_utc_now_iso)
+    updatedAt: str = field(default_factory=_utc_now_iso)
     completed: str = ""
     completedAt: str = ""
     notes: str = ""
@@ -127,9 +133,16 @@ class Scheduler:
                     if month > 12:
                         month = 1
                         year += 1
-                    next_date = current.replace(year=year, month=month)
+                    last_day = calendar.monthrange(year, month)[1]
+                    next_date = current.replace(
+                        year=year, month=month, day=min(current.day, last_day)
+                    )
                 elif task.recurrence == "yearly":
-                    next_date = current.replace(year=current.year + 1)
+                    year = current.year + 1
+                    last_day = calendar.monthrange(year, current.month)[1]
+                    next_date = current.replace(
+                        year=year, day=min(current.day, last_day)
+                    )
                 else:
                     return
                 next_str = next_date.strftime("%Y-%m-%d")

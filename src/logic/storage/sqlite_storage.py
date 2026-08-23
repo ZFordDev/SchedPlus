@@ -418,7 +418,8 @@ def uncomplete_entry(task_id: str) -> None:
 
 def list_completed_entries() -> list[Task]:
     rows = _run(lambda connection: connection.execute("""
-            SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt
+            SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt,
+                   notes, priority, duration, category, recurrence, recurrenceEnd, reminder
             FROM entries
             WHERE completed = 'true'
             ORDER BY completedAt DESC
