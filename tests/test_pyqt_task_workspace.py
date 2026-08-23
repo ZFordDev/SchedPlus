@@ -34,6 +34,39 @@ def app():
     yield application
 
 
+def test_theme_installs_brand_palette_and_covers_core_widgets(app):
+    from PyQt6.QtGui import QPalette
+
+    from ui.pyqt.theme import BASE_QSS, install_theme
+
+    install_theme(app)
+    palette = app.palette()
+    assert palette.color(QPalette.ColorRole.Window).name() == "#f4f6f8"
+    assert palette.color(QPalette.ColorRole.Base).name() == "#ffffff"
+    assert palette.color(QPalette.ColorRole.AlternateBase).name() == "#f8fafc"
+    assert palette.color(QPalette.ColorRole.WindowText).name() == "#172033"
+    disabled_text = palette.color(
+        QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text
+    )
+    assert disabled_text.name() == "#94a3b8"
+
+    for selector in (
+        "QScrollBar",
+        "QMenuBar",
+        "QMenu",
+        "QSpinBox",
+        "QTabWidget",
+        "QTabBar",
+        "QGroupBox",
+        "QCheckBox",
+        "QToolTip",
+        "QSplitter",
+        "QDialogButtonBox",
+        "QCalendarWidget",
+    ):
+        assert selector in BASE_QSS, selector
+
+
 def test_task_workspace_filters_and_searches(app):
     today = date.today()
     scheduler = MemoryScheduler(
