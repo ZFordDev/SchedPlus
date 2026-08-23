@@ -135,6 +135,23 @@ def test_settings_dialog_round_trips_preferences(app):
     assert dialog.preferences() == preferences
 
 
+def test_settings_dialog_opens_large_with_scrollable_tabs(app):
+    from PyQt6.QtWidgets import QScrollArea, QTabWidget
+
+    dialog = SettingsDialog(UiPreferences())
+
+    assert dialog.width() >= 560
+    assert dialog.height() >= 620
+
+    tabs = dialog.findChild(QTabWidget)
+    assert tabs.count() == 3
+    for index in range(tabs.count()):
+        page = tabs.widget(index)
+        assert isinstance(page, QScrollArea), index
+        assert page.widgetResizable()
+        assert page.widget() is not None
+
+
 def test_update_preference_stays_off_for_store_builds(app, monkeypatch):
     # A source checkout has no embedded build-info.json, so it behaves like an
     # externally managed store build (Snap/MSIX).

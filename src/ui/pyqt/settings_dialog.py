@@ -12,10 +12,12 @@ from PyQt6.QtWidgets import (
     QDialogButtonBox,
     QFileDialog,
     QFormLayout,
+    QFrame,
     QGroupBox,
     QLabel,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QTabWidget,
     QVBoxLayout,
@@ -147,14 +149,15 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setMinimumSize(480, 440)
+        self.resize(560, 620)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
 
         tabs = QTabWidget()
-        tabs.addTab(self._build_general_tab(preferences), "General")
-        tabs.addTab(self._build_data_tab(), "Data")
-        tabs.addTab(self._build_about_tab(), "About")
+        tabs.addTab(self._scrollable_tab(self._build_general_tab(preferences)), "General")
+        tabs.addTab(self._scrollable_tab(self._build_data_tab()), "Data")
+        tabs.addTab(self._scrollable_tab(self._build_about_tab()), "About")
         layout.addWidget(tabs)
 
         buttons = QDialogButtonBox(
@@ -164,6 +167,14 @@ class SettingsDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+
+    def _scrollable_tab(self, content: QWidget) -> QScrollArea:
+        """Keep every tab usable on small screens or enlarged system fonts."""
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setWidget(content)
+        return scroll
 
     def _build_general_tab(self, preferences: UiPreferences) -> QWidget:
         widget = QWidget()

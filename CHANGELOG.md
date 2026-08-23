@@ -4,6 +4,7 @@
 
 ### Fixed
 - Settings no longer show "Check automatically" as enabled for store-managed builds (Snap, MSIX); the preference displays as off and can never be persisted as on [#166]
+- Settings dialog opens at a larger size and its tab contents scroll when space is tight [#169]
 
 ## v0.9.0 (2026-08-19)
 
