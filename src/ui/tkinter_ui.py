@@ -644,11 +644,17 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         root.after(250, poll_update_events)
 
     update_preferences = load_update_preferences()
+    updates_managed_internally = load_build_info().internally_managed
     automatic_updates = tk.BooleanVar(
-        root, value=update_preferences.check_automatically
+        root,
+        value=(
+            update_preferences.check_automatically if updates_managed_internally else False
+        ),
     )
 
     def save_automatic_update_setting() -> None:
+        if not updates_managed_internally:
+            return
         try:
             save_update_preferences(UpdatePreferences(automatic_updates.get()))
             set_status("Update preference saved", success=True)
@@ -732,7 +738,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         label="Check for updates automatically",
         variable=automatic_updates,
         command=save_automatic_update_setting,
-        state="normal" if load_build_info().internally_managed else "disabled",
+        state="normal" if updates_managed_internally else "disabled",
     )
     settings_menu.add_command(
         label="Check for updates now",
@@ -740,7 +746,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             lambda info, prepared: update_events.put(("ready", (info, prepared))),
             lambda message: update_events.put(("error", message)),
         ),
-        state="normal" if load_build_info().internally_managed else "disabled",
+        state="normal" if updates_managed_internally else "disabled",
     )
     settings_menu.add_command(
         label="Last update result",

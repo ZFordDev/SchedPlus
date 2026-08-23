@@ -22,6 +22,7 @@ jobs:
       - name: Embed externally managed package identity
         run: |
           VERSION="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")"
+          echo "SCHEDPLUS_PROJECT_VERSION=$VERSION" >> "$GITHUB_ENV"
           PYTHONPATH=src python3 scripts/update_release_metadata.py build-info \
             --destination src/schedplus/build-info.json \
             --version "$VERSION" --edition standard --platform linux \
@@ -34,9 +35,28 @@ jobs:
           unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/snap.yaml > /tmp/schedplus-snap.yaml
           grep -F 'name: schedplus' /tmp/schedplus-snap.yaml
           grep -F 'confinement: strict' /tmp/schedplus-snap.yaml
+          grep -F "version: $SCHEDPLUS_PROJECT_VERSION" /tmp/schedplus-snap.yaml
           unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Exec=schedplus'
           unsquashfs -cat "${{ steps.snapcraft.outputs.snap }}" meta/gui/schedplus.desktop | grep -F 'Icon=${SNAP}/meta/gui/schedplus.png'
           unsquashfs -ll "${{ steps.snapcraft.outputs.snap }}" | grep -F 'meta/gui/schedplus.png'
+      - name: Verify embedded update policy is externally managed
+        run: |
+          SNAP="${{ steps.snapcraft.outputs.snap }}"
+          INFO_PATH="$(unsquashfs -ll "$SNAP" | grep -o '[^ ]*schedplus/build-info\.json' | head -n1)"
+          test -n "$INFO_PATH"
+          unsquashfs -cat "$SNAP" "$INFO_PATH" > /tmp/snap-build-info.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          import os
+          info = json.loads(Path("/tmp/snap-build-info.json").read_text(encoding="utf-8"))
+          assert info["format"] == "snap", info
+          assert info["updates_enabled"] is False, info
+          assert info["update_manifest_url"] == "", info
+          expected = os.environ["SCHEDPLUS_PROJECT_VERSION"]
+          assert info["version"] == expected, (info["version"], expected)
+          print(f"Snap update policy verified: v{info['version']} format=snap updates externally managed")
+          PY
       - uses: actions/upload-artifact@v7
         with:
           name: schedplus-standard-snap

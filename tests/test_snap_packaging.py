@@ -86,3 +86,14 @@ def test_workflow_leaves_store_refresh_testing_to_supported_manual_hosts():
     assert "snap install --dangerous" not in workflow
     assert "snap refresh --dangerous" not in workflow
     assert "Inspect package metadata and desktop integration" in workflow
+
+
+def test_workflow_embeds_and_verifies_externally_managed_update_policy():
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "--format snap" in workflow
+    assert "--updates-enabled" not in workflow
+    assert 'info["format"] == "snap"' in workflow
+    assert 'info["updates_enabled"] is False' in workflow
+    assert 'info["update_manifest_url"] == ""' in workflow
+    assert 'grep -F "version: $SCHEDPLUS_PROJECT_VERSION"' in workflow

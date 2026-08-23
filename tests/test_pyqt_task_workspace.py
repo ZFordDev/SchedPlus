@@ -13,6 +13,8 @@ from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.settings_dialog import SettingsDialog, UiPreferences
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.window import SchedPlusWindow
+from updater.config import BuildInfo
+from updater.preferences import UpdatePreferences
 
 
 class MemoryScheduler:
@@ -98,6 +100,54 @@ def test_settings_dialog_round_trips_preferences(app):
     dialog = SettingsDialog(preferences)
 
     assert dialog.preferences() == preferences
+
+
+def test_update_preference_stays_off_for_store_builds(app, monkeypatch):
+    # A source checkout has no embedded build-info.json, so it behaves like an
+    # externally managed store build (Snap/MSIX).
+    monkeypatch.setattr(
+        "ui.pyqt.settings_dialog.load_update_preferences",
+        lambda: UpdatePreferences(check_automatically=True),
+    )
+    saved = []
+    monkeypatch.setattr(
+        "ui.pyqt.settings_dialog.save_update_preferences",
+        saved.append,
+    )
+
+    dialog = SettingsDialog(UiPreferences())
+
+    assert not dialog.updates_managed_internally
+    assert not dialog.check_updates.isChecked()
+    assert not dialog.check_updates.isEnabled()
+
+    dialog.save_update_preferences()
+    assert saved == [UpdatePreferences(check_automatically=False)]
+
+
+def test_update_preference_remains_editable_for_managed_builds(app, monkeypatch):
+    managed = BuildInfo(version="0.0.0", package_format="source", updates_enabled=True)
+    assert managed.internally_managed
+    monkeypatch.setattr("ui.pyqt.settings_dialog.load_build_info", lambda: managed)
+    monkeypatch.setattr(
+        "ui.pyqt.settings_dialog.load_update_preferences",
+        lambda: UpdatePreferences(check_automatically=True),
+    )
+    saved = []
+    monkeypatch.setattr(
+        "ui.pyqt.settings_dialog.save_update_preferences",
+        saved.append,
+    )
+
+    dialog = SettingsDialog(UiPreferences())
+
+    assert dialog.updates_managed_internally
+    assert dialog.check_updates.isChecked()
+    assert dialog.check_updates.isEnabled()
+
+    dialog.check_updates.setChecked(False)
+    dialog.save_update_preferences()
+    assert saved == [UpdatePreferences(check_automatically=False)]
 
 
 def test_window_has_navigation_and_shortcuts(app):
