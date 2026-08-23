@@ -222,12 +222,16 @@ class SettingsDialog(QDialog):
         self.workday_end.setSuffix(":00")
         self.workday_end.setValue(preferences.workday_end)
 
+        self.updates_managed_internally = load_build_info().internally_managed
         update_preferences = load_update_preferences()
         self.check_updates = QCheckBox("Check automatically")
-        self.check_updates.setChecked(update_preferences.check_automatically)
-        updates_available = load_build_info().internally_managed
-        self.check_updates.setEnabled(updates_available)
-        if not updates_available:
+        if self.updates_managed_internally:
+            self.check_updates.setChecked(update_preferences.check_automatically)
+        else:
+            # Store-managed builds (Snap, MSIX) cannot self-update; presenting a
+            # ticked checkbox would misrepresent who applies updates.
+            self.check_updates.setChecked(False)
+            self.check_updates.setEnabled(False)
             self.check_updates.setToolTip(
                 "Updates are managed by your package provider or disabled for this build."
             )
@@ -354,8 +358,11 @@ class SettingsDialog(QDialog):
         )
 
     def save_update_preferences(self) -> None:
+        enabled = (
+            self.check_updates.isChecked() if self.updates_managed_internally else False
+        )
         save_update_preferences(
             UpdatePreferences(
-                check_automatically=self.check_updates.isChecked(),
+                check_automatically=enabled,
             )
         )

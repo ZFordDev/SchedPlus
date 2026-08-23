@@ -6,6 +6,7 @@
 - `list_completed_entries` now loads all task fields instead of dropping notes, priority, duration, category, recurrence, and reminder [#160]
 - Monthly and yearly recurrences clamp to the last valid day of the target month (Jan 31 → Feb 28, Feb 29 → Feb 28) instead of failing silently [#157]
 - Replaced deprecated `datetime.utcnow()` in Task defaults while preserving the stored timestamp format [#153]
+- Settings no longer show "Check automatically" as enabled for store-managed builds (Snap, MSIX); the preference displays as off and can never be persisted as on [#166]
 
 ## v0.9.0 (2026-08-19)
 
