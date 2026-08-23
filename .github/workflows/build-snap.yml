@@ -42,7 +42,7 @@ jobs:
       - name: Verify embedded update policy is externally managed
         run: |
           SNAP="${{ steps.snapcraft.outputs.snap }}"
-          INFO_PATH="$(unsquashfs -ll "$SNAP" | grep -o '[^ ]*schedplus/build-info\.json' | head -n1)"
+          INFO_PATH="$(unsquashfs -ll "$SNAP" | grep -o '[^ ]*schedplus/build-info\.json' | head -n1 | sed -e 's|^squashfs-root/||')"
           test -n "$INFO_PATH"
           unsquashfs -cat "$SNAP" "$INFO_PATH" > /tmp/snap-build-info.json
           python3 - <<'PY'
