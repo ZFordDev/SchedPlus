@@ -8,6 +8,19 @@
 - Replaced deprecated `datetime.utcnow()` in Task defaults while preserving the stored timestamp format [#153]
 - Settings no longer show "Check automatically" as enabled for store-managed builds (Snap, MSIX); the preference displays as off and can never be persisted as on [#166]
 - Settings dialog opens at a larger size and its tab contents scroll when space is tight [#169]
+- The application-wide theme palette and widget stylesheet now cover scroll bars, menus, spin boxes, tabs, group boxes, checkboxes, tooltips, splitters, and calendar internals [#164, #165, #167]
+
+## v0.9.2 (2026-08-26)
+
+### Plan
+- Stop calling `initialize_database()` in the settings dialog; show task count from the scheduler [#159]
+- Fix add-task partial failure: build the full Task before the first persist [#155]
+- Add thread safety to ReminderService: snapshot the task list, clear notification state on edit [#156]
+- Fix macOS notification injection: escape task text for AppleScript [#158]
+- Wire the undo manager into the Tkinter UI for all destructive actions [#154]
+- Add tests for UndoManager [#161]
+- Add tests for ReminderService [#162]
+- Add tests for recurring task logic in `complete_task` [#163]
 
 ## v0.9.0 (2026-08-19)
 
