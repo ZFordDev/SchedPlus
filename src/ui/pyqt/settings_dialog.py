@@ -25,7 +25,6 @@ from PyQt6.QtWidgets import (
 )
 
 from logic.data_transfer import load_ui_preferences, save_ui_preferences
-from logic.storage.sqlite_storage import initialize_database
 from logic.storage.paths import database_path
 from updater.config import load_build_info
 from updater.preferences import (
@@ -145,8 +144,9 @@ class SettingsStore:
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, preferences: UiPreferences, parent=None):
+    def __init__(self, preferences: UiPreferences, scheduler=None, parent=None):
         super().__init__(parent)
+        self._scheduler = scheduler
         self.setWindowTitle("Settings")
         self.setMinimumSize(480, 440)
         self.resize(560, 620)
@@ -303,10 +303,9 @@ class SettingsDialog(QDialog):
         info_layout = QFormLayout(info_group)
         info_layout.addRow("Platform:", QLabel(platform.platform()))
         info_layout.addRow("Python:", QLabel(platform.python_version()))
-        try:
-            recovery = initialize_database()
-            task_count = recovery.task_count if hasattr(recovery, "task_count") else "—"
-        except Exception:
+        if self._scheduler is not None:
+            task_count = len(self._scheduler.get_tasks())
+        else:
             task_count = "—"
         info_layout.addRow("Tasks:", QLabel(str(task_count)))
         layout.addWidget(info_group)
