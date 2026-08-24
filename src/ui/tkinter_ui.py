@@ -472,9 +472,11 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             return
         try:
             if task_to_complete.completed == "true":
+                scheduler.undo_manager.record_uncomplete(task_to_complete.id)
                 scheduler.uncomplete_task(task_to_complete.id)
                 set_status("Task marked as incomplete", success=True)
             else:
+                scheduler.undo_manager.record_complete(task_to_complete.id)
                 scheduler.complete_task(task_to_complete.id)
                 set_status("Task marked as complete", success=True)
             refresh_task_list()
@@ -571,6 +573,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
                     duration=edit_duration.get().strip(),
                     category=edit_category.get().strip(),
                 )
+                scheduler.undo_manager.record_edit(task)
                 scheduler.update_task(updated)
                 refresh_task_list()
                 set_status("Task updated", success=True)
@@ -604,6 +607,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         ):
             return
         try:
+            scheduler.undo_manager.record_delete(task)
             scheduler.delete_task(task.id)
             refresh_task_list()
             set_status("Task deleted", success=True)
@@ -787,6 +791,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             task_entry.focus_set()
             update_task_count()
             set_status("Task added successfully", success=True)
+            scheduler.undo_manager.record_add(new_task.id)
             return True
         except ValidationError as exc:
             LOGGER.warning("Task validation failed: %s", exc)
