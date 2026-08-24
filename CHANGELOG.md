@@ -12,12 +12,14 @@
 
 ## v0.9.2 (2026-08-26)
 
+### Fixed
+- Settings dialog no longer calls `initialize_database()`; task count comes from the scheduler [#159]
+- Add-task now builds the complete Task in one call, eliminating partial-persist risk [#155]
+- Reminder service: thread-safe task snapshots, lock-protected notification state, and window expiration logic fixed [#156]
+- macOS notification escape: backslashes and double quotes in task text are escaped before AppleScript interpolation [#158]
+- Tkinter UI now wires the undo manager for all destructive actions (add, edit, delete, complete/uncomplete) [#154]
+
 ### Plan
-- Stop calling `initialize_database()` in the settings dialog; show task count from the scheduler [#159]
-- Fix add-task partial failure: build the full Task before the first persist [#155]
-- Add thread safety to ReminderService: snapshot the task list, clear notification state on edit [#156]
-- Fix macOS notification injection: escape task text for AppleScript [#158]
-- Wire the undo manager into the Tkinter UI for all destructive actions [#154]
 - Add tests for UndoManager [#161]
 - Add tests for ReminderService [#162]
 - Add tests for recurring task logic in `complete_task` [#163]
