@@ -1,18 +1,8 @@
-name: Build SchedPlus Standard AppImage
+name: Build SchedPlus Standard AppImage (Manual)
 
 on:
-  workflow_call:
-  pull_request:
-    paths:
-      - .github/workflows/build-appimage.yml
-      - assets/**
-      - packaging/appimage/**
-      - packaging/metadata/**
-      - packaging/pyinstaller/**
-      - scripts/build_appimage.py
-      - src/**
-      - pyproject.toml
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build:

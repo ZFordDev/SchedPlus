@@ -4,7 +4,8 @@ from scripts.sync_release_versions import sync_versions
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = PROJECT_ROOT / "snap" / "snapcraft.yaml"
-WORKFLOW = PROJECT_ROOT / ".github" / "workflows" / "build-snap.yml"
+WORKFLOW_EDGE = PROJECT_ROOT / ".github" / "workflows" / "build-snap-edge.yml"
+WORKFLOW_MANUAL = PROJECT_ROOT / ".github" / "workflows" / "build-snap.yml"
 
 
 def test_committed_manifest_packages_standard_with_strict_confinement():
@@ -66,7 +67,7 @@ def test_snap_desktop_assets_use_registered_identity():
 
 
 def test_snap_release_channels_and_manual_stable_gate_are_explicit():
-    workflow = WORKFLOW.read_text(encoding="utf-8")
+    workflow = WORKFLOW_MANUAL.read_text(encoding="utf-8")
     documentation = (PROJECT_ROOT / "packaging" / "snap" / "README.md").read_text(
         encoding="utf-8"
     )
@@ -81,7 +82,7 @@ def test_snap_release_channels_and_manual_stable_gate_are_explicit():
 
 
 def test_workflow_leaves_store_refresh_testing_to_supported_manual_hosts():
-    workflow = WORKFLOW.read_text(encoding="utf-8")
+    workflow = WORKFLOW_MANUAL.read_text(encoding="utf-8")
 
     assert "snap install --dangerous" not in workflow
     assert "snap refresh --dangerous" not in workflow
@@ -89,7 +90,7 @@ def test_workflow_leaves_store_refresh_testing_to_supported_manual_hosts():
 
 
 def test_workflow_embeds_and_verifies_externally_managed_update_policy():
-    workflow = WORKFLOW.read_text(encoding="utf-8")
+    workflow = WORKFLOW_MANUAL.read_text(encoding="utf-8")
 
     assert "--format snap" in workflow
     assert "--updates-enabled" not in workflow
@@ -97,3 +98,16 @@ def test_workflow_embeds_and_verifies_externally_managed_update_policy():
     assert 'info["updates_enabled"] is False' in workflow
     assert 'info["update_manifest_url"] == ""' in workflow
     assert 'grep -F "version: $SCHEDPLUS_PROJECT_VERSION"' in workflow
+
+
+def test_edge_workflow_embeds_and_verifies_externally_managed_update_policy():
+    edge_workflow = (PROJECT_ROOT / ".github/workflows/build-snap-edge.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "--format snap" in edge_workflow
+    assert "--updates-enabled" not in edge_workflow
+    assert 'info["format"] == "snap"' in edge_workflow
+    assert 'info["updates_enabled"] is False' in edge_workflow
+    assert 'info["update_manifest_url"] == ""' in edge_workflow
+    assert 'grep -F "version: $SCHEDPLUS_PROJECT_VERSION"' in edge_workflow

@@ -1,16 +1,8 @@
-name: Build Debian packages
+name: Build Debian packages (Manual)
 
 on:
-  workflow_call:
-  pull_request:
-    paths:
-      - .github/workflows/build-deb.yml
-      - assets/**
-      - packaging/**
-      - scripts/build_debian_package.py
-      - src/**
-      - pyproject.toml
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   package:

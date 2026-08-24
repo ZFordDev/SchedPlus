@@ -1,8 +1,18 @@
-name: Build SchedPlus Standard MSIX (Manual)
+name: Build SchedPlus Standard MSIX (Edge)
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packaging/msix/**'
+      - 'packaging/pyinstaller/**'
+      - 'scripts/build_msix.py'
+      - 'src/**'
+      - 'assets/**'
+      - 'pyproject.toml'
+      - '.github/workflows/build-msix-edge.yml'
   workflow_dispatch:
-  workflow_call:
 
 jobs:
   validate-source:
@@ -63,5 +73,5 @@ jobs:
           if ($manifest -match 'appExecutionAlias') { throw 'Store package must not declare an execution alias' }
       - uses: actions/upload-artifact@v7
         with:
-          name: schedplus-standard-msix
+          name: schedplus-standard-msix-edge
           path: artifacts/msix/*.msix

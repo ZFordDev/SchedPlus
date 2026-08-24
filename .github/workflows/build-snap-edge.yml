@@ -1,13 +1,26 @@
-name: Build SchedPlus Standard Snap (Manual)
+name: Build SchedPlus Standard Snap (Edge)
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'snap/**'
+      - 'packaging/snap/**'
+      - 'src/**'
+      - 'tests/test_snap_packaging.py'
+      - 'pyproject.toml'
+      - 'scripts/sync_release_versions.py'
+      - 'scripts/update_release_metadata.py'
+      - '.github/workflows/build-snap-edge.yml'
   workflow_dispatch:
-  workflow_call:
 
 jobs:
   build:
-    name: Build Snap (Manual)
+    name: Build Edge Snap
     runs-on: ubuntu-24.04
+    env:
+      SNAP_CHANNEL: edge
     steps:
       - uses: actions/checkout@v7
       - name: Set Snap version from project metadata
@@ -15,6 +28,7 @@ jobs:
       - name: Embed externally managed package identity
         run: |
           VERSION="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")"
+          echo "SCHEDPLUS_PROJECT_VERSION=$VERSION" >> "$GITHUB_ENV"
           PYTHONPATH=src python3 scripts/update_release_metadata.py build-info \
             --destination src/schedplus/build-info.json \
             --version "$VERSION" --edition standard --platform linux \
@@ -40,13 +54,23 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
+          import os
           info = json.loads(Path("/tmp/snap-build-info.json").read_text(encoding="utf-8"))
           assert info["format"] == "snap", info
           assert info["updates_enabled"] is False, info
           assert info["update_manifest_url"] == "", info
+          expected = os.environ["SCHEDPLUS_PROJECT_VERSION"]
+          assert info["version"] == expected, (info["version"], expected)
           print(f"Snap update policy verified: v{info['version']} format=snap updates externally managed")
           PY
+      - name: Publish to Snapcraft edge channel
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          snapcraft upload --release=edge "${{ steps.snapcraft.outputs.snap }}"
+          snapcraft release schedplus "${{ steps.snapcraft.outputs.snap }}" --channel=edge
       - uses: actions/upload-artifact@v7
         with:
-          name: schedplus-standard-snap-manual
+          name: schedplus-standard-snap-edge
           path: ${{ steps.snapcraft.outputs.snap }}

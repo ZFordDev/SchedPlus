@@ -1,18 +1,8 @@
-name: Build SchedPlus Windows packages
+name: Build SchedPlus Windows packages (Manual)
 
 on:
-  workflow_call:
-  pull_request:
-    paths:
-      - .github/workflows/build-windows-packages.yml
-      - packaging/pyinstaller/**
-      - packaging/windows/**
-      - scripts/build_windows_packages.py
-      - scripts/validate_windows_artifacts.py
-      - src/**
-      - assets/**
-      - pyproject.toml
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   package:
@@ -104,7 +94,7 @@ jobs:
           if (!(Test-Path $shortcut)) { throw 'installer did not add Start Menu shortcut' }
           Start-Process -FilePath $installer.FullName -ArgumentList $arguments -Wait
           if ((Get-Content -Raw $database) -ne 'preserved-task-data') { throw 'upgrade changed user data' }
-          Start-Process -FilePath (Join-Path $installRoot 'unins000.exe') -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
+          Start-Process -FilePath (Join-Path $installRoot 'unins000.exe') -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
           if ((Get-Content -Raw $database) -ne 'preserved-task-data') { throw 'uninstall removed user data' }
       - uses: actions/upload-artifact@v7
         with:

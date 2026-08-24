@@ -1,14 +1,8 @@
-name: Build frozen SchedPlus profiles
+name: Build frozen SchedPlus profiles (Manual)
 
 on:
-  pull_request:
-    paths:
-      - packaging/pyinstaller/**
-      - assets/**
-      - src/**
-      - pyproject.toml
-      - scripts/validate_frozen_artifact.py
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build:
