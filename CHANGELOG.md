@@ -12,9 +12,11 @@
 
 ## v0.9.2 (2026-08-26)
 
+### Fixed
+- Settings dialog no longer calls `initialize_database()`; task count comes from the scheduler [#159]
+- Add-task now builds the complete Task in one call, eliminating partial-persist risk [#155]
+
 ### Plan
-- Stop calling `initialize_database()` in the settings dialog; show task count from the scheduler [#159]
-- Fix add-task partial failure: build the full Task before the first persist [#155]
 - Add thread safety to ReminderService: snapshot the task list, clear notification state on edit [#156]
 - Fix macOS notification injection: escape task text for AppleScript [#158]
 - Wire the undo manager into the Tkinter UI for all destructive actions [#154]

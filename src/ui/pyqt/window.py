@@ -196,11 +196,12 @@ class SchedPlusWindow(QMainWindow):
         if dialog.exec():
             date, time, text, notes, priority, duration, category, recurrence, recurrence_end, reminder = dialog.get_values()
             try:
-                task = self.scheduler.add_task(date, time, text)
-                if notes or priority or duration or category or recurrence or reminder:
-                    from dataclasses import replace
-                    task = replace(task, notes=notes, priority=priority, duration=duration, category=category, recurrence=recurrence, recurrenceEnd=recurrence_end, reminder=reminder)
-                    self.scheduler.update_task(task)
+                task = self.scheduler.add_task(
+                    date, time, text,
+                    notes=notes, priority=priority, duration=duration,
+                    category=category, recurrence=recurrence, recurrenceEnd=recurrence_end,
+                    reminder=reminder,
+                )
                 self.scheduler.undo_manager.record_add(task.id)
                 self.refresh_views()
                 self.show_status_message("Task added successfully")
@@ -287,7 +288,7 @@ class SchedPlusWindow(QMainWindow):
             self._show_storage_error("Unable to refresh tasks", exc)
 
     def open_settings(self):
-        dialog = SettingsDialog(self.preferences, self)
+        dialog = SettingsDialog(self.preferences, self.scheduler, self)
         if dialog.exec():
             self.preferences = dialog.preferences()
             try:
