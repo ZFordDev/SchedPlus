@@ -8,11 +8,9 @@ on:
       - 'snap/**'
       - 'packaging/snap/**'
       - 'src/**'
-      - 'tests/test_snap_packaging.py'
       - 'pyproject.toml'
       - 'scripts/sync_release_versions.py'
       - 'scripts/update_release_metadata.py'
-      - '.github/workflows/build-snap-edge.yml'
   workflow_dispatch:
 
 jobs:
@@ -69,7 +67,6 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         run: |
           snapcraft upload --release=edge "${{ steps.snapcraft.outputs.snap }}"
-          snapcraft release schedplus "${{ steps.snapcraft.outputs.snap }}" --channel=edge
       - uses: actions/upload-artifact@v7
         with:
           name: schedplus-standard-snap-edge

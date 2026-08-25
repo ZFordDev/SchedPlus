@@ -5,7 +5,9 @@ from scripts.sync_release_versions import sync_versions
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = PROJECT_ROOT / "snap" / "snapcraft.yaml"
 WORKFLOW_EDGE = PROJECT_ROOT / ".github" / "workflows" / "build-snap-edge.yml"
+WORKFLOW_CANDIDATE = PROJECT_ROOT / ".github" / "workflows" / "build-snap-candidate.yml"
 WORKFLOW_MANUAL = PROJECT_ROOT / ".github" / "workflows" / "build-snap.yml"
+WORKFLOW_STABLE = PROJECT_ROOT / ".github" / "workflows" / "build-snap-stable.yml"
 
 
 def test_committed_manifest_packages_standard_with_strict_confinement():
@@ -111,3 +113,32 @@ def test_edge_workflow_embeds_and_verifies_externally_managed_update_policy():
     assert 'info["updates_enabled"] is False' in edge_workflow
     assert 'info["update_manifest_url"] == ""' in edge_workflow
     assert 'grep -F "version: $SCHEDPLUS_PROJECT_VERSION"' in edge_workflow
+
+
+def test_edge_workflow_only_runs_automatically_for_snap_inputs_on_main():
+    edge_workflow = WORKFLOW_EDGE.read_text(encoding="utf-8")
+
+    assert "branches:\n      - main" in edge_workflow
+    for path in (
+        "'snap/**'",
+        "'packaging/snap/**'",
+        "'src/**'",
+        "'pyproject.toml'",
+        "'scripts/sync_release_versions.py'",
+        "'scripts/update_release_metadata.py'",
+    ):
+        assert path in edge_workflow
+    assert "tests/test_snap_packaging.py" not in edge_workflow
+    assert ".github/workflows/build-snap-edge.yml" not in edge_workflow
+
+
+def test_snap_publish_workflows_upload_and_release_once_to_their_channel():
+    for workflow_path, channel in (
+        (WORKFLOW_EDGE, "edge"),
+        (WORKFLOW_CANDIDATE, "candidate"),
+        (WORKFLOW_STABLE, "stable"),
+    ):
+        workflow = workflow_path.read_text(encoding="utf-8")
+
+        assert f"snapcraft upload --release={channel}" in workflow
+        assert "snapcraft release schedplus" not in workflow

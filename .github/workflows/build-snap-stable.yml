@@ -62,7 +62,6 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         run: |
           snapcraft upload --release=stable "${{ steps.snapcraft.outputs.snap }}"
-          snapcraft release schedplus "${{ steps.snapcraft.outputs.snap }}" --channel=stable
       - uses: actions/upload-artifact@v7
         with:
           name: schedplus-standard-snap-stable
