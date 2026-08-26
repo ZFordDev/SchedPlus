@@ -125,7 +125,7 @@ jobs:
           VERSION: ${{ needs.validate.outputs.version }}
           CHANNEL: ${{ startsWith(github.ref_name, 'pre-release-') && 'preview' || 'stable' }}
       - name: Create draft candidate release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           prerelease: ${{ startsWith(github.ref_name, 'pre-release-') }}
