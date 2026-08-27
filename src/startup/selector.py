@@ -6,10 +6,14 @@ Popup selector window for choosing the UI mode.
 Bypass this with direct commands see modes.py
 """
 
+from typing import Any
+
 from schedplus.identity import get_application_identity
 
 from .modes import StartupMode
 
+tk: Any
+ttk: Any
 try:
     import tkinter as tk
     from tkinter import ttk
