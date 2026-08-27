@@ -301,10 +301,10 @@ class SettingsDialog(QDialog):
         info_layout.addRow("Platform:", QLabel(platform.platform()))
         info_layout.addRow("Python:", QLabel(platform.python_version()))
         if self._scheduler is not None:
-            task_count = len(self._scheduler.get_tasks())
+            task_count = str(len(self._scheduler.get_tasks()))
         else:
             task_count = "—"
-        info_layout.addRow("Tasks:", QLabel(str(task_count)))
+        info_layout.addRow("Tasks:", QLabel(task_count))
         layout.addWidget(info_group)
 
         layout.addStretch()
