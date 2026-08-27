@@ -29,7 +29,9 @@ from logic.storage import paths
         ),
     ],
 )
-def test_user_data_directory(monkeypatch, platform, appdata, snap_user_common, expected):
+def test_user_data_directory(
+    monkeypatch, platform, appdata, snap_user_common, expected
+):
     monkeypatch.setattr(paths.sys, "platform", platform)
     monkeypatch.setattr(paths.Path, "home", lambda: Path("/home/test"))
     if appdata is None:
@@ -57,12 +59,18 @@ def test_empty_snap_common_falls_back_to_normal_linux_location(monkeypatch):
 def test_snap_database_path_stays_stable_when_revision_home_changes(monkeypatch):
     monkeypatch.setattr(paths.sys, "platform", "linux")
     monkeypatch.setenv("SNAP_USER_COMMON", "/home/test/snap/schedplus/common")
-    monkeypatch.setattr(paths.Path, "home", lambda: Path("/home/test/snap/schedplus/12"))
+    monkeypatch.setattr(
+        paths.Path, "home", lambda: Path("/home/test/snap/schedplus/12")
+    )
     before_refresh = paths.database_path()
-    monkeypatch.setattr(paths.Path, "home", lambda: Path("/home/test/snap/schedplus/13"))
+    monkeypatch.setattr(
+        paths.Path, "home", lambda: Path("/home/test/snap/schedplus/13")
+    )
 
-    assert before_refresh == paths.database_path() == Path(
-        "/home/test/snap/schedplus/common/SchedPlus/tasks.db"
+    assert (
+        before_refresh
+        == paths.database_path()
+        == Path("/home/test/snap/schedplus/common/SchedPlus/tasks.db")
     )
 
 
@@ -112,5 +120,7 @@ def test_prepare_database_wraps_migration_errors(monkeypatch, tmp_path):
 
     monkeypatch.setattr(paths.shutil, "move", deny_move)
 
-    with pytest.raises(paths.DatabaseMigrationError, match="Check directory permissions"):
+    with pytest.raises(
+        paths.DatabaseMigrationError, match="Check directory permissions"
+    ):
         paths.prepare_database()

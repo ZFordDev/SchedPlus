@@ -45,9 +45,7 @@ def test_theme_installs_brand_palette_and_covers_core_widgets(app):
     assert palette.color(QPalette.ColorRole.Base).name() == "#ffffff"
     assert palette.color(QPalette.ColorRole.AlternateBase).name() == "#f8fafc"
     assert palette.color(QPalette.ColorRole.WindowText).name() == "#172033"
-    disabled_text = palette.color(
-        QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text
-    )
+    disabled_text = palette.color(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text)
     assert disabled_text.name() == "#94a3b8"
 
     for selector in (

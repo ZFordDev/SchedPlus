@@ -45,8 +45,8 @@ def test_standard_profile_bundles_the_lazily_imported_pyqt_interface():
 def test_windows_builds_embed_the_icon_and_version_resource():
     source = (SPEC_DIRECTORY / "common.py").read_text(encoding="utf-8")
 
-    assert "version=VERSION_INFO if sys.platform == \"win32\" else None" in source
-    assert "icon=ICON if sys.platform == \"win32\" else None" in source
+    assert 'version=VERSION_INFO if sys.platform == "win32" else None' in source
+    assert 'icon=ICON if sys.platform == "win32" else None' in source
 
 
 def test_every_frozen_profile_explicitly_collects_the_updater_package():

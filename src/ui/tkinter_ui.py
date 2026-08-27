@@ -3,11 +3,10 @@
 import logging
 import queue
 import tkinter as tk
+from dataclasses import replace
 from datetime import date, datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-
-from dataclasses import replace
 
 from tkcalendar import Calendar
 
@@ -428,7 +427,9 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
             if search and search not in task.text.casefold():
                 continue
             status = "Done" if is_completed else ""
-            task_list.insert("", "end", values=(task.date, task.time, task.text, status))
+            task_list.insert(
+                "", "end", values=(task.date, task.time, task.text, status)
+            )
         update_task_count()
 
     refresh_task_list()
@@ -652,7 +653,9 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     automatic_updates = tk.BooleanVar(
         root,
         value=(
-            update_preferences.check_automatically if updates_managed_internally else False
+            update_preferences.check_automatically
+            if updates_managed_internally
+            else False
         ),
     )
 
@@ -682,7 +685,9 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
 
     def choose_restore() -> None:
         path = filedialog.askopenfilename(
-            parent=root, title="Restore SchedPlus backup", filetypes=(("JSON", "*.json"),)
+            parent=root,
+            title="Restore SchedPlus backup",
+            filetypes=(("JSON", "*.json"),),
         )
         if not path or not messagebox.askyesno(
             "Replace current data?",

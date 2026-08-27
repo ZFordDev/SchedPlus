@@ -3,9 +3,7 @@
 import threading
 import time
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from logic.reminder_service import ReminderService
 from logic.scheduler import Task
@@ -178,9 +176,28 @@ def test_check_tasks_skips_completed_and_no_reminder():
 
     now = datetime.now() + timedelta(minutes=10)
     tasks = [
-        Task(id="1", date=now.strftime("%Y-%m-%d"), time=now.strftime("%H:%M"), text="Done", reminder="10", completed="true"),
-        Task(id="2", date=now.strftime("%Y-%m-%d"), time=now.strftime("%H:%M"), text="No reminder", reminder=""),
-        Task(id="3", date=now.strftime("%Y-%m-%d"), time=now.strftime("%H:%M"), text="Zero", reminder="0"),
+        Task(
+            id="1",
+            date=now.strftime("%Y-%m-%d"),
+            time=now.strftime("%H:%M"),
+            text="Done",
+            reminder="10",
+            completed="true",
+        ),
+        Task(
+            id="2",
+            date=now.strftime("%Y-%m-%d"),
+            time=now.strftime("%H:%M"),
+            text="No reminder",
+            reminder="",
+        ),
+        Task(
+            id="3",
+            date=now.strftime("%Y-%m-%d"),
+            time=now.strftime("%H:%M"),
+            text="Zero",
+            reminder="0",
+        ),
     ]
     scheduler.tasks = tasks
 

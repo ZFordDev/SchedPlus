@@ -81,3 +81,6 @@ include = ["schedplus*", "cli*", "logic*", "startup*", "ui*", "data*", "updater*
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+
+[tool.ruff.format]
+line-ending = "lf"

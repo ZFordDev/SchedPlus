@@ -11,7 +11,6 @@ except ModuleNotFoundError:  # Python 3.10
 from startup import controller
 from startup.modes import StartupMode
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -30,8 +29,14 @@ def test_project_defines_dedicated_entry_points():
 
 def test_full_launcher_keeps_existing_flag_routing(monkeypatch):
     launched = []
-    monkeypatch.setattr(controller, "consume_health_argument", lambda arguments: (arguments, None))
-    monkeypatch.setattr(controller, "_launch_mode", lambda mode, arguments: launched.append((mode, arguments)) or 0)
+    monkeypatch.setattr(
+        controller, "consume_health_argument", lambda arguments: (arguments, None)
+    )
+    monkeypatch.setattr(
+        controller,
+        "_launch_mode",
+        lambda mode, arguments: launched.append((mode, arguments)) or 0,
+    )
     monkeypatch.setattr(controller.sys, "argv", ["schedplus", "--py"])
 
     assert controller.boot_full() == 0
@@ -47,8 +52,14 @@ def test_full_launcher_uses_the_existing_selector_without_arguments(monkeypatch)
         def show(self):
             return StartupMode.TK
 
-    monkeypatch.setattr(controller, "consume_health_argument", lambda arguments: (arguments, None))
-    monkeypatch.setattr(controller, "_launch_mode", lambda mode, arguments: launched.append((mode, arguments)) or 0)
+    monkeypatch.setattr(
+        controller, "consume_health_argument", lambda arguments: (arguments, None)
+    )
+    monkeypatch.setattr(
+        controller,
+        "_launch_mode",
+        lambda mode, arguments: launched.append((mode, arguments)) or 0,
+    )
     monkeypatch.setattr(selector, "StartupSelector", FakeSelector)
     monkeypatch.setattr(controller.sys, "argv", ["schedplus-full"])
 
@@ -58,8 +69,14 @@ def test_full_launcher_uses_the_existing_selector_without_arguments(monkeypatch)
 
 def test_dedicated_gui_launchers_force_their_edition_mode(monkeypatch):
     launched = []
-    monkeypatch.setattr(controller, "consume_health_argument", lambda arguments: (arguments, None))
-    monkeypatch.setattr(controller, "_launch_mode", lambda mode, arguments: launched.append((mode, arguments)) or 0)
+    monkeypatch.setattr(
+        controller, "consume_health_argument", lambda arguments: (arguments, None)
+    )
+    monkeypatch.setattr(
+        controller,
+        "_launch_mode",
+        lambda mode, arguments: launched.append((mode, arguments)) or 0,
+    )
     monkeypatch.setattr(controller.sys, "argv", ["schedplus-standard", "--tk"])
 
     assert controller.boot_standard() == 0
@@ -72,9 +89,17 @@ def test_dedicated_gui_launchers_force_their_edition_mode(monkeypatch):
 
 def test_cli_launcher_passes_commands_to_shared_command_parser(monkeypatch):
     launched = []
-    monkeypatch.setattr(controller, "consume_health_argument", lambda arguments: (arguments, None))
-    monkeypatch.setattr(controller, "_launch_mode", lambda mode, arguments: launched.append((mode, arguments)) or 0)
-    monkeypatch.setattr(controller.sys, "argv", ["schedplus-cli", "list", "--sort", "time"])
+    monkeypatch.setattr(
+        controller, "consume_health_argument", lambda arguments: (arguments, None)
+    )
+    monkeypatch.setattr(
+        controller,
+        "_launch_mode",
+        lambda mode, arguments: launched.append((mode, arguments)) or 0,
+    )
+    monkeypatch.setattr(
+        controller.sys, "argv", ["schedplus-cli", "list", "--sort", "time"]
+    )
 
     assert controller.boot_cli() == 0
     assert launched == [(StartupMode.CLI, ["list", "--sort", "time"])]

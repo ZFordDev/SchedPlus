@@ -1,6 +1,6 @@
 """Undo manager for task actions with a bounded history stack."""
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -25,10 +25,14 @@ class UndoManager:
         self._push(UndoAction(action_type="add", task_id=task_id))
 
     def record_delete(self, snapshot: "Task") -> None:
-        self._push(UndoAction(action_type="delete", task_id=snapshot.id, snapshot=snapshot))
+        self._push(
+            UndoAction(action_type="delete", task_id=snapshot.id, snapshot=snapshot)
+        )
 
     def record_edit(self, snapshot: "Task") -> None:
-        self._push(UndoAction(action_type="edit", task_id=snapshot.id, snapshot=snapshot))
+        self._push(
+            UndoAction(action_type="edit", task_id=snapshot.id, snapshot=snapshot)
+        )
 
     def record_complete(self, task_id: str) -> None:
         self._push(UndoAction(action_type="complete", task_id=task_id))

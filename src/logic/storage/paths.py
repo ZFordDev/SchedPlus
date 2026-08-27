@@ -10,7 +10,6 @@ import shutil
 import sys
 from pathlib import Path
 
-
 LOGGER = logging.getLogger(__name__)
 DATABASE_NAME = "tasks.db"
 

@@ -1,7 +1,12 @@
 from pathlib import Path
 
 from scripts import build_debian_package
-from scripts.build_debian_package import EDITIONS, _control, _copyright, _lintian_overrides
+from scripts.build_debian_package import (
+    EDITIONS,
+    _control,
+    _copyright,
+    _lintian_overrides,
+)
 
 
 def test_debian_editions_are_mutually_exclusive():
@@ -9,7 +14,7 @@ def test_debian_editions_are_mutually_exclusive():
         control = _control(edition, "0.8.0", "amd64")
 
         assert f"Package: {edition.name}" in control
-        assert f"Architecture: amd64" in control
+        assert "Architecture: amd64" in control
         assert "Conflicts: " + ", ".join(edition.conflicts) in control
         assert "Replaces: " + ", ".join(edition.conflicts) in control
 

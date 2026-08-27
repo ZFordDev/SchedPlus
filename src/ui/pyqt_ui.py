@@ -4,7 +4,6 @@ pyqt_ui.py
 This is now just a entry point for pyqt/
 """
 
-
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from ui.pyqt.theme import install_theme

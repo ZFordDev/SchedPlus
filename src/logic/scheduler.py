@@ -13,7 +13,6 @@ UIs remain fully decoupled from storage details.
 import calendar
 import uuid
 from dataclasses import dataclass, field
-from typing import List
 from datetime import datetime, timezone
 
 from .validation import validate_task
@@ -42,6 +41,7 @@ class Task:
     recurrenceEnd: str = ""
     reminder: str = ""
 
+
 class Scheduler:
     """
     SQLite-backed scheduler.
@@ -53,26 +53,45 @@ class Scheduler:
     """
 
     def __init__(self):
-        self.tasks: List[Task] = []
+        self.tasks: list[Task] = []
         from .undo_manager import UndoManager
+
         self.undo_manager = UndoManager(self)
 
-# ---------------------------------------------------------
+    # ---------------------------------------------------------
     # Create
     # ---------------------------------------------------------
 
-    def add_task(self, date: str, time: str, text: str, *,
-                 notes: str = "", priority: str = "", duration: str = "",
-                 category: str = "", recurrence: str = "", recurrenceEnd: str = "",
-                 reminder: str = ""):
+    def add_task(
+        self,
+        date: str,
+        time: str,
+        text: str,
+        *,
+        notes: str = "",
+        priority: str = "",
+        duration: str = "",
+        category: str = "",
+        recurrence: str = "",
+        recurrenceEnd: str = "",
+        reminder: str = "",
+    ):
         from .storage import sqlite_storage as db
 
-        task = validate_task(Task(
-            date=date, time=time, text=text,
-            notes=notes, priority=priority, duration=duration,
-            category=category, recurrence=recurrence, recurrenceEnd=recurrenceEnd,
-            reminder=reminder
-        ))
+        task = validate_task(
+            Task(
+                date=date,
+                time=time,
+                text=text,
+                notes=notes,
+                priority=priority,
+                duration=duration,
+                category=category,
+                recurrence=recurrence,
+                recurrenceEnd=recurrenceEnd,
+                reminder=reminder,
+            )
+        )
         db.create_entry(task)
         self.tasks.append(task)
         return task
@@ -87,7 +106,7 @@ class Scheduler:
         self.tasks = db.list_entries()
         return self.tasks
 
-    def get_tasks(self) -> List[Task]:
+    def get_tasks(self) -> list[Task]:
         return self.tasks
 
     # ---------------------------------------------------------

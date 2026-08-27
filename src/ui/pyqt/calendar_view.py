@@ -3,7 +3,7 @@
 from collections import Counter, defaultdict
 from datetime import datetime
 
-from PyQt6.QtCore import QDate, QPoint, QTime, Qt, pyqtSignal
+from PyQt6.QtCore import QDate, QPoint, Qt, QTime, pyqtSignal
 from PyQt6.QtGui import QColor, QPainter
 from PyQt6.QtWidgets import (
     QAbstractItemView,
@@ -23,7 +23,6 @@ from PyQt6.QtWidgets import (
 )
 
 from ui.pyqt.settings_dialog import UiPreferences
-
 
 TASK_ROLE = int(Qt.ItemDataRole.UserRole)
 
@@ -83,7 +82,10 @@ class ScheduleTable(QTableWidget):
         self.setRowCount(len(times))
         self.setColumnCount(len(dates))
         self.setHorizontalHeaderLabels(
-            [QDate.fromString(value, "yyyy-MM-dd").toString("ddd\nd MMM") for value in dates]
+            [
+                QDate.fromString(value, "yyyy-MM-dd").toString("ddd\nd MMM")
+                for value in dates
+            ]
         )
         self.setVerticalHeaderLabels(times)
         self.horizontalHeader().setSectionResizeMode(
@@ -106,7 +108,9 @@ class ScheduleTable(QTableWidget):
             suffix = f"  +{len(cell_tasks) - 1}" if len(cell_tasks) > 1 else ""
             item = QTableWidgetItem(f"{first.time}  {first.text}{suffix}")
             item.setData(TASK_ROLE, first)
-            item.setToolTip("\n".join(f"{task.time}  {task.text}" for task in cell_tasks))
+            item.setToolTip(
+                "\n".join(f"{task.time}  {task.text}" for task in cell_tasks)
+            )
             item.setBackground(QColor("#DBEAFE"))
             item.setForeground(QColor("#172033"))
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsDragEnabled)
@@ -362,7 +366,9 @@ class CalendarWorkspace(QWidget):
             task_slot = hour * 2 + (1 if minute >= 30 else 0)
             start = min(start, task_slot)
             end = max(end, task_slot)
-        return [f"{slot // 2:02d}:{(slot % 2) * 30:02d}" for slot in range(start, end + 1)]
+        return [
+            f"{slot // 2:02d}:{(slot % 2) * 30:02d}" for slot in range(start, end + 1)
+        ]
 
     def _update_period_label(self, selected):
         if self.current_view() == "month":

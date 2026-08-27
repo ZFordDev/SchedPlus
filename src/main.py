@@ -11,6 +11,5 @@ Note: No Logic in here, keep it simple!
 
 from startup.controller import boot_full
 
-
 if __name__ == "__main__":
     raise SystemExit(boot_full())

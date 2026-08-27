@@ -50,7 +50,9 @@ def prepare_update(info: BuildInfo) -> PreparedUpdate:
 
         temp = updater_data_directory() / "downloads"
     filename = Path(urlsplit(result.artifact.url).path).name or "update.zip"
-    if supported[info.package_format] == "managed" and not filename.lower().endswith(".zip"):
+    if supported[info.package_format] == "managed" and not filename.lower().endswith(
+        ".zip"
+    ):
         raise UpdateConfigurationError(
             "Managed updates must be delivered as ZIP archives."
         )

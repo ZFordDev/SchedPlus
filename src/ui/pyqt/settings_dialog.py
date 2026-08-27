@@ -2,7 +2,6 @@
 
 import platform
 from dataclasses import asdict, dataclass
-from pathlib import Path
 
 from PyQt6.QtCore import QSettings
 from PyQt6.QtWidgets import (
@@ -10,12 +9,10 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QFormLayout,
     QFrame,
     QGroupBox,
     QLabel,
-    QMessageBox,
     QPushButton,
     QScrollArea,
     QSpinBox,
@@ -155,7 +152,9 @@ class SettingsDialog(QDialog):
         layout.setContentsMargins(16, 16, 16, 16)
 
         tabs = QTabWidget()
-        tabs.addTab(self._scrollable_tab(self._build_general_tab(preferences)), "General")
+        tabs.addTab(
+            self._scrollable_tab(self._build_general_tab(preferences)), "General"
+        )
         tabs.addTab(self._scrollable_tab(self._build_data_tab()), "Data")
         tabs.addTab(self._scrollable_tab(self._build_about_tab()), "About")
         layout.addWidget(tabs)
@@ -289,9 +288,7 @@ class SettingsDialog(QDialog):
         group_layout = QFormLayout(group)
         db_path = database_path()
         db_label = QLabel(str(db_path))
-        db_label.setTextInteractionFlags(
-            db_label.textInteractionFlags()
-        )
+        db_label.setTextInteractionFlags(db_label.textInteractionFlags())
         group_layout.addRow("Path:", db_label)
 
         open_button = QPushButton("Open folder")
@@ -342,14 +339,18 @@ class SettingsDialog(QDialog):
     def _open_db_folder(self):
         folder = str(database_path().parent)
         import sys
+
         if sys.platform == "win32":
             import subprocess
+
             subprocess.Popen(["explorer", folder])
         elif sys.platform == "darwin":
             import subprocess
+
             subprocess.Popen(["open", folder])
         else:
             import subprocess
+
             subprocess.Popen(["xdg-open", folder])
 
     def preferences(self) -> UiPreferences:

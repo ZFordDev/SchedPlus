@@ -55,7 +55,9 @@ def test_backup_and_restore_round_trip_tasks_and_preferences(data_environment):
 
     data_transfer.create_backup(backup, ui_preferences=_ui_preferences())
     sqlite_storage.replace_entries([_task("replacement", "Replacement")])
-    update_preferences.save_update_preferences(update_preferences.UpdatePreferences(True))
+    update_preferences.save_update_preferences(
+        update_preferences.UpdatePreferences(True)
+    )
 
     result = data_transfer.restore_backup(backup)
 
