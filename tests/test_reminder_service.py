@@ -107,7 +107,7 @@ def test_concurrent_notified_access_is_safe():
                 with service._lock:
                     service._notified.add(f"task-{i}")
                 time.sleep(0.0001)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - surface worker failures to the test
             errors.append(e)
 
     def worker_remove():
@@ -116,7 +116,7 @@ def test_concurrent_notified_access_is_safe():
                 with service._lock:
                     service._notified.discard(f"task-{i}")
                 time.sleep(0.0001)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - surface worker failures to the test
             errors.append(e)
 
     threads = [threading.Thread(target=worker_add) for _ in range(3)] + [
