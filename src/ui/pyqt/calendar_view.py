@@ -1,7 +1,7 @@
 """Native month, week, and day scheduling workspace."""
 
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import time
 
 from PyQt6.QtCore import QDate, QPoint, Qt, QTime, pyqtSignal
 from PyQt6.QtGui import QColor, QPainter
@@ -136,7 +136,7 @@ class ScheduleTable(QTableWidget):
 
     def _row_for_time(self, value):
         try:
-            parsed = datetime.strptime(value, "%H:%M")
+            parsed = time.fromisoformat(value)
         except ValueError:
             return None
         minutes = parsed.hour * 60 + parsed.minute

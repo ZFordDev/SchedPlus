@@ -43,6 +43,13 @@ This is the current schema after migrations 1 through 6. UUIDs provide stable
 task identifiers, ISO timestamps support sorting and portable transfer, and
 the task fields remain UI-independent.
 
+Task `date` and `time` values represent the users local wall clock and use
+`YYYY-MM-DD` and `HH:MM` text respectively. They intentionally carry no UTC
+offset because a task scheduled for 09:00 should remain at 09:00 in the local
+calendar. Code that compares a scheduled task with the current instant must
+combine those fields in the local timezone first. Audit timestamps such as
+`createdAt`, `updatedAt`, and `completedAt` remain timezone-aware ISO values.
+
 ## Schema migrations
 
 The current schema version is stored in SQLite's `PRAGMA user_version`.

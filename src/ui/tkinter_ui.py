@@ -4,12 +4,13 @@ import logging
 import queue
 import tkinter as tk
 from dataclasses import replace
-from datetime import date, datetime
+from datetime import time as time_value
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from tkcalendar import Calendar
 
+from logic import local_time
 from logic.data_transfer import (
     DataTransferError,
     create_backup,
@@ -232,14 +233,14 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
     date_row.columnconfigure(0, weight=1)
     date_entry = ttk.Entry(date_row)
     date_entry.grid(row=0, column=0, sticky="ew")
-    date_entry.insert(0, date.today().isoformat())
+    date_entry.insert(0, local_time.today().isoformat())
 
     time_row = ttk.Frame(form, style="Surface.TFrame")
     time_row.grid(row=2, column=1, sticky="ew", padx=(8, 0), pady=(4, 10))
     time_row.columnconfigure(0, weight=1)
     time_entry = ttk.Entry(time_row)
     time_entry.grid(row=0, column=0, sticky="ew")
-    time_entry.insert(0, datetime.now().strftime("%H:%M"))
+    time_entry.insert(0, local_time.now().strftime("%H:%M"))
 
     ttk.Label(form, text="What needs to be done?", style="Field.TLabel").grid(
         row=3, column=0, columnspan=2, sticky="w"
@@ -286,7 +287,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
 
         content = ttk.Frame(picker, padding=16)
         content.grid(row=0, column=0)
-        now = datetime.now()
+        now = local_time.now()
         hour = tk.StringVar(value=now.strftime("%H"))
         minute = tk.StringVar(value=now.strftime("%M"))
 
@@ -314,7 +315,7 @@ def run_ui(scheduler: Scheduler, startup_notice: str | None = None) -> None:
         def choose_time() -> None:
             try:
                 selected = f"{int(hour.get()):02d}:{int(minute.get()):02d}"
-                datetime.strptime(selected, "%H:%M")
+                time_value.fromisoformat(selected)
             except ValueError:
                 messagebox.showerror(
                     "Invalid time",

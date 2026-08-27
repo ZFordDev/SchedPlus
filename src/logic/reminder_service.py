@@ -4,11 +4,13 @@ import subprocess
 import sys
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .scheduler import Scheduler
+
+from . import local_time
 
 
 class ReminderService:
@@ -48,7 +50,7 @@ class ReminderService:
             time.sleep(self._poll_interval)
 
     def _check_tasks(self) -> None:
-        now = datetime.now()
+        now = local_time.now()
         tasks = list(self._scheduler.tasks)
         for task in tasks:
             if task.completed or not task.date or not task.time:
@@ -60,9 +62,7 @@ class ReminderService:
             if minutes <= 0:
                 continue
             try:
-                task_dt = datetime.strptime(
-                    f"{task.date} {task.time}", "%Y-%m-%d %H:%M"
-                )
+                task_dt = local_time.combine(task.date, task.time)
             except ValueError:
                 continue
             remind_at = task_dt - timedelta(minutes=minutes)
