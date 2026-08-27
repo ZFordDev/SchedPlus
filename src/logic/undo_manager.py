@@ -1,10 +1,13 @@
 """Undo manager for task actions with a bounded history stack."""
 
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .scheduler import Scheduler, Task
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -67,7 +70,8 @@ class UndoManager:
                 self._scheduler.complete_task(action.task_id)
                 return "Undid uncomplete"
         except Exception:
-            pass
+            self._history.append(action)
+            LOGGER.exception("Unable to undo %s action", action.action_type)
         return None
 
     def _push(self, action: UndoAction) -> None:
