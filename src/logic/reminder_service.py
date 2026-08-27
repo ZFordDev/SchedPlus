@@ -98,7 +98,7 @@ class ReminderService:
 
                 windll.user32.MessageBoxW(0, body, f"Reminder: {title}", 0x40 | 0x1000)
                 return
-            except (AttributeError, OSError):
+            except (AttributeError, ImportError, OSError):
                 LOGGER.exception("Windows reminder notification failed")
         if sys.platform == "darwin":
             try:
