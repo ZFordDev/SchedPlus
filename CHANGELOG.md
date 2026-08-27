@@ -5,16 +5,21 @@
 ### Info
 > **Release Cadence Update:** Planned releases are shifting from weekly to fortnightly (targeting Wednesdays) as we transition toward a monthly release cycle. Critical fixes will still be released immediately as emergency patches.
 
-### Plan
-- Add tests for UndoManager [#161]
-- Add tests for ReminderService [#162]
-- Add tests for recurring task logic in `complete_task` [#163]
-
 ### Added
+- Added focused coverage for UndoManager actions, reminder timing and native
+  notification paths, and recurring-task successor behavior [#161, #162, #163].
+- Established Ruff formatting and lint baselines across source and tests, with
+  mypy typechecking included in CI [#177, #185].
 
 ### Fixed
 - Post-release installation smoke tests now derive the expected database schema
   from `CURRENT_SCHEMA_VERSION` instead of checking obsolete schema version 1.
+- Made local wall-clock scheduling explicit so task dates, UI defaults, and
+  reminder comparisons remain correct in the user's local timezone [#178].
+- Replaced silent or overly broad exception handling with narrower startup
+  imports, logged recovery boundaries, and retryable failed undo actions [#179].
+- Corrected PyQt model defaults and class-owned role mappings without weakening
+  Ruff's safety checks [#180].
 
 ### Docs
 - Updated repository and DocsHub guidance for the live Microsoft Store and Snap
@@ -25,6 +30,8 @@
 - Clarified that SchedPlus remains offline-first without requiring an account
   while leaving optional accounts, synchronization, and online backup open as
   planned future features.
+- Documented the local Ruff workflow, exception-boundary policy, and stored task
+  date/time semantics for contributors.
 
 ## v0.9.2 (2026-08-26)
 
