@@ -1,6 +1,6 @@
 """Undo manager for task actions with a bounded history stack."""
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

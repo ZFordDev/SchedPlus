@@ -3,7 +3,7 @@
 from collections import Counter, defaultdict
 from datetime import datetime
 
-from PyQt6.QtCore import QDate, QPoint, QTime, Qt, pyqtSignal
+from PyQt6.QtCore import QDate, QPoint, Qt, QTime, pyqtSignal
 from PyQt6.QtGui import QColor, QPainter
 from PyQt6.QtWidgets import (
     QAbstractItemView,
@@ -23,7 +23,6 @@ from PyQt6.QtWidgets import (
 )
 
 from ui.pyqt.settings_dialog import UiPreferences
-
 
 TASK_ROLE = int(Qt.ItemDataRole.UserRole)
 

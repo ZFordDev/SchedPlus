@@ -2,7 +2,6 @@
 
 import platform
 from dataclasses import asdict, dataclass
-from pathlib import Path
 
 from PyQt6.QtCore import QSettings
 from PyQt6.QtWidgets import (
@@ -10,12 +9,10 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QFormLayout,
     QFrame,
     QGroupBox,
     QLabel,
-    QMessageBox,
     QPushButton,
     QScrollArea,
     QSpinBox,

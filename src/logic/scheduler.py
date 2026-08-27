@@ -13,7 +13,6 @@ UIs remain fully decoupled from storage details.
 import calendar
 import uuid
 from dataclasses import dataclass, field
-from typing import List
 from datetime import datetime, timezone
 
 from .validation import validate_task
@@ -54,7 +53,7 @@ class Scheduler:
     """
 
     def __init__(self):
-        self.tasks: List[Task] = []
+        self.tasks: list[Task] = []
         from .undo_manager import UndoManager
 
         self.undo_manager = UndoManager(self)
@@ -107,7 +106,7 @@ class Scheduler:
         self.tasks = db.list_entries()
         return self.tasks
 
-    def get_tasks(self) -> List[Task]:
+    def get_tasks(self) -> list[Task]:
         return self.tasks
 
     # ---------------------------------------------------------

@@ -3,11 +3,10 @@
 import logging
 import queue
 import tkinter as tk
+from dataclasses import replace
 from datetime import date, datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-
-from dataclasses import replace
 
 from tkcalendar import Calendar
 

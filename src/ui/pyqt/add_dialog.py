@@ -1,6 +1,6 @@
 """Create and edit dialogs for scheduled tasks."""
 
-from PyQt6.QtCore import QDate, QTime, Qt
+from PyQt6.QtCore import QDate, Qt, QTime
 from PyQt6.QtWidgets import (
     QComboBox,
     QDateEdit,
