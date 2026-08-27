@@ -1,5 +1,7 @@
 """Model-backed task table with search, filtering, and sorting."""
 
+from typing import ClassVar
+
 from PyQt6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
@@ -22,6 +24,8 @@ from PyQt6.QtWidgets import (
 from logic import local_time
 from ui.pyqt.settings_dialog import FILTERS, SORT_FIELDS, UiPreferences
 
+INVALID_MODEL_INDEX = QModelIndex()
+
 
 class TaskTableModel(QAbstractTableModel):
     HEADERS = ("Date", "Time", "Task", "Status", "Created")
@@ -34,10 +38,10 @@ class TaskTableModel(QAbstractTableModel):
         self.date_format = date_format
         self.time_format = time_format
 
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, parent=INVALID_MODEL_INDEX):
         return 0 if parent.isValid() else len(self.tasks)
 
-    def columnCount(self, parent=QModelIndex()):
+    def columnCount(self, parent=INVALID_MODEL_INDEX):
         return 0 if parent.isValid() else len(self.HEADERS)
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
@@ -109,7 +113,13 @@ class TaskListWidget(QWidget):
     delete_requested = pyqtSignal(object)
     complete_requested = pyqtSignal(object)
 
-    SORT_COLUMNS = {"date": 0, "time": 1, "text": 2, "status": 3, "created": 4}
+    SORT_COLUMNS: ClassVar[dict[str, int]] = {
+        "date": 0,
+        "time": 1,
+        "text": 2,
+        "status": 3,
+        "created": 4,
+    }
 
     def __init__(self, scheduler, preferences: UiPreferences, parent=None):
         super().__init__(parent)
