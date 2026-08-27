@@ -1,5 +1,5 @@
 import os
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
 
@@ -7,6 +7,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PyQt6.QtWidgets import QApplication
 
+from logic import local_time
 from logic.scheduler import Task
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
 from ui.pyqt.calendar_view import CalendarWorkspace
@@ -66,7 +67,7 @@ def test_theme_installs_brand_palette_and_covers_core_widgets(app):
 
 
 def test_task_workspace_filters_and_searches(app):
-    today = date.today()
+    today = local_time.today()
     scheduler = MemoryScheduler(
         [
             Task(date=today.isoformat(), time="09:00", text="Today task"),
@@ -209,7 +210,7 @@ def test_window_has_navigation_and_shortcuts(app):
 
 
 def test_native_calendar_renders_month_week_and_day(app):
-    today = date.today()
+    today = local_time.today()
     scheduler = MemoryScheduler(
         [
             Task(date=today.isoformat(), time="09:30", text="Calendar task"),
@@ -240,7 +241,7 @@ def test_native_calendar_renders_month_week_and_day(app):
 
 
 def test_calendar_emits_reschedule_request(app):
-    task = Task(date=date.today().isoformat(), time="09:30", text="Move task")
+    task = Task(date=local_time.today().isoformat(), time="09:30", text="Move task")
     workspace = CalendarWorkspace(MemoryScheduler([task]), UiPreferences())
     requests = []
     workspace.reschedule_requested.connect(

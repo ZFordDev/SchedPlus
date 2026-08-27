@@ -1,7 +1,5 @@
 """Model-backed task table with search, filtering, and sorting."""
 
-from datetime import date
-
 from PyQt6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
@@ -21,6 +19,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from logic import local_time
 from ui.pyqt.settings_dialog import FILTERS, SORT_FIELDS, UiPreferences
 
 
@@ -91,7 +90,7 @@ class TaskFilterProxyModel(QSortFilterProxyModel):
             return False
 
         is_completed = task.completed == "true"
-        today = date.today().isoformat()
+        today = local_time.today().isoformat()
 
         if self.task_filter == "completed":
             return is_completed
