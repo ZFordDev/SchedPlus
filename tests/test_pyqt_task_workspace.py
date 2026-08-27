@@ -12,7 +12,7 @@ from logic.scheduler import Task
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.settings_dialog import SettingsDialog, UiPreferences
-from ui.pyqt.task_list import TaskListWidget
+from ui.pyqt.task_list import TaskListWidget, TaskTableModel
 from ui.pyqt.window import SchedPlusWindow
 from updater.config import BuildInfo
 from updater.preferences import UpdatePreferences
@@ -92,6 +92,18 @@ def test_task_workspace_filters_and_searches(app):
     widget.search_input.setText("planning")
     assert widget.proxy.rowCount() == 1
     assert "1 of 3" in widget.count_label.text()
+
+
+def test_task_table_model_respects_root_and_child_indexes(app):
+    model = TaskTableModel([Task(date="2026-08-28", time="09:00", text="Plan")])
+
+    assert model.rowCount() == 1
+    assert model.columnCount() == 5
+
+    child_index = model.index(0, 0)
+    assert child_index.isValid()
+    assert model.rowCount(child_index) == 0
+    assert model.columnCount(child_index) == 0
 
 
 def test_edit_dialog_is_prepopulated(app):
