@@ -8,7 +8,7 @@ from datetime import time as time_value
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-from tkcalendar import Calendar
+from tkcalendar import Calendar  # type: ignore[import-untyped]
 
 from logic import local_time
 from logic.data_transfer import (

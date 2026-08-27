@@ -189,14 +189,19 @@ class TaskListWidget(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(False)
-        self.table.verticalHeader().hide()
-        self.table.horizontalHeader().setStretchLastSection(False)
+        vertical_header = self.table.verticalHeader()
+        if vertical_header is not None:
+            vertical_header.hide()
+        horizontal_header = self.table.horizontalHeader()
+        if horizontal_header is not None:
+            horizontal_header.setStretchLastSection(False)
         self.table.setColumnWidth(0, 120)
         self.table.setColumnWidth(1, 90)
         self.table.setColumnWidth(2, 460)
-        self.table.horizontalHeader().setSectionResizeMode(
-            2, self.table.horizontalHeader().ResizeMode.Stretch
-        )
+        if horizontal_header is not None:
+            horizontal_header.setSectionResizeMode(
+                2, horizontal_header.ResizeMode.Stretch
+            )
         self.table.doubleClicked.connect(self._emit_edit)
         self.table.setAccessibleName("Task list")
         layout.addWidget(self.table, 1)
@@ -229,7 +234,9 @@ class TaskListWidget(QWidget):
         self.edit_button.clicked.connect(self._emit_edit)
         self.complete_button.clicked.connect(self._emit_complete)
         self.delete_button.clicked.connect(self._emit_delete)
-        self.table.selectionModel().selectionChanged.connect(self._update_actions)
+        selection_model = self.table.selectionModel()
+        if selection_model is not None:
+            selection_model.selectionChanged.connect(self._update_actions)
 
         self.apply_preferences(preferences)
         self.refresh()
