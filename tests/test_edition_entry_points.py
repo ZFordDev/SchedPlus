@@ -11,7 +11,6 @@ except ModuleNotFoundError:  # Python 3.10
 from startup import controller
 from startup.modes import StartupMode
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 

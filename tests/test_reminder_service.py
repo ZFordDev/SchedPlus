@@ -3,9 +3,7 @@
 import threading
 import time
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from logic.reminder_service import ReminderService
 from logic.scheduler import Task
