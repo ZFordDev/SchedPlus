@@ -48,7 +48,7 @@ class ReminderService:
         while self._running:
             try:
                 self._check_tasks()
-            except Exception:  # noqa: BLE001 - keep the background service alive
+            except Exception:
                 LOGGER.exception("Reminder check failed")
             time.sleep(self._poll_interval)
 
