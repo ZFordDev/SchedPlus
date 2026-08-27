@@ -37,6 +37,8 @@ def test_post_release_smoke_workflow_gates_stable_promotion():
     assert "post_release_smoke.py download" in workflow
     assert "seed --database" in workflow
     assert "verify --database" in workflow
+    assert workflow.count("CURRENT_SCHEMA_VERSION") == 6
+    assert "--schema 1" not in workflow
     assert "Remove application without removing user data" in workflow
     assert "Windows portable ${{ matrix.edition }}" in workflow
     assert "Windows installed Standard" in workflow

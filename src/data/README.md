@@ -26,13 +26,22 @@ CREATE TABLE entries (
     time TEXT NOT NULL,
     text TEXT NOT NULL,
     createdAt TEXT NOT NULL,
-    updatedAt TEXT NOT NULL
+    updatedAt TEXT NOT NULL,
+    completed TEXT NOT NULL DEFAULT '',
+    completedAt TEXT NOT NULL DEFAULT '',
+    notes TEXT NOT NULL DEFAULT '',
+    priority TEXT NOT NULL DEFAULT '',
+    duration TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT '',
+    recurrence TEXT NOT NULL DEFAULT '',
+    recurrenceEnd TEXT NOT NULL DEFAULT '',
+    reminder TEXT NOT NULL DEFAULT ''
 );
 ```
 
-The schema is intentionally minimal. UUIDs provide stable linking keys, ISO
-timestamps support sorting and synchronization, and the task fields remain
-UI-independent.
+This is the current schema after migrations 1 through 6. UUIDs provide stable
+task identifiers, ISO timestamps support sorting and portable transfer, and
+the task fields remain UI-independent.
 
 ## Schema migrations
 

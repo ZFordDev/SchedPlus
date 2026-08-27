@@ -13,8 +13,18 @@
 ### Added
 
 ### Fixed
+- Post-release installation smoke tests now derive the expected database schema
+  from `CURRENT_SCHEMA_VERSION` instead of checking obsolete schema version 1.
 
 ### Docs
+- Updated repository and DocsHub guidance for the live Microsoft Store and Snap
+  releases, automated Snap channels, and the current unsigned GitHub Windows
+  distribution policy.
+- Corrected update-network privacy disclosures, the current SQLite schema,
+  version-derived packaging examples, and the canonical DocsHub URL.
+- Clarified that SchedPlus remains offline-first without requiring an account
+  while leaving optional accounts, synchronization, and online backup open as
+  planned future features.
 
 ## v0.9.2 (2026-08-26)
 

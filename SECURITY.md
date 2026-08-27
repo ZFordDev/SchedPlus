@@ -83,15 +83,18 @@ It does **not** apply to:
 
 ## SchedPlus‑Specific Notes
 
-SchedPlus is a lightweight Python application with a local‑only workflow.  
+SchedPlus is a lightweight, offline-first Python application.
 When reporting security issues, please consider the following:
 
-- SchedPlus does not load or execute remote content  
 - All task data is stored locally in the user's SchedPlus SQLite database.
-- No networking, syncing, or cloud communication is performed  
-- The Tkinter UI is stable; the PyQt UI is in active development and may behave differently across platforms  
-- SchedPlus does not collect telemetry or send user data anywhere  
-- The application does not run background services or scheduled tasks  
+- Current releases do not provide accounts or synchronize task data.
+- Supported packages contact GitHub for signed update metadata and verified
+  downloads; Snap and Microsoft Store updates are provider-managed.
+- SchedPlus does not collect analytics or telemetry.
+- Reminder checks run in-process while the desktop application is open; the
+  application does not install an operating-system background service or
+  scheduled task.
+- The Tkinter and PyQt interfaces may behave differently across platforms.
 
 If a vulnerability involves database handling, UI behaviour, file access, or platform‑specific issues, please include clear reproduction steps for both Windows and Linux (when applicable).
 

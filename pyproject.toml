@@ -55,7 +55,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://schedplus.app/"
-Documentation = "https://docs.zford.dev/zforddev/schedplus"
+Documentation = "https://docs.zford.dev/schedplus/"
 Repository = "https://github.com/ZFordDev/schedplus.git"
 "Bug Tracker" = "https://github.com/ZFordDev/schedplus/issues"
 Changelog = "https://github.com/ZFordDev/schedplus/blob/main/CHANGELOG.md"

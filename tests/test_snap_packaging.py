@@ -68,7 +68,7 @@ def test_snap_desktop_assets_use_registered_identity():
     assert "KeyPlus" not in desktop
 
 
-def test_snap_release_channels_and_manual_stable_gate_are_explicit():
+def test_snap_release_channels_and_manual_build_policy_are_explicit():
     workflow = WORKFLOW_MANUAL.read_text(encoding="utf-8")
     documentation = (PROJECT_ROOT / "packaging" / "snap" / "README.md").read_text(
         encoding="utf-8"
@@ -78,9 +78,11 @@ def test_snap_release_channels_and_manual_stable_gate_are_explicit():
     assert "SNAPCRAFT_STORE_CREDENTIALS" not in workflow
     assert "Dynamically Generate Snapcraft Manifest" not in workflow
     assert "python3 scripts/sync_release_versions.py" in workflow
-    assert "trial prereleases go to `edge`" in documentation
-    assert "release candidates to `candidate`" in documentation
-    assert "promoted to `stable` only after final approval" in documentation
+    assert "`main` publish to `edge`" in documentation
+    assert "`pre-release-*` tags publish to `candidate`" in documentation
+    assert "`release-*` tags publish to `stable`" in documentation
+    assert "Manual dispatch builds and" in documentation
+    assert "does not publish it" in documentation
 
 
 def test_workflow_leaves_store_refresh_testing_to_supported_manual_hosts():

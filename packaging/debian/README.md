@@ -4,11 +4,12 @@ Build the `schedplus` (Standard), `schedplus-lite`, or `schedplus-cli` package
 from its matching PyInstaller onedir artifact:
 
 ```bash
+VERSION="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")"
 python scripts/build_debian_package.py \
   --edition standard \
   --frozen-dir dist/SchedPlusStandard \
   --output-dir artifacts/debian \
-  --version 0.8.1
+  --version "$VERSION"
 ```
 
 Packages install the frozen application under `/usr/lib/<package>/` and a small

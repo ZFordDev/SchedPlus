@@ -8,7 +8,7 @@ A managed portable build uses metadata shaped like:
 
 ```json
 {
-  "version": "0.8.1",
+  "version": "1.2.3",
   "edition": "standard",
   "format": "managed-zip",
   "platform": "win32",
@@ -38,8 +38,9 @@ Package handoff is deliberately format-aware:
 
 - Windows managed ZIPs use the independent updater, atomic directory swap,
   health confirmation, and rollback.
-- Standalone Windows installer builds remain opted out until public
-  Authenticode signing is configured. Microsoft Store MSIX uses Store updates.
+- Direct-download Windows installer builds are unsigned under the current
+  release policy and remain opted out of internal updates. Microsoft Store MSIX
+  uses Store signing and Store-managed updates.
 - Debian and AppImage builds download and verify the matching package, then
   expose it for installation through normal platform tools.
 - Snap and Microsoft Store MSIX packages set `updates_enabled` to `false` and

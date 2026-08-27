@@ -40,14 +40,16 @@ X11, settings, theme, and OpenGL interfaces needed by PyQt.
 
 ## Build service and publishing policy
 
-The Snap Store is linked directly to `ZFordDev/SchedPlus` and uses Canonical's
-build service. GitHub Actions independently builds an amd64 candidate for the
-unified draft Release, but it holds no Snap Store credentials and never
-publishes a Store revision.
+The Snap is publicly available under the registered Store name `schedplus`.
+GitHub Actions builds amd64 revisions and publishes them with
+`SNAPCRAFT_STORE_CREDENTIALS` according to the source event:
 
-After every platform artifact has passed and the draft GitHub Release exists,
-release the corresponding Canonical-built revision manually in the Snapcraft
-dashboard: trial prereleases go to `edge`, release candidates to `candidate`,
-and production releases are promoted to `stable` only after final approval.
-The manifest currently limits Store builds to amd64, the architecture tested
-by the release workflow.
+- meaningful package or application changes on `main` publish to `edge`;
+- `pre-release-*` tags publish to `candidate`; and
+- `release-*` tags publish to `stable`.
+
+The edge workflow is limited to named application and packaging paths, so
+unrelated repository changes do not trigger it. Manual dispatch builds and
+validates an artifact but does not publish it. The unified GitHub Release
+workflow also builds a Snap artifact for its release payload without publishing
+that artifact to the Snap Store.

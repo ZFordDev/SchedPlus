@@ -17,10 +17,11 @@ never upload an original application data directory or raw task database.
 
 ## Manual checks for real hosts and Stores
 
-- On Windows 10 and 11, verify the Authenticode signature and timestamp, install
-  through the visible wizard, inspect Start Menu and uninstall entries, upgrade
-  an actual v0.8.0 install, and confirm SmartScreen behavior.
-- Install the Partner Center-signed MSIX from Microsoft Store flighting. Confirm
+- On Windows 10 and 11, confirm the direct-download installer is unsigned under
+  the current policy, record SmartScreen behavior, install through the visible
+  wizard, inspect Start Menu and uninstall entries, and upgrade an actual
+  v0.8.0 install.
+- Install the Partner Center-signed MSIX from the live Microsoft Store listing. Confirm
   task persistence across a Store update and confirm **Check for updates** is
   externally managed and never launches the internal updater.
 - Install the staged Snap on a system with working snapd confinement. Add a

@@ -55,8 +55,9 @@ for local task management.
 | **CLI** | Terminals, scripts, and automation | Command line |
 
 Packaged releases are available as Debian packages, an AppImage, a Windows
-installer, and Windows portable ZIPs. Snap and Microsoft Store publication are
-prepared but may not yet be publicly available.
+installer, Windows portable ZIPs, a strict-confinement Snap, and a Microsoft
+Store package. Snap and Microsoft Store installations receive Store-managed
+updates.
 
 See the [installation guide](https://docs.zford.dev/schedplus/packaging-guide/)
 for current package choices, checksums, platform instructions, upgrade policy,
@@ -97,9 +98,10 @@ editing, deletion, restore, import, update, sorting, and exit-code details.
 
 ## Data and privacy
 
-SchedPlus is a local-first application. All task data, backups, and preferences
-are stored exclusively on your device. Nothing is uploaded, synced, or
-transmitted to external servers by SchedPlus.
+SchedPlus is a local-first application. In current releases, task data, backups,
+and preferences are stored on your device and are not uploaded or synchronized.
+Supported packages may contact GitHub for signed update metadata and verified
+downloads; Store packages use their provider's update service.
 
 SchedPlus does not store tasks inside its installation directory. Package
 upgrades and ordinary uninstallation retain the user data directory. The

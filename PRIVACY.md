@@ -4,9 +4,10 @@
 
 ## Local-first guarantee
 
-SchedPlus is a local-first desktop application. All task data, backups, and
-user preferences are stored exclusively on your device. Nothing is uploaded,
-synced, or transmitted to external servers by SchedPlus.
+SchedPlus is a local-first desktop application. In the current 0.9.x releases,
+all task data, backups, and user preferences are stored on your device and are
+not uploaded or synchronized. Supported packages may use the network for
+application updates as described below.
 
 ## What data SchedPlus stores
 
@@ -17,20 +18,28 @@ synced, or transmitted to external servers by SchedPlus.
 | UI preferences (sort, filter, date/time format, week numbers) | Local QSettings / portable JSON | Personalization |
 | Update state (last check, target version) | Local file in user data directory | Update management |
 
-## What SchedPlus never does
+## What current releases do not do
 
-- **No accounts or sign-in.** There is no registration, login, or user profile.
+- **No account is required.** Current releases have no registration, login, or
+  online user profile, and core task management works offline.
 - **No network transmission of task data.** Tasks never leave your device.
 - **No analytics or telemetry.** SchedPlus does not collect usage data.
 - **No ads or tracking.** There are no advertising identifiers or trackers.
-- **No cloud sync.** Data stays on the machine where it was created.
+- **No cloud sync in current releases.** Data stays on the machine where it was
+  created unless you explicitly export or back it up to a location you choose.
+
+Optional account-based synchronization and online backup are planned future
+features. If introduced, they will be opt-in, core local task management will
+continue to work without an account, and this policy will be updated before the
+features become available.
 
 ## Network usage
 
-SchedPlus uses the network only for one purpose: checking for application
-updates. This check contacts `api.github.com` to compare release versions
-and download verified update packages. No task data or personal information
-is included in update checks.
+SchedPlus itself uses the network only to check for application updates in
+supported packages. These checks fetch signed release metadata and verified
+packages from GitHub over HTTPS. Snap and Microsoft Store installations use
+their provider's update service instead. No task data is included in update
+checks.
 
 You can disable automatic update checks at any time in Settings > General.
 

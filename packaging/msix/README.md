@@ -6,6 +6,11 @@ from Start or the Microsoft Store.
 
 ## Partner Center hand-off
 
+SchedPlus Standard is live in the Microsoft Store. The current workflow builds
+the package used for Store updates; submission remains a manual Partner Center
+step until service-to-service Store authentication is available for this
+developer account.
+
 After reserving the product name, copy these exact values from Partner Center:
 
 - Package/Identity name
@@ -41,7 +46,7 @@ certification.
 For local installation only, sign with a self-signed development certificate;
 never commit a certificate or private key. The GitHub Actions workflow builds
 and retains an unsigned package for manual Partner Center upload; it does not
-publish anything.
+currently submit the update itself.
 
 The manifest declares `runFullTrust`, required for the packaged PyInstaller
 desktop process. It does not request camera, microphone, location, networking,

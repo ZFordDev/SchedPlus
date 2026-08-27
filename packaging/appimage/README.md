@@ -7,10 +7,11 @@ icon at its root. The frozen payload is installed under `usr/lib/schedplus/`
 inside the AppDir.
 
 ```bash
+VERSION="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")"
 python scripts/build_appimage.py \
   --frozen-dir dist/SchedPlusStandard \
   --output-dir artifacts/appimage \
-  --version 0.8.1 \
+  --version "$VERSION" \
   --appimagetool ./appimagetool-x86_64.AppImage
 ```
 

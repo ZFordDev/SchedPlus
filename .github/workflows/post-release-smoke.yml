@@ -102,7 +102,8 @@ jobs:
             kill -0 "$pid"
             kill "$pid" || true
           fi
-          python scripts/post_release_smoke.py verify --database "$database" --schema 1
+          schema="$(PYTHONPATH=src python -c 'from logic.storage.migrations import CURRENT_SCHEMA_VERSION; print(CURRENT_SCHEMA_VERSION)')"
+          python scripts/post_release_smoke.py verify --database "$database" --schema "$schema"
       - name: Remove application without removing user data
         shell: bash
         run: |
@@ -183,7 +184,8 @@ jobs:
             if ($process.HasExited) { throw 'portable upgrade launch failed' }
             Stop-Process $process.Id
           }
-          python scripts/post_release_smoke.py verify --database $database --schema 1
+          $schema = python -c "from logic.storage.migrations import CURRENT_SCHEMA_VERSION; print(CURRENT_SCHEMA_VERSION)"
+          python scripts/post_release_smoke.py verify --database $database --schema $schema
           Remove-Item -Recurse -Force portable
           if (!(Test-Path $database)) { throw 'portable removal deleted user data' }
       - name: Sanitize diagnostic log
@@ -236,7 +238,8 @@ jobs:
           Start-Sleep 4
           if ($process.HasExited) { throw 'installed upgrade launch failed' }
           Stop-Process $process.Id
-          python scripts/post_release_smoke.py verify --database $database --schema 1
+          $schema = python -c "from logic.storage.migrations import CURRENT_SCHEMA_VERSION; print(CURRENT_SCHEMA_VERSION)"
+          python scripts/post_release_smoke.py verify --database $database --schema $schema
           Start-Process (Join-Path $root 'unins000.exe') -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
           if (Test-Path $exe) { throw 'uninstall retained application files' }
           if (!(Test-Path $database)) { throw 'uninstall removed user data' }
