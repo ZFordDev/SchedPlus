@@ -84,7 +84,7 @@ def _configure_logging(data_directory: Path) -> None:
         LOGGER.exception("Unable to configure the SchedPlus storage log")
         return
 
-    handler._schedplus_storage = True
+    handler.__dict__["_schedplus_storage"] = True
     handler.setFormatter(
         logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
     )

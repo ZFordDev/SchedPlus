@@ -1,7 +1,7 @@
 """Native month, week, and day scheduling workspace."""
 
 from collections import Counter, defaultdict
-from datetime import time
+from datetime import date, time
 
 from PyQt6.QtCore import QDate, QPoint, Qt, QTime, pyqtSignal
 from PyQt6.QtGui import QColor, QPainter
@@ -40,10 +40,17 @@ class EventCalendar(QCalendarWidget):
         self.task_counts = Counter(task.date for task in tasks)
         self.updateCells()
 
-    def paintCell(self, painter: QPainter, rect, calendar_date: QDate):
+    def paintCell(
+        self, painter: QPainter | None, rect, calendar_date: QDate | date
+    ) -> None:
         super().paintCell(painter, rect, calendar_date)
-        count = self.task_counts.get(calendar_date.toString("yyyy-MM-dd"), 0)
-        if not count:
+        date_key = (
+            calendar_date.toString("yyyy-MM-dd")
+            if isinstance(calendar_date, QDate)
+            else calendar_date.isoformat()
+        )
+        count = self.task_counts.get(date_key, 0)
+        if not count or painter is None:
             return
         painter.save()
         painter.setPen(Qt.PenStyle.NoPen)
@@ -88,9 +95,9 @@ class ScheduleTable(QTableWidget):
             ]
         )
         self.setVerticalHeaderLabels(times)
-        self.horizontalHeader().setSectionResizeMode(
-            self.horizontalHeader().ResizeMode.Stretch
-        )
+        header = self.horizontalHeader()
+        if header is not None:
+            header.setSectionResizeMode(header.ResizeMode.Stretch)
         for row in range(len(times)):
             self.setRowHeight(row, 38)
 

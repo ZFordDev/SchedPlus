@@ -72,11 +72,12 @@ def _boot(forced_mode: StartupMode | None = None):
         from .selector import StartupSelector
 
         selector = StartupSelector()
-        mode = selector.show()
+        selected_mode = selector.show()
 
-        if mode is None:
+        if selected_mode is None:
             print("Startup cancelled.")
             return 0
+        mode = selected_mode
 
     # 4. Route to correct UI
     return _launch_mode(mode, arguments)
