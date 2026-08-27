@@ -1,14 +1,20 @@
 # Changelog
 
-## v0.9.1 (2026-08-23)
+## v0.9.3 (2026-09-09)
+
+### Info
+> **Release Cadence Update:** Planned releases are shifting from weekly to fortnightly (targeting Wednesdays) as we transition toward a monthly release cycle. Critical fixes will still be released immediately as emergency patches.
+
+### Plan
+- Add tests for UndoManager [#161]
+- Add tests for ReminderService [#162]
+- Add tests for recurring task logic in `complete_task` [#163]
+
+### Added
 
 ### Fixed
-- `list_completed_entries` now loads all task fields instead of dropping notes, priority, duration, category, recurrence, and reminder [#160]
-- Monthly and yearly recurrences clamp to the last valid day of the target month (Jan 31 → Feb 28, Feb 29 → Feb 28) instead of failing silently [#157]
-- Replaced deprecated `datetime.utcnow()` in Task defaults while preserving the stored timestamp format [#153]
-- Settings no longer show "Check automatically" as enabled for store-managed builds (Snap, MSIX); the preference displays as off and can never be persisted as on [#166]
-- Settings dialog opens at a larger size and its tab contents scroll when space is tight [#169]
-- The application-wide theme palette and widget stylesheet now cover scroll bars, menus, spin boxes, tabs, group boxes, checkboxes, tooltips, splitters, and calendar internals [#164, #165, #167]
+
+### Docs
 
 ## v0.9.2 (2026-08-26)
 
@@ -23,6 +29,17 @@
 - Add tests for UndoManager [#161]
 - Add tests for ReminderService [#162]
 - Add tests for recurring task logic in `complete_task` [#163]
+
+## v0.9.1 (2026-08-23)
+
+### Fixed
+- `list_completed_entries` now loads all task fields instead of dropping notes, priority, duration, category, recurrence, and reminder [#160]
+- Monthly and yearly recurrences clamp to the last valid day of the target month (Jan 31 → Feb 28, Feb 29 → Feb 28) instead of failing silently [#157]
+- Replaced deprecated `datetime.utcnow()` in Task defaults while preserving the stored timestamp format [#153]
+- Settings no longer show "Check automatically" as enabled for store-managed builds (Snap, MSIX); the preference displays as off and can never be persisted as on [#166]
+- Settings dialog opens at a larger size and its tab contents scroll when space is tight [#169]
+- The application-wide theme palette and widget stylesheet now cover scroll bars, menus, spin boxes, tabs, group boxes, checkboxes, tooltips, splitters, and calendar internals [#164, #165, #167]
+
 
 ## v0.9.0 (2026-08-19)
 
