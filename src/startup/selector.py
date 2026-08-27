@@ -13,7 +13,7 @@ from .modes import StartupMode
 try:
     import tkinter as tk
     from tkinter import ttk
-except Exception:
+except ImportError:
     tk = None
     ttk = None
 

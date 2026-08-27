@@ -1,5 +1,6 @@
 """Background reminder service that checks for upcoming tasks and sends notifications."""
 
+import logging
 import subprocess
 import sys
 import threading
@@ -11,6 +12,8 @@ if TYPE_CHECKING:
     from .scheduler import Scheduler
 
 from . import local_time
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ReminderService:
@@ -46,7 +49,7 @@ class ReminderService:
             try:
                 self._check_tasks()
             except Exception:
-                pass
+                LOGGER.exception("Reminder check failed")
             time.sleep(self._poll_interval)
 
     def _check_tasks(self) -> None:
@@ -95,8 +98,8 @@ class ReminderService:
 
                 windll.user32.MessageBoxW(0, body, f"Reminder: {title}", 0x40 | 0x1000)
                 return
-            except Exception:
-                pass
+            except (AttributeError, ImportError, OSError):
+                LOGGER.exception("Windows reminder notification failed")
         if sys.platform == "darwin":
             try:
                 script = f'display notification "{self._escape_applescript(body)}" with title "{self._escape_applescript(title)}"'

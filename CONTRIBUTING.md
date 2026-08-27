@@ -156,6 +156,12 @@ configured to write LF line endings so formatting is consistent across Windows
 and Linux. Fix reported lint problems in the code rather than weakening the
 shared rule set.
 
+Catch the narrowest expected exception in normal application code. A broad
+exception boundary is acceptable only where SchedPlus must keep a background
+service alive or provide a last-resort startup error report; those boundaries
+must log or report the failure and explain why the broad catch is intentional.
+Never silently discard an exception.
+
 ---
 
 ## Licensing Contributions

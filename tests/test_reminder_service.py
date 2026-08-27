@@ -107,7 +107,7 @@ def test_concurrent_notified_access_is_safe():
                 with service._lock:
                     service._notified.add(f"task-{i}")
                 time.sleep(0.0001)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - surface worker failures to the test
             errors.append(e)
 
     def worker_remove():
@@ -116,7 +116,7 @@ def test_concurrent_notified_access_is_safe():
                 with service._lock:
                     service._notified.discard(f"task-{i}")
                 time.sleep(0.0001)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - surface worker failures to the test
             errors.append(e)
 
     threads = [threading.Thread(target=worker_add) for _ in range(3)] + [
@@ -165,10 +165,11 @@ def test_send_notification_linux_calls_notify_send(mock_run):
 
 @patch("logic.reminder_service.subprocess.run")
 def test_send_notification_windows_calls_message_box(mock_run):
-    with patch("sys.platform", "win32"):
+    with patch("sys.platform", "win32"), patch("ctypes.windll", create=True) as windll:
         service = ReminderService(MemoryScheduler())
         service._send_notification("Title", "2026-08-26", "12:00")
         mock_run.assert_not_called()  # uses ctypes directly
+        windll.user32.MessageBoxW.assert_called_once()
 
 
 def test_check_tasks_skips_completed_and_no_reminder():

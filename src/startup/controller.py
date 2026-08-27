@@ -108,7 +108,7 @@ def _launch_mode(mode: StartupMode, arguments: list[str] | None = None):
     if mode == StartupMode.TK:
         try:
             from ui.tkinter_ui import run_ui
-        except Exception:
+        except ImportError:
             print("Tkinter UI is not available on this system.")
             return 1
 
@@ -119,7 +119,7 @@ def _launch_mode(mode: StartupMode, arguments: list[str] | None = None):
     elif mode == StartupMode.PYQT:
         try:
             from ui.pyqt_ui import run_pyqt_ui
-        except Exception as exc:
+        except ImportError as exc:
             print(f"PyQt UI is not available on this system: {exc}", file=sys.stderr)
             return 1
 
@@ -151,7 +151,7 @@ def _report_storage_error(mode: StartupMode, error: StorageError) -> None:
             messagebox.showerror("SchedPlus database error", str(error), parent=root)
             root.destroy()
             return
-        except Exception as reporter_exc:
+        except Exception as reporter_exc:  # noqa: BLE001 - last-resort error reporter
             print(
                 f"Unable to display the Tkinter database error: {reporter_exc}",
                 file=sys.stderr,
@@ -164,7 +164,7 @@ def _report_storage_error(mode: StartupMode, error: StorageError) -> None:
             QMessageBox.critical(None, "SchedPlus database error", str(error))
             app.quit()
             return
-        except Exception as reporter_exc:
+        except Exception as reporter_exc:  # noqa: BLE001 - last-resort error reporter
             print(
                 f"Unable to display the PyQt database error: {reporter_exc}",
                 file=sys.stderr,
