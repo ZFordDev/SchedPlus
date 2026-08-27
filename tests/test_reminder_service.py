@@ -2,9 +2,10 @@
 
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest.mock import patch
 
+from logic import local_time
 from logic.reminder_service import ReminderService
 from logic.scheduler import Task
 
@@ -29,7 +30,7 @@ def test_check_tasks_snapshots_task_list(monkeypatch):
     scheduler = MemoryScheduler()
     service = ReminderService(scheduler, poll_interval=1)
 
-    now = datetime.now()
+    now = local_time.now()
     # remind_at = now - 60s (in window), so task_dt = now - 60s + 10min
     task_dt = now + timedelta(minutes=10) - timedelta(seconds=60)
     task = Task(
@@ -61,7 +62,7 @@ def test_notified_cleared_when_reminder_window_passed():
     service = ReminderService(scheduler)
 
     # First: task in reminder window (notified added)
-    now = datetime.now()
+    now = local_time.now()
     task_dt = now + timedelta(minutes=10) - timedelta(seconds=60)
     task = Task(
         id="old",
@@ -79,7 +80,7 @@ def test_notified_cleared_when_reminder_window_passed():
         assert "old" in service._notified
 
     # Second check: task moved far into future, diff > 120 -> discard
-    far_future = datetime.now() + timedelta(hours=1)
+    far_future = local_time.now() + timedelta(hours=1)
     scheduler.tasks[0] = Task(
         id="old",
         date=far_future.strftime("%Y-%m-%d"),
@@ -174,7 +175,7 @@ def test_check_tasks_skips_completed_and_no_reminder():
     scheduler = MemoryScheduler()
     service = ReminderService(scheduler)
 
-    now = datetime.now() + timedelta(minutes=10)
+    now = local_time.now() + timedelta(minutes=10)
     tasks = [
         Task(
             id="1",
@@ -210,7 +211,7 @@ def test_check_tasks_notifies_when_in_window():
     scheduler = MemoryScheduler()
     service = ReminderService(scheduler)
 
-    now = datetime.now()
+    now = local_time.now()
     # remind_at = now - 30s (in window), reminder=10, so task_dt = now - 30s + 10min
     task_dt = now + timedelta(minutes=10) - timedelta(seconds=30)
     task = Task(
