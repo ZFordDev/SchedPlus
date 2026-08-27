@@ -33,10 +33,14 @@ def test_msix_manifest_escapes_partner_center_display_name():
 
 def test_msix_manifest_rejects_missing_or_template_identity_values():
     with pytest.raises(ValueError, match="required"):
-        build_msix.render_manifest(identity_name="", publisher="CN=example", publisher_display_name="ZFordDev")
+        build_msix.render_manifest(
+            identity_name="", publisher="CN=example", publisher_display_name="ZFordDev"
+        )
     with pytest.raises(ValueError, match="template markers"):
         build_msix.render_manifest(
-            identity_name="{{example}}", publisher="CN=example", publisher_display_name="ZFordDev"
+            identity_name="{{example}}",
+            publisher="CN=example",
+            publisher_display_name="ZFordDev",
         )
 
 
@@ -52,7 +56,9 @@ def test_msix_assets_cover_required_store_logo_sizes():
 
 
 def test_msix_documentation_records_data_path_and_signing_procedure():
-    documentation = (Path(__file__).parents[1] / "packaging" / "msix" / "README.md").read_text(encoding="utf-8")
+    documentation = (
+        Path(__file__).parents[1] / "packaging" / "msix" / "README.md"
+    ).read_text(encoding="utf-8")
 
     assert "%APPDATA%\\ZFordDev\\SchedPlus" in documentation
     assert "self-signed development certificate" in documentation

@@ -27,7 +27,9 @@ def test_ci_installs_pyqt_runtime_before_running_offscreen_tests():
 
 
 def test_mypy_is_available_to_the_ci_typecheck_job():
-    project = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    project = tomllib.loads(
+        (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
     development_dependencies = project["project"]["optional-dependencies"]["dev"]
     workflow = (PROJECT_ROOT / ".github" / "workflows" / "ci.yml").read_text(
         encoding="utf-8"

@@ -29,7 +29,9 @@ def test_portable_packages_include_source_information(tmp_path):
         with zipfile.ZipFile(artifact) as archive:
             assert any(name.endswith("/SOURCE.txt") for name in archive.namelist())
             build_info_name = next(
-                name for name in archive.namelist() if name.endswith("schedplus/build-info.json")
+                name
+                for name in archive.namelist()
+                if name.endswith("schedplus/build-info.json")
             )
             build_info = json.loads(archive.read(build_info_name))
             assert build_info["format"] == "managed-zip"
@@ -54,11 +56,16 @@ def test_windows_artifact_validator_checks_source_and_checksums(tmp_path):
     assert validate_windows_artifacts.validate(output_dir, "0.8.0") == []
 
     installer.unlink()
-    assert "missing installer artifact: SchedPlus-Setup-0.8.0-windows-x86_64.exe" in validate_windows_artifacts.validate(output_dir, "0.8.0")
+    assert (
+        "missing installer artifact: SchedPlus-Setup-0.8.0-windows-x86_64.exe"
+        in validate_windows_artifacts.validate(output_dir, "0.8.0")
+    )
 
 
 def test_windows_installer_manifest_is_user_scoped_and_preserves_data():
-    source = (Path(__file__).parents[1] / "packaging" / "windows" / "SchedPlus.iss").read_text(encoding="utf-8")
+    source = (
+        Path(__file__).parents[1] / "packaging" / "windows" / "SchedPlus.iss"
+    ).read_text(encoding="utf-8")
 
     assert "DefaultDirName={localappdata}\\Programs\\SchedPlus" in source
     assert "PrivilegesRequired=lowest" in source
@@ -70,9 +77,15 @@ def test_windows_installer_manifest_is_user_scoped_and_preserves_data():
 
 def test_windows_version_resource_matches_current_release():
     project_root = Path(__file__).parents[1]
-    source = (project_root / "packaging" / "pyinstaller" / "version_info.txt").read_text(encoding="utf-8")
-    version = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
-    numeric_version = ", ".join(version.split(".") + ["0"] * (4 - len(version.split("."))))
+    source = (
+        project_root / "packaging" / "pyinstaller" / "version_info.txt"
+    ).read_text(encoding="utf-8")
+    version = tomllib.loads(
+        (project_root / "pyproject.toml").read_text(encoding="utf-8")
+    )["project"]["version"]
+    numeric_version = ", ".join(
+        version.split(".") + ["0"] * (4 - len(version.split(".")))
+    )
 
     assert f"filevers=({numeric_version})" in source
     assert f"ProductVersion', '{version}'" in source

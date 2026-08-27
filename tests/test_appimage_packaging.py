@@ -14,7 +14,9 @@ def test_appdir_contains_portable_standard_launch_metadata(tmp_path):
     frozen.mkdir()
     (frozen / "SchedPlusStandard").write_bytes(b"binary")
 
-    appdir = build_appimage.create_appdir(frozen_dir=frozen, appdir=tmp_path / "SchedPlus.AppDir")
+    appdir = build_appimage.create_appdir(
+        frozen_dir=frozen, appdir=tmp_path / "SchedPlus.AppDir"
+    )
 
     if os.name != "nt":
         assert (appdir / "AppRun").stat().st_mode & 0o111
@@ -78,9 +80,9 @@ def test_builder_resolves_relative_appimagetool_path(monkeypatch, tmp_path):
 
 
 def test_appimage_smoke_test_uses_host_graphics_runtime_without_x11():
-    workflow = (PROJECT_ROOT / ".github" / "workflows" / "build-appimage.yml").read_text(
-        encoding="utf-8"
-    )
+    workflow = (
+        PROJECT_ROOT / ".github" / "workflows" / "build-appimage.yml"
+    ).read_text(encoding="utf-8")
 
     assert "libegl1" in workflow
     assert "libgl1" in workflow
@@ -89,9 +91,9 @@ def test_appimage_smoke_test_uses_host_graphics_runtime_without_x11():
 
 
 def test_appimagetool_download_is_pinned_cached_and_retried():
-    workflow = (PROJECT_ROOT / ".github" / "workflows" / "build-appimage.yml").read_text(
-        encoding="utf-8"
-    )
+    workflow = (
+        PROJECT_ROOT / ".github" / "workflows" / "build-appimage.yml"
+    ).read_text(encoding="utf-8")
 
     assert "actions/cache@v6" in workflow
     assert "gh release download 1.9.1" in workflow

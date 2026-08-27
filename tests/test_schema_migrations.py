@@ -57,7 +57,11 @@ def test_released_database_is_upgraded_with_backup(database, release):
             f"Created by SchedPlus {release}",
         )
 
-    backups = list(database.parent.glob(f"tasks_pre_migration_v0_to_v{migrations.CURRENT_SCHEMA_VERSION}_*.db"))
+    backups = list(
+        database.parent.glob(
+            f"tasks_pre_migration_v0_to_v{migrations.CURRENT_SCHEMA_VERSION}_*.db"
+        )
+    )
     assert len(backups) == 1
     with sqlite3.connect(backups[0]) as connection:
         assert migrations.schema_version(connection) == 0

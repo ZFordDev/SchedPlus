@@ -1,7 +1,12 @@
 from pathlib import Path
 
 from scripts import build_debian_package
-from scripts.build_debian_package import EDITIONS, _control, _copyright, _lintian_overrides
+from scripts.build_debian_package import (
+    EDITIONS,
+    _control,
+    _copyright,
+    _lintian_overrides,
+)
 
 
 def test_debian_editions_are_mutually_exclusive():
