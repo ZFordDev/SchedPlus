@@ -189,17 +189,36 @@ class SchedPlusWindow(QMainWindow):
 
     def open_add_dialog(self, initial_date=None, initial_time=None):
         dialog = AddTaskDialog(
-            self, initial_date=initial_date, initial_time=initial_time,
+            self,
+            initial_date=initial_date,
+            initial_time=initial_time,
             date_format=self.preferences.date_format,
             time_format=self.preferences.time_format,
         )
         if dialog.exec():
-            date, time, text, notes, priority, duration, category, recurrence, recurrence_end, reminder = dialog.get_values()
+            (
+                date,
+                time,
+                text,
+                notes,
+                priority,
+                duration,
+                category,
+                recurrence,
+                recurrence_end,
+                reminder,
+            ) = dialog.get_values()
             try:
                 task = self.scheduler.add_task(
-                    date, time, text,
-                    notes=notes, priority=priority, duration=duration,
-                    category=category, recurrence=recurrence, recurrenceEnd=recurrence_end,
+                    date,
+                    time,
+                    text,
+                    notes=notes,
+                    priority=priority,
+                    duration=duration,
+                    category=category,
+                    recurrence=recurrence,
+                    recurrenceEnd=recurrence_end,
                     reminder=reminder,
                 )
                 self.scheduler.undo_manager.record_add(task.id)
@@ -212,13 +231,27 @@ class SchedPlusWindow(QMainWindow):
 
     def open_edit_dialog(self, task):
         from dataclasses import replace as dc_replace
+
         draft = dc_replace(task)
-        dialog = EditTaskDialog(draft, self,
+        dialog = EditTaskDialog(
+            draft,
+            self,
             date_format=self.preferences.date_format,
             time_format=self.preferences.time_format,
         )
         if dialog.exec():
-            draft.date, draft.time, draft.text, draft.notes, draft.priority, draft.duration, draft.category, draft.recurrence, draft.recurrenceEnd, draft.reminder = dialog.get_values()
+            (
+                draft.date,
+                draft.time,
+                draft.text,
+                draft.notes,
+                draft.priority,
+                draft.duration,
+                draft.category,
+                draft.recurrence,
+                draft.recurrenceEnd,
+                draft.reminder,
+            ) = dialog.get_values()
             try:
                 self.scheduler.undo_manager.record_edit(task)
                 self.scheduler.update_task(draft)
@@ -233,7 +266,7 @@ class SchedPlusWindow(QMainWindow):
         confirmation = QMessageBox(self)
         confirmation.setIcon(QMessageBox.Icon.Question)
         confirmation.setWindowTitle("Delete task?")
-        confirmation.setText(f'Delete \u201c{task.text}\u201d?')
+        confirmation.setText(f"Delete \u201c{task.text}\u201d?")
         confirmation.setInformativeText("This action cannot be undone.")
         confirmation.setStandardButtons(
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
@@ -308,18 +341,24 @@ class SchedPlusWindow(QMainWindow):
         if path:
             self._run_data_action(
                 "Backup created",
-                lambda: create_backup(Path(path), ui_preferences=asdict(self.preferences)),
+                lambda: create_backup(
+                    Path(path), ui_preferences=asdict(self.preferences)
+                ),
             )
 
     def restore_data(self):
         path, _ = QFileDialog.getOpenFileName(
             self, "Restore SchedPlus backup", "", "JSON (*.json)"
         )
-        if not path or QMessageBox.question(
-            self,
-            "Replace current data?",
-            "Restore will replace all current tasks and preferences. Continue?",
-        ) != QMessageBox.StandardButton.Yes:
+        if (
+            not path
+            or QMessageBox.question(
+                self,
+                "Replace current data?",
+                "Restore will replace all current tasks and preferences. Continue?",
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
             return
         try:
             result = restore_backup(

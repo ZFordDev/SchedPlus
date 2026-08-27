@@ -307,8 +307,22 @@ def update_entry(task: Task) -> None:
                 notes = ?, priority = ?, duration = ?, category = ?, recurrence = ?, recurrenceEnd = ?, reminder = ?
             WHERE id = ?
             """,
-            (task.date, task.time, task.text, updated_at, task.completed, task.completedAt,
-             task.notes, task.priority, task.duration, task.category, task.recurrence, task.recurrenceEnd, task.reminder, task.id),
+            (
+                task.date,
+                task.time,
+                task.text,
+                updated_at,
+                task.completed,
+                task.completedAt,
+                task.notes,
+                task.priority,
+                task.duration,
+                task.category,
+                task.recurrence,
+                task.recurrenceEnd,
+                task.reminder,
+                task.id,
+            ),
         )
     )
     task.updatedAt = updated_at
@@ -334,16 +348,19 @@ def get_entry(task_id: str) -> Task | None:
 
 
 def list_entries() -> list[Task]:
-    rows = _run(lambda connection: connection.execute("""
+    rows = _run(
+        lambda connection: connection.execute("""
             SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder
             FROM entries
             ORDER BY date ASC, time ASC
-            """).fetchall())
+            """).fetchall()
+    )
     return [_task_from_row(row) for row in rows]
 
 
 def replace_entries(tasks: list[Task]) -> None:
     """Replace all tasks atomically after callers have validated the payload."""
+
     def replace(connection: sqlite3.Connection) -> None:
         connection.execute("DELETE FROM entries")
         connection.executemany(
@@ -357,6 +374,7 @@ def replace_entries(tasks: list[Task]) -> None:
 
 def import_entries(tasks: list[Task]) -> tuple[int, int, int]:
     """Insert new IDs; return imported, duplicate, and conflicting counts."""
+
     def merge(connection: sqlite3.Connection) -> tuple[int, int, int]:
         imported = duplicates = conflicts = 0
         for task in tasks:
@@ -398,6 +416,7 @@ def reset_database() -> None:
 
 def complete_entry(task_id: str) -> None:
     from datetime import datetime, timezone
+
     completed_at = datetime.now(timezone.utc).isoformat()
     _run(
         lambda connection: connection.execute(
@@ -417,13 +436,15 @@ def uncomplete_entry(task_id: str) -> None:
 
 
 def list_completed_entries() -> list[Task]:
-    rows = _run(lambda connection: connection.execute("""
+    rows = _run(
+        lambda connection: connection.execute("""
             SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt,
                    notes, priority, duration, category, recurrence, recurrenceEnd, reminder
             FROM entries
             WHERE completed = 'true'
             ORDER BY completedAt DESC
-            """).fetchall())
+            """).fetchall()
+    )
     return [_task_from_row(row) for row in rows]
 
 
@@ -448,6 +469,20 @@ def _task_from_row(row: tuple) -> Task:
 
 
 def _task_values(task: Task) -> tuple:
-    return (task.id, task.date, task.time, task.text, task.createdAt, task.updatedAt,
-            task.completed, task.completedAt, task.notes, task.priority, task.duration, task.category,
-            task.recurrence, task.recurrenceEnd, task.reminder)
+    return (
+        task.id,
+        task.date,
+        task.time,
+        task.text,
+        task.createdAt,
+        task.updatedAt,
+        task.completed,
+        task.completedAt,
+        task.notes,
+        task.priority,
+        task.duration,
+        task.category,
+        task.recurrence,
+        task.recurrenceEnd,
+        task.reminder,
+    )

@@ -54,7 +54,9 @@ def start_update_check(
             # logged and surfaced non-modally by interfaces that provide a callback.
             if str(exc) != "SchedPlus is already up to date.":
                 _record_state(
-                    UpdateState("failed", current_version=info.version, message=str(exc))
+                    UpdateState(
+                        "failed", current_version=info.version, message=str(exc)
+                    )
                 )
                 LOGGER.warning("Automatic update check failed: %s", exc)
                 if on_error:

@@ -32,35 +32,58 @@ def _migration_1(connection: sqlite3.Connection) -> None:
 
 def _migration_2(connection: sqlite3.Connection) -> None:
     """Add task completion tracking columns."""
-    connection.execute("ALTER TABLE entries ADD COLUMN completed TEXT NOT NULL DEFAULT ''")
-    connection.execute("ALTER TABLE entries ADD COLUMN completedAt TEXT NOT NULL DEFAULT ''")
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN completed TEXT NOT NULL DEFAULT ''"
+    )
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN completedAt TEXT NOT NULL DEFAULT ''"
+    )
 
 
 def _migration_3(connection: sqlite3.Connection) -> None:
     """Add notes, priority, and duration columns."""
     connection.execute("ALTER TABLE entries ADD COLUMN notes TEXT NOT NULL DEFAULT ''")
-    connection.execute("ALTER TABLE entries ADD COLUMN priority TEXT NOT NULL DEFAULT ''")
-    connection.execute("ALTER TABLE entries ADD COLUMN duration TEXT NOT NULL DEFAULT ''")
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN priority TEXT NOT NULL DEFAULT ''"
+    )
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN duration TEXT NOT NULL DEFAULT ''"
+    )
 
 
 def _migration_4(connection: sqlite3.Connection) -> None:
     """Add category column for local organization."""
-    connection.execute("ALTER TABLE entries ADD COLUMN category TEXT NOT NULL DEFAULT ''")
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN category TEXT NOT NULL DEFAULT ''"
+    )
 
 
 def _migration_5(connection: sqlite3.Connection) -> None:
     """Add recurrence columns for recurring tasks."""
-    connection.execute("ALTER TABLE entries ADD COLUMN recurrence TEXT NOT NULL DEFAULT ''")
-    connection.execute("ALTER TABLE entries ADD COLUMN recurrenceEnd TEXT NOT NULL DEFAULT ''")
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN recurrence TEXT NOT NULL DEFAULT ''"
+    )
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN recurrenceEnd TEXT NOT NULL DEFAULT ''"
+    )
 
 
 def _migration_6(connection: sqlite3.Connection) -> None:
     """Add reminder column for offline notifications."""
-    connection.execute("ALTER TABLE entries ADD COLUMN reminder TEXT NOT NULL DEFAULT ''")
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN reminder TEXT NOT NULL DEFAULT ''"
+    )
 
 
 # Never edit or reorder a released migration. Add the next numbered callable.
-MIGRATIONS: tuple[Migration, ...] = (_migration_1, _migration_2, _migration_3, _migration_4, _migration_5, _migration_6)
+MIGRATIONS: tuple[Migration, ...] = (
+    _migration_1,
+    _migration_2,
+    _migration_3,
+    _migration_4,
+    _migration_5,
+    _migration_6,
+)
 CURRENT_SCHEMA_VERSION = len(MIGRATIONS)
 
 

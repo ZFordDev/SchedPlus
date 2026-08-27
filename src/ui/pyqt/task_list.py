@@ -2,7 +2,13 @@
 
 from datetime import date
 
-from PyQt6.QtCore import QAbstractTableModel, QModelIndex, QSortFilterProxyModel, Qt, pyqtSignal
+from PyQt6.QtCore import (
+    QAbstractTableModel,
+    QModelIndex,
+    QSortFilterProxyModel,
+    Qt,
+    pyqtSignal,
+)
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -21,7 +27,9 @@ from ui.pyqt.settings_dialog import FILTERS, SORT_FIELDS, UiPreferences
 class TaskTableModel(QAbstractTableModel):
     HEADERS = ("Date", "Time", "Task", "Status", "Created")
 
-    def __init__(self, tasks=None, parent=None, date_format="yyyy-MM-dd", time_format="HH:mm"):
+    def __init__(
+        self, tasks=None, parent=None, date_format="yyyy-MM-dd", time_format="HH:mm"
+    ):
         super().__init__(parent)
         self.tasks = list(tasks or [])
         self.date_format = date_format
@@ -48,7 +56,10 @@ class TaskTableModel(QAbstractTableModel):
         return None
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
-        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
+        if (
+            role == Qt.ItemDataRole.DisplayRole
+            and orientation == Qt.Orientation.Horizontal
+        ):
             return self.HEADERS[section]
         return None
 
@@ -147,7 +158,12 @@ class TaskListWidget(QWidget):
         controls.addWidget(self.order_button)
         layout.addLayout(controls)
 
-        self.model = TaskTableModel(scheduler.get_tasks(), self, preferences.date_format, preferences.time_format)
+        self.model = TaskTableModel(
+            scheduler.get_tasks(),
+            self,
+            preferences.date_format,
+            preferences.time_format,
+        )
         self.proxy = TaskFilterProxyModel(self)
         self.proxy.setSourceModel(self.model)
 
@@ -169,7 +185,9 @@ class TaskListWidget(QWidget):
         self.table.setColumnWidth(0, 120)
         self.table.setColumnWidth(1, 90)
         self.table.setColumnWidth(2, 460)
-        self.table.horizontalHeader().setSectionResizeMode(2, self.table.horizontalHeader().ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(
+            2, self.table.horizontalHeader().ResizeMode.Stretch
+        )
         self.table.doubleClicked.connect(self._emit_edit)
         self.table.setAccessibleName("Task list")
         layout.addWidget(self.table, 1)
@@ -269,7 +287,9 @@ class TaskListWidget(QWidget):
     def _apply_sort(self):
         descending = self.order_button.isChecked()
         self.order_button.setText("Descending" if descending else "Ascending")
-        order = Qt.SortOrder.DescendingOrder if descending else Qt.SortOrder.AscendingOrder
+        order = (
+            Qt.SortOrder.DescendingOrder if descending else Qt.SortOrder.AscendingOrder
+        )
         self.proxy.sort(self.SORT_COLUMNS[self.sort_combo.currentData()], order)
 
     def refresh_count(self):
@@ -303,6 +323,8 @@ class TaskListWidget(QWidget):
         self.delete_button.setEnabled(selected)
         if selected:
             task = self.selected_task()
-            self.complete_button.setText("Uncomplete" if task and task.completed == "true" else "Complete")
+            self.complete_button.setText(
+                "Uncomplete" if task and task.completed == "true" else "Complete"
+            )
         else:
             self.complete_button.setText("Complete")

@@ -83,7 +83,9 @@ def build_parser() -> argparse.ArgumentParser:
     edit_parser.add_argument("--time", help="Replacement time in 24-hour HH:MM format")
     edit_parser.set_defaults(handler=_edit_task)
 
-    complete_parser = subparsers.add_parser("complete", help="Mark a task as complete or incomplete")
+    complete_parser = subparsers.add_parser(
+        "complete", help="Mark a task as complete or incomplete"
+    )
     complete_parser.add_argument("id", help="Full task ID or unambiguous ID prefix")
     complete_parser.set_defaults(handler=_complete_task)
 
@@ -97,9 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
     backup_parser.add_argument("path", type=Path, help="Destination .json file")
     backup_parser.set_defaults(handler=_backup_data)
 
-    restore_parser = subparsers.add_parser(
-        "restore", help="Restore a SchedPlus backup"
-    )
+    restore_parser = subparsers.add_parser("restore", help="Restore a SchedPlus backup")
     restore_parser.add_argument("path", type=Path, help="Backup .json file")
     restore_parser.add_argument(
         "--yes", action="store_true", help="Confirm replacement of current data"
@@ -188,7 +188,13 @@ def _list_tasks(options, scheduler, stdout):
 
     headers = ("ID", "DATE", "TIME", "TASK", "STATUS")
     rows = [
-        (task.id, task.date, task.time, task.text, "Done" if task.completed == "true" else "")
+        (
+            task.id,
+            task.date,
+            task.time,
+            task.text,
+            "Done" if task.completed == "true" else "",
+        )
         for task in tasks
     ]
     widths = [
