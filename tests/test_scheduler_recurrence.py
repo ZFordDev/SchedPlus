@@ -105,6 +105,15 @@ def test_recurrence_stops_at_end_date(scheduler, frozen_clock):
     assert len(scheduler.get_tasks()) == 1
 
 
+def test_non_recurring_completion_does_not_create_successor(scheduler, frozen_clock):
+    task = scheduler.add_task(date="2026-08-20", time="09:00", text="One time")
+
+    scheduler.complete_task(task.id)
+
+    assert [entry.id for entry in scheduler.get_tasks()] == [task.id]
+    assert scheduler.get_tasks()[0].completed == "true"
+
+
 def test_new_occurrence_is_uncompleted_and_persisted(scheduler, frozen_clock):
     task = scheduler.add_task(date="2026-08-20", time="09:00", text="Chain")
     _with_recurrence(scheduler, task, "weekly")
@@ -115,6 +124,7 @@ def test_new_occurrence_is_uncompleted_and_persisted(scheduler, frozen_clock):
     successor = [t for t in stored.values() if t.date == "2026-08-27"]
     assert len(successor) == 1
     assert successor[0].completed == ""
+    assert successor[0].completedAt == ""
     assert successor[0].id != task.id
     assert storage.list_completed_entries()[0].id == task.id
 
