@@ -2,7 +2,8 @@
 
 """Task validation rules shared by every SchedPlus interface."""
 
-from datetime import datetime
+from datetime import date as date_value
+from datetime import time as time_value
 from typing import Protocol, TypeVar
 
 
@@ -33,17 +34,17 @@ def validate_task(task: TaskType) -> TaskType:
     text = task.text.strip()
 
     try:
-        parsed_date = datetime.strptime(date, "%Y-%m-%d")
+        parsed_date = date_value.fromisoformat(date)
     except (TypeError, ValueError) as exc:
         raise ValidationError(
             "Date must be a valid date in YYYY-MM-DD format."
         ) from exc
 
-    if parsed_date.strftime("%Y-%m-%d") != date:
+    if parsed_date.isoformat() != date:
         raise ValidationError("Date must be a valid date in YYYY-MM-DD format.")
 
     try:
-        parsed_time = datetime.strptime(time, "%H:%M")
+        parsed_time = time_value.fromisoformat(time)
     except (TypeError, ValueError) as exc:
         raise ValidationError(
             "Time must be a valid time in 24-hour HH:MM format."

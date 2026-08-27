@@ -13,7 +13,7 @@ UIs remain fully decoupled from storage details.
 import calendar
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from .validation import validate_task
 
@@ -147,7 +147,7 @@ class Scheduler:
             end = task.recurrenceEnd
             if not end or task.date <= end:
                 try:
-                    current = datetime.strptime(task.date, "%Y-%m-%d")
+                    current = date.fromisoformat(task.date)
                 except ValueError:
                     return
                 if task.recurrence == "daily":
@@ -172,7 +172,7 @@ class Scheduler:
                     )
                 else:
                     return
-                next_str = next_date.strftime("%Y-%m-%d")
+                next_str = next_date.isoformat()
                 if end and next_str > end:
                     return
                 new_task = replace(
