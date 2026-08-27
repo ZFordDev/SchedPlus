@@ -141,6 +141,21 @@ Contributions should reflect its lightweight, minimal, and predictable design:
 - Discuss background services, synchronization, or account systems before implementation
 - Follow the existing module layout in `src/`  
 
+### Local quality checks
+
+Before opening a pull request, run the same lightweight checks used by CI:
+
+```powershell
+python -m ruff check src tests
+python -m ruff format --check src tests
+python -m pytest
+```
+
+Use `python -m ruff format src tests` to apply the project formatter. Ruff is
+configured to write LF line endings so formatting is consistent across Windows
+and Linux. Fix reported lint problems in the code rather than weakening the
+shared rule set.
+
 ---
 
 ## Licensing Contributions
