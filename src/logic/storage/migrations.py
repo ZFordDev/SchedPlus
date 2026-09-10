@@ -75,6 +75,13 @@ def _migration_6(connection: sqlite3.Connection) -> None:
     )
 
 
+def _migration_7(connection: sqlite3.Connection) -> None:
+    """Add Kanban planning stage column (empty = not on the board)."""
+    connection.execute(
+        "ALTER TABLE entries ADD COLUMN board_stage TEXT NOT NULL DEFAULT ''"
+    )
+
+
 # Never edit or reorder a released migration. Add the next numbered callable.
 MIGRATIONS: tuple[Migration, ...] = (
     _migration_1,
@@ -83,6 +90,7 @@ MIGRATIONS: tuple[Migration, ...] = (
     _migration_4,
     _migration_5,
     _migration_6,
+    _migration_7,
 )
 CURRENT_SCHEMA_VERSION = len(MIGRATIONS)
 

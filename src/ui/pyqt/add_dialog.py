@@ -2,6 +2,7 @@
 
 from PyQt6.QtCore import QDate, Qt, QTime
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDateEdit,
     QDialog,
@@ -13,6 +14,8 @@ from PyQt6.QtWidgets import (
     QTimeEdit,
     QVBoxLayout,
 )
+
+from logic.board import BOARD_STAGES
 
 
 class TaskDialog(QDialog):
@@ -98,6 +101,17 @@ class TaskDialog(QDialog):
         self.reminder_input.setToolTip("Minutes before due time to notify (0 = off)")
         self.reminder_input.setAccessibleName("Reminder lead time in minutes")
 
+        self.board_checkbox = QCheckBox("Add to Kanban")
+        self.board_checkbox.setAccessibleName("Add to Kanban board")
+        self.board_checkbox.setToolTip("Place this task on the Kanban planning board")
+
+        self.board_combo = QComboBox()
+        self.board_combo.addItem("Backlog", "backlog")
+        self.board_combo.addItem("In progress", "in_progress")
+        self.board_combo.addItem("Done", "done")
+        self.board_combo.setAccessibleName("Board column")
+        self.board_combo.setEnabled(False)
+
         form.addRow("Task", self.text_input)
         form.addRow("Date", self.date_input)
         form.addRow("Time", self.time_input)
@@ -108,6 +122,8 @@ class TaskDialog(QDialog):
         form.addRow("Repeat", self.recurrence_input)
         form.addRow("Repeat until", self.recurrence_end_input)
         form.addRow("Remind before", self.reminder_input)
+        form.addRow("", self.board_checkbox)
+        form.addRow("Board column", self.board_combo)
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(
@@ -145,6 +161,12 @@ class TaskDialog(QDialog):
                 self.reminder_input.setValue(int(reminder))
             except (ValueError, TypeError):
                 self.reminder_input.setValue(0)
+            board_stage = getattr(task, "board_stage", "") or ""
+            self.board_combo.setCurrentIndex(
+                max(0, self.board_combo.findData(board_stage))
+            )
+            self.board_checkbox.setChecked(board_stage in BOARD_STAGES)
+            self._sync_board_controls()
         else:
             selected_date = QDate.fromString(initial_date or "", "yyyy-MM-dd")
             selected_time = QTime.fromString(initial_time or "", "HH:mm")
@@ -154,10 +176,17 @@ class TaskDialog(QDialog):
             self.time_input.setTime(
                 selected_time if selected_time.isValid() else QTime.currentTime()
             )
+            self.board_combo.setCurrentIndex(0)
 
+        self.board_checkbox.toggled.connect(self._sync_board_controls)
         self.text_input.setFocus()
 
-    def get_values(self) -> tuple[str, str, str, str, str, str, str, str, str, str]:
+    def _sync_board_controls(self):
+        self.board_combo.setEnabled(self.board_checkbox.isChecked())
+
+    def get_values(
+        self,
+    ) -> tuple[str, str, str, str, str, str, str, str, str, str, str]:
         duration = self.duration_input.value()
         recurrence = self.recurrence_input.currentText()
         recurrence_end = ""
@@ -166,6 +195,9 @@ class TaskDialog(QDialog):
         reminder = self.reminder_input.value()
         date_str = self.date_input.date().toString("yyyy-MM-dd")
         time_str = self.time_input.time().toString("HH:mm")
+        board_stage = (
+            self.board_combo.currentData() if self.board_checkbox.isChecked() else ""
+        )
         return (
             date_str,
             time_str,
@@ -177,6 +209,7 @@ class TaskDialog(QDialog):
             recurrence,
             recurrence_end,
             str(reminder) if reminder > 0 else "",
+            board_stage,
         )
 
 

@@ -11,6 +11,7 @@ from logic import local_time
 from logic.ical_import import ICSImportPlan, SkippedEvent
 from logic.scheduler import Task
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
+from ui.pyqt.board_view import BoardColumn, BoardView
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.ics_import_dialog import IcsImportDialog
 from ui.pyqt.settings_dialog import SettingsDialog, UiPreferences
@@ -216,11 +217,120 @@ def test_update_preference_remains_editable_for_managed_builds(app, monkeypatch)
 def test_window_has_navigation_and_shortcuts(app):
     window = SchedPlusWindow(MemoryScheduler())
 
-    assert window.pages.count() == 2
+    assert window.pages.count() == 3
     assert len(window.shortcuts) == 10
     assert window.windowTitle() == "SchedPlus — Advanced"
     assert window.version_label.text().startswith("SchedPlus v")
     assert window.about_action.text() == "About SchedPlus"
+    assert window.board_nav.text() == "Kanban"
+    assert window.board_nav.accessibleName() == "Switch to Kanban view"
+
+    window.show_page("board")
+
+    assert window.pages.currentIndex() == 2
+    assert window.board_nav.isChecked()
+    assert not window.tasks_nav.isChecked()
+
+
+def test_board_lists_only_opted_in_tasks(app):
+    scheduler = MemoryScheduler(
+        [
+            Task(
+                date="2026-09-11",
+                time="09:00",
+                text="Backlog card",
+                board_stage="backlog",
+            ),
+            Task(
+                date="2026-09-12",
+                time="10:00",
+                text="Doing card",
+                board_stage="in_progress",
+            ),
+            Task(date="2026-09-13", time="11:00", text="Done card", board_stage="done"),
+            Task(date="2026-09-14", time="12:00", text="Off board card"),
+        ]
+    )
+    board = BoardView(scheduler)
+
+    assert board.columns["backlog"].card_layout.count() == 2
+    assert board.columns["in_progress"].card_layout.count() == 2
+    assert board.columns["done"].card_layout.count() == 2
+    assert board.empty_label.isHidden()
+    assert not board.columns_widget.isHidden()
+    assert board.columns["backlog"].empty_label.isHidden()
+    assert "3 of 4 tasks" in board.count_label.text()
+
+
+def test_board_empty_state(app):
+    board = BoardView(MemoryScheduler())
+
+    assert not board.empty_label.isHidden()
+    assert board.columns_widget.isHidden()
+    assert "No tasks on the board" in board.empty_label.text()
+
+
+def test_board_column_cards_forward_signals(app):
+    task = Task(date="2026-09-11", time="09:00", text="Card", board_stage="backlog")
+    column = BoardColumn("Backlog")
+    column.set_tasks([task])
+    emitted = []
+    column.complete_requested.connect(emitted.append)
+
+    card_layout = column.card_layout
+    card = card_layout.itemAt(0).widget()
+    card.complete_button.click()
+
+    assert emitted == [task]
+
+
+def test_board_reflects_refreshed_scheduler(app):
+    scheduler = MemoryScheduler()
+    board = BoardView(scheduler)
+    assert board.columns_widget.isHidden()
+
+    scheduler.tasks.append(
+        Task(date="2026-09-11", time="09:00", text="New card", board_stage="done")
+    )
+    board.refresh()
+
+    assert not board.columns_widget.isHidden()
+    assert board.columns["done"].card_layout.count() == 2
+    assert "1 of 1 tasks" in board.count_label.text()
+
+
+def test_add_dialog_boards_task_when_checked(app):
+    dialog = AddTaskDialog()
+
+    assert dialog.get_values()[10] == ""
+    assert not dialog.board_combo.isEnabled()
+
+    dialog.board_checkbox.setChecked(True)
+    dialog.board_combo.setCurrentIndex(dialog.board_combo.findData("in_progress"))
+
+    assert dialog.board_combo.isEnabled()
+    assert dialog.get_values()[10] == "in_progress"
+
+
+def test_edit_dialog_preselects_and_clears_board_stage(app):
+    task = Task(date="2026-09-11", time="09:00", text="Board task", board_stage="done")
+    dialog = EditTaskDialog(task)
+
+    assert dialog.board_checkbox.isChecked()
+    assert dialog.get_values()[10] == "done"
+
+    dialog.board_checkbox.setChecked(False)
+
+    assert not dialog.board_combo.isEnabled()
+    assert dialog.get_values()[10] == ""
+
+
+def test_edit_dialog_defaults_unchecked_for_off_board_tasks(app):
+    task = Task(date="2026-09-11", time="09:00", text="Plain task")
+    dialog = EditTaskDialog(task)
+
+    assert not dialog.board_checkbox.isChecked()
+    assert dialog.get_values()[10] == ""
 
 
 def test_native_calendar_renders_month_week_and_day(app):

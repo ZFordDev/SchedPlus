@@ -2,7 +2,7 @@ import pytest
 
 from logic.scheduler import Scheduler, Task
 from logic.storage import sqlite_storage
-from logic.validation import ValidationError, validate_task
+from logic.validation import ValidationError, validate_board_stage, validate_task
 
 
 def test_validate_task_accepts_and_normalizes_valid_values():
@@ -67,3 +67,46 @@ def test_scheduler_does_not_update_invalid_task(monkeypatch):
         Scheduler().update_task(task)
 
     assert persisted == []
+
+
+def test_validate_board_stage_accepts_each_stage():
+    for stage in ("backlog", "in_progress", "done"):
+        assert validate_board_stage(stage) == stage
+
+
+@pytest.mark.parametrize("value", ["", "   ", "\t\n"])
+def test_validate_board_stage_normalizes_emptiness(value):
+    assert validate_board_stage(value) == ""
+
+
+def test_validate_board_stage_accepts_non_strings_as_off_board():
+    assert validate_board_stage(None) == ""
+
+
+@pytest.mark.parametrize("stage", ["someday", "released", "BACKLOG"])
+def test_validate_board_stage_rejects_unknown_stages(stage):
+    with pytest.raises(ValidationError, match="Board stage"):
+        validate_board_stage(stage)
+
+
+def test_validate_task_normalizes_board_stage():
+    task = Task(date="2026-08-12", time="09:05", text="Plan", board_stage=" backlog ")
+
+    validate_task(task)
+
+    assert task.board_stage == "backlog"
+
+
+def test_validate_task_normalize_off_board_task():
+    task = Task(date="2026-08-12", time="09:05", text="Plan", board_stage=" ")
+
+    validate_task(task)
+
+    assert task.board_stage == ""
+
+
+def test_validate_task_rejects_invalid_board_stage():
+    with pytest.raises(ValidationError, match="Board stage"):
+        validate_task(
+            Task(date="2026-08-12", time="09:05", text="Plan", board_stage="later")
+        )

@@ -384,6 +384,42 @@ QCalendarWidget QAbstractItemView {
     selection-background-color: #DBEAFE;
     selection-color: #172033;
 }
+QWidget#BoardColumn {
+    background: #EEF2F7;
+    border: 1px solid #D8DEE8;
+    border-radius: 8px;
+}
+QLabel#BoardColumnTitle {
+    color: #172033;
+    font-weight: 600;
+    padding: 2px 4px;
+}
+QWidget#BoardCard {
+    background: #FFFFFF;
+    border: 1px solid #D8DEE8;
+    border-radius: 6px;
+}
+QWidget#BoardCard:hover {
+    border-color: #CBD5E1;
+}
+QLabel#CardText {
+    color: #172033;
+    font-weight: 600;
+}
+QLabel#CategoryBadge {
+    background: #DBEAFE;
+    color: #1D4ED8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 9pt;
+}
+QLabel#PriorityHigh {
+    background: #FFF1F2;
+    color: #BE123C;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 9pt;
+}
 """
 
 # Palette mirrors the QSS tokens above so any widget class without explicit

@@ -167,6 +167,7 @@ def _parse_tasks(value: object) -> list[Task]:
         "recurrence",
         "recurrenceEnd",
         "reminder",
+        "board_stage",
     }
     for index, item in enumerate(value, start=1):
         if not isinstance(item, dict):
