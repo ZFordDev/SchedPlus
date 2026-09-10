@@ -173,6 +173,7 @@ class SchedPlusWindow(QMainWindow):
             "Ctrl+,": self.open_settings,
             "F11": self.toggle_full_screen,
             "Ctrl+Z": self.undo_last_action,
+            "Ctrl+T": self.calendar_page.go_to_today,
             "Ctrl+Q": self.close,
         }
         self.shortcuts = []
@@ -417,6 +418,7 @@ class SchedPlusWindow(QMainWindow):
             "Ctrl+E — Edit selected task\n"
             "Delete — Delete selected task\n"
             "Ctrl+Z — Undo last action\n"
+            "Ctrl+T — Go to today\n"
             "Ctrl+F — Search tasks\n"
             "Ctrl+R — Reload tasks\n"
             "Ctrl+Q — Quit\n"
