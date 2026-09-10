@@ -34,7 +34,7 @@ from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from schedplus.identity import get_application_identity
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
-from ui.pyqt.board_view import BoardView
+from ui.pyqt.board_view import BOARD_STAGE_LABELS, BoardView
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.ics_import_dialog import IcsImportDialog
 from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore, UiPreferences
@@ -123,6 +123,7 @@ class SchedPlusWindow(QMainWindow):
         self.board_page.edit_requested.connect(self.open_edit_dialog)
         self.board_page.delete_requested.connect(self.delete_task)
         self.board_page.complete_requested.connect(self.complete_task)
+        self.board_page.move_requested.connect(self.move_board_task)
 
         self._create_shortcuts()
         self.show_page(self.preferences.startup_view)
@@ -306,6 +307,22 @@ class SchedPlusWindow(QMainWindow):
             self.show_status_message("Task deleted")
         except StorageError as exc:
             self._show_storage_error("Unable to delete task", exc)
+
+    def move_board_task(self, task, stage):
+        if task.board_stage == stage:
+            return
+        self.scheduler.undo_manager.record_edit(task)
+        draft = replace(task, board_stage=stage)
+        try:
+            self.scheduler.update_task(draft)
+            self.refresh_views()
+            self.show_status_message(f"Task moved to {BOARD_STAGE_LABELS[stage]}")
+        except ValidationError as exc:
+            self.refresh_views()
+            self._show_validation_error(exc)
+        except StorageError as exc:
+            self.refresh_views()
+            self._show_storage_error("Unable to move task", exc)
 
     def complete_task(self, task):
         try:
