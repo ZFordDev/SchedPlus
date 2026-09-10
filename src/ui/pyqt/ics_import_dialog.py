@@ -37,13 +37,16 @@ class IcsImportDialog(QDialog):
 
         self.table = QTableWidget(0, 3)
         self.table.setHorizontalHeaderLabels(["Import", "Date / time", "Details"])
-        self.table.verticalHeader().setVisible(False)
+        vertical_header = self.table.verticalHeader()
+        if vertical_header is not None:
+            vertical_header.setVisible(False)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, header.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, header.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, header.ResizeMode.Stretch)
+        if header is not None:
+            header.setSectionResizeMode(0, header.ResizeMode.ResizeToContents)
+            header.setSectionResizeMode(1, header.ResizeMode.ResizeToContents)
+            header.setSectionResizeMode(2, header.ResizeMode.Stretch)
         layout.addWidget(self.table, 1)
 
         note = QLabel(
@@ -58,6 +61,8 @@ class IcsImportDialog(QDialog):
         self.import_button = buttons.addButton(
             "Import", QDialogButtonBox.ButtonRole.AcceptRole
         )
+        assert cancel is not None
+        assert self.import_button is not None
         cancel.clicked.connect(self.reject)
         self.import_button.clicked.connect(self.accept)
         layout.addWidget(buttons)
