@@ -244,3 +244,17 @@ schedplus edit 7c94a2 --board done          # also accepts --board "" to remove
 - [ ] Migration keeps existing tasks off-board by default (`''`), no
       duplication, no hidden reassignment.
 - [ ] Tasks and Calendar remain the source of truth.
+
+## 16. Delivery model
+
+Kanban work never merges directly to `main`. All sub-issue PRs (#202–#205)
+integrate into the parent branch **`feature/kanban-board`**, which is created
+off the release point of `main`. When the feature is complete and reviewed,
+the maintainer decides to either:
+
+- **integrate**: open a final PR from `feature/kanban-board` into `main`; or
+- **cut**: close the parent branch and the sub-issues without merging, leaving
+  `main` untouched.
+
+This keeps `main` shippable at any time and lets the feature be reworked or
+dropped without touching released code paths.
