@@ -215,7 +215,7 @@ def test_window_has_navigation_and_shortcuts(app):
     window = SchedPlusWindow(MemoryScheduler())
 
     assert window.pages.count() == 2
-    assert len(window.shortcuts) == 9
+    assert len(window.shortcuts) == 10
     assert window.windowTitle() == "SchedPlus — Advanced"
     assert window.version_label.text().startswith("SchedPlus v")
     assert window.about_action.text() == "About SchedPlus"
@@ -263,3 +263,46 @@ def test_calendar_emits_reschedule_request(app):
     workspace.week_table.task_dropped.emit(task, "2026-09-14", "13:30")
 
     assert requests == [(task, "2026-09-14", "13:30")]
+
+
+def test_today_button_is_styled_and_accessible(app):
+    workspace = CalendarWorkspace(MemoryScheduler(), UiPreferences())
+
+    assert workspace.today_button.objectName() == "PrimaryButton"
+    assert workspace.today_button.accessibleName() == "Go to today"
+    assert workspace.today_button.toolTip() == "Return to today's date"
+
+
+def test_go_to_today_returns_to_current_date_in_all_views(app):
+    today = local_time.today()
+    scheduler = MemoryScheduler(
+        [Task(date=today.isoformat(), time="09:00", text="Anchor task")]
+    )
+    workspace = CalendarWorkspace(scheduler, UiPreferences())
+    future_date = today + timedelta(days=45)
+
+    for view in ("month", "week", "day"):
+        workspace.view_combo.setCurrentIndex(workspace.view_combo.findData(view))
+        workspace.month_calendar.setSelectedDate(future_date)
+        workspace.month_calendar.setCurrentPage(future_date.year, future_date.month)
+        workspace.refresh()
+
+        assert workspace.month_calendar.selectedDate().toPyDate() == future_date
+
+        workspace.go_to_today()
+
+        assert workspace.month_calendar.selectedDate().toPyDate() == today
+        assert today.isoformat() in workspace.week_table.slot_dates or view != "week"
+        assert workspace.month_calendar.monthShown() == today.month
+        assert workspace.month_calendar.yearShown() == today.year
+
+
+def test_today_button_remains_visible_after_navigating_away(app):
+    workspace = CalendarWorkspace(MemoryScheduler(), UiPreferences())
+    future_date = local_time.today() + timedelta(days=90)
+
+    workspace.month_calendar.setSelectedDate(future_date)
+    workspace.month_calendar.setCurrentPage(future_date.year, future_date.month)
+    workspace.refresh()
+
+    assert not workspace.today_button.isHidden()
