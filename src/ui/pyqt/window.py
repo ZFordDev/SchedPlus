@@ -34,6 +34,7 @@ from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from schedplus.identity import get_application_identity
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
+from ui.pyqt.board_view import BoardView
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.ics_import_dialog import IcsImportDialog
 from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore, UiPreferences
@@ -103,8 +104,10 @@ class SchedPlusWindow(QMainWindow):
         self.pages = QStackedWidget()
         self.task_list = TaskListWidget(scheduler, self.preferences)
         self.calendar_page = CalendarWorkspace(scheduler, self.preferences)
+        self.board_page = BoardView(scheduler)
         self.pages.addWidget(self.task_list)
         self.pages.addWidget(self.calendar_page)
+        self.pages.addWidget(self.board_page)
         layout.addWidget(self.pages, 1)
         self.setCentralWidget(root)
 
@@ -116,6 +119,10 @@ class SchedPlusWindow(QMainWindow):
         self.calendar_page.edit_requested.connect(self.open_edit_dialog)
         self.calendar_page.delete_requested.connect(self.delete_task)
         self.calendar_page.reschedule_requested.connect(self.reschedule_task)
+        self.board_page.add_requested.connect(self.open_add_dialog)
+        self.board_page.edit_requested.connect(self.open_edit_dialog)
+        self.board_page.delete_requested.connect(self.delete_task)
+        self.board_page.complete_requested.connect(self.complete_task)
 
         self._create_shortcuts()
         self.show_page(self.preferences.startup_view)
@@ -148,15 +155,19 @@ class SchedPlusWindow(QMainWindow):
 
         self.tasks_nav = self._navigation_button("Tasks")
         self.calendar_nav = self._navigation_button("Calendar")
+        self.board_nav = self._navigation_button("Kanban")
         self.settings_button = self._navigation_button("Settings")
         self.tasks_nav.setAccessibleName("Switch to Tasks view")
         self.calendar_nav.setAccessibleName("Switch to Calendar view")
+        self.board_nav.setAccessibleName("Switch to Kanban view")
         self.settings_button.setAccessibleName("Open settings")
         self.tasks_nav.clicked.connect(lambda: self.show_page("tasks"))
         self.calendar_nav.clicked.connect(lambda: self.show_page("calendar"))
+        self.board_nav.clicked.connect(lambda: self.show_page("board"))
         self.settings_button.clicked.connect(self.open_settings)
         layout.addWidget(self.tasks_nav)
         layout.addWidget(self.calendar_nav)
+        layout.addWidget(self.board_nav)
         layout.addStretch()
         layout.addWidget(self.settings_button)
         self.version_label = QLabel(self.identity.version_label)
@@ -191,10 +202,11 @@ class SchedPlusWindow(QMainWindow):
             self.shortcuts.append(shortcut)
 
     def show_page(self, page):
-        calendar = page == "calendar"
-        self.pages.setCurrentIndex(1 if calendar else 0)
-        self.tasks_nav.setChecked(not calendar)
-        self.calendar_nav.setChecked(calendar)
+        index = {"tasks": 0, "calendar": 1, "board": 2}.get(page, 0)
+        self.pages.setCurrentIndex(index)
+        self.tasks_nav.setChecked(index == 0)
+        self.calendar_nav.setChecked(index == 1)
+        self.board_nav.setChecked(index == 2)
 
     def open_add_dialog(self, initial_date=None, initial_time=None):
         dialog = AddTaskDialog(
@@ -216,6 +228,7 @@ class SchedPlusWindow(QMainWindow):
                 recurrence,
                 recurrence_end,
                 reminder,
+                board_stage,
             ) = dialog.get_values()
             try:
                 task = self.scheduler.add_task(
@@ -229,6 +242,7 @@ class SchedPlusWindow(QMainWindow):
                     recurrence=recurrence,
                     recurrenceEnd=recurrence_end,
                     reminder=reminder,
+                    board_stage=board_stage,
                 )
                 self.scheduler.undo_manager.record_add(task.id)
                 self.refresh_views()
@@ -260,6 +274,7 @@ class SchedPlusWindow(QMainWindow):
                 draft.recurrence,
                 draft.recurrenceEnd,
                 draft.reminder,
+                draft.board_stage,
             ) = dialog.get_values()
             try:
                 self.scheduler.undo_manager.record_edit(task)
@@ -559,6 +574,7 @@ class SchedPlusWindow(QMainWindow):
     def refresh_views(self):
         self.task_list.refresh()
         self.calendar_page.refresh()
+        self.board_page.refresh()
 
     def show_status_message(self, message, duration=3500):
         self.statusBar().showMessage(f"  {message}")
