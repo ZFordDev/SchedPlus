@@ -6,6 +6,13 @@
 > **Release Cadence Update:** Planned releases are shifting from weekly to fortnightly (targeting Wednesdays) as we transition toward a monthly release cycle. Critical fixes will still be released immediately as emergency patches.
 
 ### Added
+- The PyQt calendar now has a visually distinct **Today** button that returns
+  the month, week, and day views to the current local date, plus a **Ctrl+T — Go
+  to today** shortcut listed in the Keyboard shortcuts dialog [#191].
+- Added standard iCalendar (`.ics`) event import through **Data → Import
+  calendar (.ics)…** in the PyQt interface and `schedplus import-ics` in the CLI,
+  with a preview/confirm dialog, `--dry-run` support, and explicit reporting of
+  recurring, cancelled, and duplicate events that are skipped [#193].
 - Added focused coverage for UndoManager actions, reminder timing and native
   notification paths, and recurring-task successor behavior [#161, #162, #163].
 - Established Ruff formatting and lint baselines across source and tests, with
