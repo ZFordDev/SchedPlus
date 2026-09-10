@@ -350,11 +350,13 @@ def get_entry(task_id: str) -> Task | None:
 
 
 def list_entries() -> list[Task]:
-    rows = _run(lambda connection: connection.execute("""
+    rows = _run(
+        lambda connection: connection.execute("""
             SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt, notes, priority, duration, category, recurrence, recurrenceEnd, reminder, board_stage
             FROM entries
             ORDER BY date ASC, time ASC
-            """).fetchall())
+            """).fetchall()
+    )
     return [_task_from_row(row) for row in rows]
 
 
@@ -436,13 +438,15 @@ def uncomplete_entry(task_id: str) -> None:
 
 
 def list_completed_entries() -> list[Task]:
-    rows = _run(lambda connection: connection.execute("""
+    rows = _run(
+        lambda connection: connection.execute("""
             SELECT id, date, time, text, createdAt, updatedAt, completed, completedAt,
                    notes, priority, duration, category, recurrence, recurrenceEnd, reminder, board_stage
             FROM entries
             WHERE completed = 'true'
             ORDER BY completedAt DESC
-            """).fetchall())
+            """).fetchall()
+    )
     return [_task_from_row(row) for row in rows]
 
 
