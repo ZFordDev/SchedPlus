@@ -8,9 +8,11 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from PyQt6.QtWidgets import QApplication
 
 from logic import local_time
+from logic.ical_import import ICSImportPlan, SkippedEvent
 from logic.scheduler import Task
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
 from ui.pyqt.calendar_view import CalendarWorkspace
+from ui.pyqt.ics_import_dialog import IcsImportDialog
 from ui.pyqt.settings_dialog import SettingsDialog, UiPreferences
 from ui.pyqt.task_list import TaskListWidget, TaskTableModel
 from ui.pyqt.window import SchedPlusWindow
@@ -306,3 +308,37 @@ def test_today_button_remains_visible_after_navigating_away(app):
     workspace.refresh()
 
     assert not workspace.today_button.isHidden()
+
+
+def _ics_plan():
+    return ICSImportPlan(
+        tasks=[
+            Task(date="2026-09-11", time="14:00", text="Standup"),
+            Task(date="2026-09-12", time="09:00", text="Planning"),
+        ],
+        duplicates=1,
+        skipped=[SkippedEvent("Repeats", "recurring")],
+        event_count=4,
+    )
+
+
+def test_ics_import_dialog_previews_and_confirms_selection(app):
+    dialog = IcsImportDialog(_ics_plan())
+
+    assert dialog.table.rowCount() == 4
+    assert dialog.confirmed_tasks() == dialog._plan.tasks
+    assert dialog.import_button.isEnabled()
+
+    dialog._checks[0].setChecked(False)
+    confirmed = dialog.confirmed_tasks()
+    assert [task.text for task in confirmed] == ["Planning"]
+
+
+def test_ics_import_dialog_disables_import_when_nothing_selected(app):
+    dialog = IcsImportDialog(_ics_plan())
+
+    for check in dialog._checks:
+        check.setChecked(False)
+
+    assert not dialog.import_button.isEnabled()
+    assert dialog.confirmed_tasks() == []
