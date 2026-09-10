@@ -165,3 +165,75 @@ def test_database_errors_use_stderr_and_failure_exit_code():
     assert code == 1
     assert stdout == ""
     assert stderr == "Database error: Database is locked\n"
+
+
+ICS_EXPORT = """BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:20260911T140000Z
+UID:i1@example.com
+SUMMARY:Standup
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/New_York:20260912T100000
+UID:i2@example.com
+SUMMARY:Repeats
+RRULE:FREQ=WEEKLY
+END:VEVENT
+END:VCALENDAR
+"""
+
+
+def test_import_ics_dry_run_previews_without_committing(
+    scheduler, monkeypatch, tmp_path
+):
+    ics = tmp_path / "events.ics"
+    ics.write_text(ICS_EXPORT, encoding="utf-8")
+    recorded = []
+    monkeypatch.setattr(sqlite_storage, "import_entries", recorded.append)
+
+    code, stdout, stderr = execute(["import-ics", str(ics), "--dry-run"], scheduler)
+
+    assert code == 0
+    assert stderr == ""
+    assert "1 ready to import" in stdout
+    assert "skipped: Repeats (recurring)" in stdout
+    assert recorded == []
+
+
+def test_import_ics_reports_invalid_file(scheduler, tmp_path):
+    ics = tmp_path / "bad.ics"
+    ics.write_text("not an icalendar file", encoding="utf-8")
+
+    code, stdout, stderr = execute(["import-ics", str(ics)], scheduler)
+
+    assert code == 2
+    assert stdout == ""
+    assert "Error:" in stderr
+
+
+def test_import_ics_commits_and_reloads_scheduler(monkeypatch, tmp_path):
+    from io import StringIO
+
+    from cli.commands import run_command
+
+    database = tmp_path / "data" / "tasks.db"
+    database.parent.mkdir()
+    monkeypatch.setattr(sqlite_storage, "prepare_database", lambda: database)
+    monkeypatch.setattr(sqlite_storage, "_configure_logging", lambda _directory: None)
+    sqlite_storage.initialize_database()
+    scheduler = Scheduler()
+    ics = tmp_path / "events.ics"
+    ics.write_text(ICS_EXPORT, encoding="utf-8")
+
+    stdout = StringIO()
+    stderr = StringIO()
+    code = run_command(
+        ["import-ics", str(ics)], scheduler, stdout=stdout, stderr=stderr
+    )
+
+    assert code == 0
+    assert "Imported 1 event(s)." in stdout.getvalue()
+    assert stderr.getvalue() == ""
+    assert len(scheduler.tasks) == 1
+    assert scheduler.tasks[0].text == "Standup"

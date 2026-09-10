@@ -15,6 +15,7 @@ from logic.data_transfer import (
     import_tasks,
     restore_backup,
 )
+from logic.ical_import import commit_ical_import, plan_ical_import
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from schedplus.identity import get_application_identity
@@ -30,6 +31,7 @@ COMMANDS = {
     "restore",
     "export",
     "import",
+    "import-ics",
     "update",
 }
 
@@ -117,6 +119,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     import_parser.add_argument("path", type=Path, help="Task export .json file")
     import_parser.set_defaults(handler=_import_data)
+
+    import_ics_parser = subparsers.add_parser(
+        "import-ics", help="Import events from an iCalendar (.ics) file"
+    )
+    import_ics_parser.add_argument("path", type=Path, help="iCalendar .ics file")
+    import_ics_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the import without changing the database",
+    )
+    import_ics_parser.set_defaults(handler=_import_ics_data)
 
     update_parser = subparsers.add_parser("update", help="Manage application updates")
     update_commands = update_parser.add_subparsers(
@@ -277,6 +290,24 @@ def _import_data(options, scheduler, stdout):
         f"and {result.conflicts} conflict(s).",
         file=stdout,
     )
+    return 0
+
+
+def _import_ics_data(options, scheduler, stdout):
+    plan = plan_ical_import(options.path, scheduler.get_tasks())
+    skipped = plan.duplicates + len(plan.skipped)
+    print(
+        f"Found {plan.event_count} event(s): {plan.ready} ready to import, "
+        f"{skipped} skipped (duplicates or unsupported).",
+        file=stdout,
+    )
+    for item in plan.skipped:
+        print(f"  skipped: {item.text} ({item.reason})", file=stdout)
+    if options.dry_run or not plan.tasks:
+        return 0
+    imported = commit_ical_import(plan.tasks)
+    scheduler.load_tasks()
+    print(f"Imported {imported} event(s).", file=stdout)
     return 0
 
 

@@ -21,7 +21,7 @@ def test_core_profile_contains_no_desktop_dependencies():
     dependencies = _project_metadata()["dependencies"]
     normalized = " ".join(dependencies).lower()
 
-    assert dependencies == ["cryptography>=44.0.0"]
+    assert dependencies == ["cryptography>=44.0.0", "icalendar>=6.0.0"]
     assert "pyqt" not in normalized
     assert "tkcalendar" not in normalized
     assert "babel" not in normalized

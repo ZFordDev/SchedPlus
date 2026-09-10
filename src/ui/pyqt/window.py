@@ -25,11 +25,17 @@ from logic.data_transfer import (
     import_tasks,
     restore_backup,
 )
+from logic.ical_import import (
+    ICalImportError,
+    commit_ical_import,
+    plan_ical_import,
+)
 from logic.storage.sqlite_storage import StorageError
 from logic.validation import ValidationError
 from schedplus.identity import get_application_identity
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
 from ui.pyqt.calendar_view import CalendarWorkspace
+from ui.pyqt.ics_import_dialog import IcsImportDialog
 from ui.pyqt.settings_dialog import SettingsDialog, SettingsStore, UiPreferences
 from ui.pyqt.task_list import TaskListWidget
 from ui.pyqt.theme import BASE_QSS
@@ -63,10 +69,12 @@ class SchedPlusWindow(QMainWindow):
         data_menu.addSeparator()
         self.export_action = data_menu.addAction("Export tasks…")
         self.import_action = data_menu.addAction("Import tasks…")
+        self.import_ics_action = data_menu.addAction("Import calendar (.ics)…")
         self.backup_action.triggered.connect(self.backup_data)
         self.restore_action.triggered.connect(self.restore_data)
         self.export_action.triggered.connect(self.export_data)
         self.import_action.triggered.connect(self.import_data)
+        self.import_ics_action.triggered.connect(self.import_ics_data)
 
         help_menu = self.menuBar().addMenu("Help")
         self.check_update_action = help_menu.addAction("Check for updates")
@@ -404,6 +412,37 @@ class SchedPlusWindow(QMainWindow):
             )
         except (DataTransferError, StorageError) as exc:
             QMessageBox.critical(self, "Unable to import tasks", str(exc))
+
+    def import_ics_data(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Import calendar events", "", "iCalendar (*.ics)"
+        )
+        if not path:
+            return
+        try:
+            plan = plan_ical_import(Path(path), self.scheduler.get_tasks())
+        except ICalImportError as exc:
+            QMessageBox.critical(self, "Unable to import calendar events", str(exc))
+            return
+        dialog = IcsImportDialog(plan, self)
+        if not dialog.exec():
+            return
+        selected = dialog.confirmed_tasks()
+        if not selected:
+            return
+        try:
+            imported = commit_ical_import(selected)
+            self.scheduler.load_tasks()
+            self.refresh_views()
+            QMessageBox.information(
+                self,
+                "Calendar import complete",
+                f"Imported {imported} calendar event(s). "
+                f"{plan.duplicates + len(plan.skipped)} event(s) were not imported "
+                f"(see the preview for reasons).",
+            )
+        except StorageError as exc:
+            QMessageBox.critical(self, "Unable to import calendar events", str(exc))
 
     def _run_data_action(self, success_message, operation):
         try:
