@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QPushButton,
     QScrollArea,
     QVBoxLayout,
@@ -33,9 +34,18 @@ class BoardCard(QWidget):
     def __init__(self, task, parent=None):
         super().__init__(parent)
         self.task = task
+        self._column = None
         self.setObjectName("BoardCard")
-        self.setToolTip("Drag to a column to move it; double-click to edit")
+        self.setToolTip(
+            "Drag to a column to move it; double-click to edit. "
+            "Arrow keys move between cards."
+        )
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setAccessibleName(f"Task: {task.text}")
+        self.setAccessibleDescription(
+            BOARD_STAGE_LABELS.get(task.board_stage, "Not on board")
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 10, 12, 10)
@@ -124,6 +134,34 @@ class BoardCard(QWidget):
             self.edit_requested.emit(self.task)
         super().mouseDoubleClickEvent(event)
 
+    def keyPressEvent(self, event):
+        key = event.key()
+        board = self._column.board if self._column is not None else None
+        if key == Qt.Key.Key_Left:
+            if board is not None:
+                board.move_focus(self, column_delta=-1)
+            event.accept()
+        elif key == Qt.Key.Key_Right:
+            if board is not None:
+                board.move_focus(self, column_delta=1)
+            event.accept()
+        elif key == Qt.Key.Key_Up:
+            if board is not None:
+                board.move_focus(self, row_delta=-1)
+            event.accept()
+        elif key == Qt.Key.Key_Down:
+            if board is not None:
+                board.move_focus(self, row_delta=1)
+            event.accept()
+        elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            self.edit_requested.emit(self.task)
+            event.accept()
+        elif key == Qt.Key.Key_Delete:
+            self.delete_requested.emit(self.task)
+            event.accept()
+        else:
+            super().keyPressEvent(event)
+
 
 class BoardColumn(QWidget):
     """A single stage column holding task cards."""
@@ -136,11 +174,13 @@ class BoardColumn(QWidget):
     def __init__(self, stage: str, parent=None):
         super().__init__(parent)
         self.stage = stage
+        self.board = None
         self.setObjectName("BoardColumn")
         self.setAcceptDrops(True)
         self.setToolTip("Drop a card here to move it")
 
         title = BOARD_STAGE_LABELS[stage]
+        self.setAccessibleName(title)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 12, 10, 12)
         layout.setSpacing(8)
@@ -175,6 +215,7 @@ class BoardColumn(QWidget):
                 widget.deleteLater()
         for task in tasks:
             card = BoardCard(task)
+            card._column = self
             card.edit_requested.connect(self.edit_requested)
             card.delete_requested.connect(self.delete_requested)
             card.complete_requested.connect(self.complete_requested)
@@ -223,6 +264,11 @@ class BoardView(QWidget):
         heading_row = QHBoxLayout()
         heading = QLabel("Kanban")
         heading.setObjectName("PageHeading")
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search cards…")
+        self.search_input.setClearButtonEnabled(True)
+        self.search_input.setAccessibleName("Search Kanban cards")
+        self.search_input.setMaximumWidth(230)
         self.count_label = QLabel()
         self.count_label.setObjectName("MutedLabel")
         self.add_button = QPushButton("＋ Add task")
@@ -230,6 +276,7 @@ class BoardView(QWidget):
         self.add_button.setAccessibleName("Add new task")
         heading_row.addWidget(heading)
         heading_row.addStretch()
+        heading_row.addWidget(self.search_input)
         heading_row.addWidget(self.count_label)
         heading_row.addWidget(self.add_button)
         layout.addLayout(heading_row)
@@ -241,6 +288,7 @@ class BoardView(QWidget):
         self.columns: dict[str, BoardColumn] = {}
         for stage in BOARD_STAGES:
             column = BoardColumn(stage)
+            column.board = self
             column.edit_requested.connect(self.edit_requested)
             column.delete_requested.connect(self.delete_requested)
             column.complete_requested.connect(self.complete_requested)
@@ -256,22 +304,73 @@ class BoardView(QWidget):
         layout.addWidget(self.empty_label, 1)
 
         self.add_button.clicked.connect(self.add_requested)
+        self.search_input.textChanged.connect(self._apply_search)
+        self.search_text = ""
         self.refresh()
 
     def refresh(self):
-        grouped = group_by_stage(self.scheduler.get_tasks())
-        total_on_board = sum(len(tasks) for tasks in grouped.values())
+        all_tasks = self.scheduler.get_tasks()
+        query = self.search_text
+        visible = [
+            task for task in all_tasks if not query or query in task.text.casefold()
+        ]
+        grouped = group_by_stage(visible)
+        on_board = sum(len(tasks) for tasks in grouped.values())
         for stage, column in self.columns.items():
             column.set_tasks(grouped[stage])
-        self.columns_widget.setVisible(total_on_board > 0)
-        self.empty_label.setVisible(total_on_board == 0)
-        self.empty_label.setText(
-            "No tasks on the board.\n"
-            "Add a task and tick \u201cAdd to Kanban\u201d to start planning."
+        self.columns_widget.setVisible(on_board > 0)
+        self.empty_label.setVisible(on_board == 0)
+        if query and on_board == 0 and any(bool(t.board_stage) for t in all_tasks):
+            self.empty_label.setText("No cards match the search.")
+        else:
+            self.empty_label.setText(
+                "No tasks on the board.\n"
+                "Add a task and tick \u201cAdd to Kanban\u201d to start planning."
+            )
+        self.count_label.setText(f"{on_board} of {len(all_tasks)} tasks on the board")
+
+    def _apply_search(self, text: str):
+        self.search_text = text.strip().casefold()
+        self.refresh()
+
+    def _cards(self, stage: str) -> list[BoardCard]:
+        layout = self.columns[stage].card_layout
+        cards: list[BoardCard] = []
+        for index in range(layout.count()):
+            item = layout.itemAt(index)
+            if item is None:
+                continue
+            widget = item.widget()
+            if isinstance(widget, BoardCard):
+                cards.append(widget)
+        return cards
+
+    def _nav_target(
+        self, card: BoardCard, column_delta=0, row_delta=0
+    ) -> BoardCard | None:
+        stages = list(BOARD_STAGES)
+        columns = {stage: self._cards(stage) for stage in stages}
+        current_col = next(
+            (index for index, stage in enumerate(stages) if card in columns[stage]),
+            None,
         )
-        self.count_label.setText(
-            f"{total_on_board} of {len(self.scheduler.get_tasks())} tasks on the board"
-        )
+        if current_col is None or not columns[stages[current_col]]:
+            return None
+        current_row = columns[stages[current_col]].index(card)
+        target_col = max(0, min(len(stages) - 1, current_col + column_delta))
+        target_cards = columns[stages[target_col]]
+        if not target_cards:
+            return None
+        if column_delta:
+            target_row = min(current_row, len(target_cards) - 1)
+        else:
+            target_row = max(0, min(len(target_cards) - 1, current_row + row_delta))
+        return target_cards[target_row]
+
+    def move_focus(self, card: BoardCard, column_delta=0, row_delta=0):
+        target = self._nav_target(card, column_delta, row_delta)
+        if target is not None:
+            target.setFocus()
 
     def _resolve_move(self, task_id: str, stage: str):
         for task in self.scheduler.get_tasks():

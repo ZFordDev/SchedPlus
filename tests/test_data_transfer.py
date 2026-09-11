@@ -70,6 +70,18 @@ def test_backup_and_restore_round_trip_tasks_and_preferences(data_environment):
     assert safety_document["tasks"][0]["id"] == "replacement"
 
 
+def test_ui_preferences_accept_board_filter_and_startup_value(data_environment):
+    prefs = _ui_preferences()
+    prefs["task_filter"] = "board"
+    prefs["startup_view"] = "board"
+    backup = data_environment / "backup.json"
+
+    data_transfer.create_backup(backup, ui_preferences=prefs)
+    result = data_transfer.restore_backup(backup)
+
+    assert result.ui_preferences == prefs
+
+
 def test_malformed_restore_does_not_change_data_or_create_safety_backup(
     data_environment,
 ):

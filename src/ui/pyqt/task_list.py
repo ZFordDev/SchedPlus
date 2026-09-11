@@ -104,6 +104,8 @@ class TaskFilterProxyModel(QSortFilterProxyModel):
             return task.date == today and not is_completed
         if self.task_filter == "upcoming":
             return task.date >= today and not is_completed
+        if self.task_filter == "board":
+            return bool(task.board_stage)
         return True
 
 
