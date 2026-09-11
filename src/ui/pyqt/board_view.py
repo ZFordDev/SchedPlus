@@ -61,7 +61,9 @@ class BoardCard(QWidget):
         text.setWordWrap(True)
         layout.addWidget(text)
 
-        schedule = QLabel(f"{task.date} {task.time}".strip())
+        schedule = QLabel(
+            f"{task.date} {task.time}".strip() if task.date else "Unscheduled"
+        )
         schedule.setObjectName("MutedLabel")
         layout.addWidget(schedule)
 
