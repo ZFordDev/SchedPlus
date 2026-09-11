@@ -154,9 +154,14 @@ Add **Kanban** as a fourth navigation entry in `window.py`:
 - One column widget per stage, rendered from `scheduler.get_tasks()` grouped
   by `task.board_stage`. Cards are only tasks whose `board_stage` matches.
 - Signals mirror `TaskListWidget`: `add_requested`, `edit_requested`,
-  `delete_requested`, `complete_requested` — wired in `window.py` to the
-  existing handlers (`open_add_dialog`, `open_edit_dialog`, `delete_task`,
-  `complete_task`).
+  `complete_requested` — wired in `window.py` to the existing handlers
+  (`open_add_dialog`, `open_edit_dialog`, `complete_task`). The board has no
+  delete action: cards are never deleted from the board (the task list and
+  calendar are the only places that delete tasks). A card can be taken off the
+  board by clearing "Add to Kanban" in the edit dialog.
+- Cards alternate a plain/tinted background so adjacent cards read as separate
+  entries, and carry small icon-only action buttons (tick = complete,
+  pencil = edit) with tooltips and accessible names.
 - `refresh()` rebuilds from `scheduler.get_tasks()` so board data is always
   the task list itself (Task and Calendar remain the source of truth).
 - Empty states: a whole-board empty state and a per-column "no tasks" spill.

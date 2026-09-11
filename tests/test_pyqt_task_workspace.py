@@ -501,7 +501,7 @@ def test_board_search_filters_cards(app):
     assert "2 of 2 tasks on the board" in board.count_label.text()
 
 
-def test_board_card_keyboard_enter_edits_and_delete_deletes(app):
+def test_board_card_keyboard_enter_edits(app):
     from PyQt6.QtTest import QTest
 
     task = Task(date="2026-09-11", time="09:00", text="Card", board_stage="backlog")
@@ -509,15 +509,36 @@ def test_board_card_keyboard_enter_edits_and_delete_deletes(app):
     column.set_tasks([task])
     card = column.card_layout.itemAt(0).widget()
     edited = []
-    deleted = []
     card.edit_requested.connect(edited.append)
-    card.delete_requested.connect(deleted.append)
 
     QTest.keyClick(card, Qt.Key.Key_Return)
     QTest.keyClick(card, Qt.Key.Key_Delete)
 
     assert edited == [task]
-    assert deleted == [task]
+
+
+def test_board_cards_alternate_zebra_tint(app):
+    column = BoardColumn("backlog")
+    tasks = [
+        Task(date="2026-09-11", time="09:00", text="One", board_stage="backlog"),
+        Task(date="2026-09-12", time="09:00", text="Two", board_stage="backlog"),
+        Task(date="2026-09-13", time="09:00", text="Three", board_stage="backlog"),
+    ]
+    column.set_tasks(tasks)
+
+    zebras = [column.card_layout.itemAt(i).widget().property("zebra") for i in range(3)]
+    assert zebras == ["plain", "tinted", "plain"]
+
+
+def test_board_card_has_no_delete_action(app):
+    task = Task(date="2026-09-11", time="09:00", text="Card", board_stage="backlog")
+    column = BoardColumn("backlog")
+    column.set_tasks([task])
+    card = column.card_layout.itemAt(0).widget()
+
+    assert not hasattr(card, "delete_button")
+    assert card.complete_button.icon().isNull() is False
+    assert card.edit_button.icon().isNull() is False
 
 
 def test_board_arrow_keys_navigate_between_columns(app):

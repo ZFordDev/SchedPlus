@@ -186,6 +186,7 @@ class Scheduler:
                     completedAt="",
                     createdAt=datetime.now(timezone.utc).isoformat(),
                     updatedAt=datetime.now(timezone.utc).isoformat(),
+                    board_stage="",
                 )
                 db.create_entry(new_task)
                 self.tasks.append(new_task)

@@ -121,7 +121,6 @@ class SchedPlusWindow(QMainWindow):
         self.calendar_page.reschedule_requested.connect(self.reschedule_task)
         self.board_page.add_requested.connect(self.open_add_dialog)
         self.board_page.edit_requested.connect(self.open_edit_dialog)
-        self.board_page.delete_requested.connect(self.delete_task)
         self.board_page.complete_requested.connect(self.complete_task)
         self.board_page.move_requested.connect(self.move_board_task)
 

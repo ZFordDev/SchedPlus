@@ -402,6 +402,24 @@ QWidget#BoardCard {
 QWidget#BoardCard:hover {
     border-color: #CBD5E1;
 }
+QWidget#BoardCard[zebra="tinted"] {
+    background: #F1F5F9;
+}
+QPushButton#CardIconButton {
+    min-width: 26px;
+    max-width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+}
+QPushButton#CardIconButton:hover {
+    background: #DBEAFE;
+}
+QPushButton#CardIconButton:pressed {
+    background: #BFDBFE;
+}
 QLabel#CardText {
     color: #172033;
     font-weight: 600;

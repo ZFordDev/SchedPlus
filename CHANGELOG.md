@@ -23,6 +23,11 @@
   filters [#225].
 - A **Scheduled only** task filter hides date-less tasks, and date-less tasks
   now sort as if due now (nearest to today) in every order.
+- Board cards alternate plain/tinted backgrounds so adjacent cards read as
+  separate entries, and card actions are compact icon buttons (tick =
+  complete, pencil = edit) with tooltips. The board deliberately has **no delete
+  action**: a task can only be removed in the Tasks/Calendar views (or taken
+  off the board by clearing "Add to Kanban").
 
 ### Fixed
 - Dragging a card to another column no longer leaves a stale copy behind in the
@@ -33,6 +38,8 @@
   longer lags the code version.
 - The Repeat fields are disabled while a task is marked Unscheduled, since a
   recurring task needs a due date.
+- Completing a recurring task no longer duplicates it on the board: the next
+  occurrence is created off the board, so only the completed card remains.
 
 ### Docs
 - Added `docs/kanban-board-design.md`, the approved design for the Kanban board

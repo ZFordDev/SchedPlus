@@ -129,6 +129,22 @@ def test_new_occurrence_is_uncompleted_and_persisted(scheduler, frozen_clock):
     assert storage.list_completed_entries()[0].id == task.id
 
 
+def test_completed_board_task_successor_stays_off_board(scheduler, frozen_clock):
+    task = scheduler.add_task(
+        date="2026-08-20", time="09:00", text="Board chain", board_stage="backlog"
+    )
+    _with_recurrence(scheduler, task, "weekly")
+
+    scheduler.complete_task(task.id)
+
+    original = next(t for t in scheduler.get_tasks() if t.id == task.id)
+    successor = next(t for t in scheduler.get_tasks() if t.date == "2026-08-27")
+    assert original.board_stage == "backlog"
+    assert original.completed == "true"
+    assert successor.board_stage == ""
+    assert successor.completed == ""
+
+
 def test_completed_entries_carry_optional_fields(scheduler):
     task = scheduler.add_task(date="2026-08-20", time="10:00", text="Rich task")
     rich = replace(

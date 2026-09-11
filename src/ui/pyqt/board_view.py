@@ -1,7 +1,8 @@
 """Kanban board view for planning tasks."""
 
 from PyQt6.QtCore import QMimeData, Qt, pyqtSignal
-from PyQt6.QtGui import QDrag
+from PyQt6.QtGui import QDrag, QIcon, QPainter, QPixmap
+from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -23,12 +24,46 @@ BOARD_STAGE_LABELS = {
 
 BOARD_MIME_TYPE = "application/x-schedplus-task"
 
+_TICK_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">'
+    '<path d="M4 10.5l4 4 8-9" fill="none" stroke="#16a34a" '
+    'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+)
+
+_UNCOMPLETE_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">'
+    '<g fill="none" stroke="#475569" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M4.5 7.5C5.8 5 8.3 3.5 11 3.5c4 0 6.5 2.8 6.5 6.5'
+    's-2.5 6.5-6.5 6.5A6.4 6.4 0 0 1 5.6 14"/>'
+    '<path d="M4.5 3.5v4.5H9"/></g></svg>'
+)
+
+_PENCIL_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">'
+    '<g fill="none" stroke="#475569" stroke-width="1.8" '
+    'stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M4 16l.8-2.8 8.2-8.2 2 2-8.2 8.2L4 16z"/>'
+    '<path d="M12 5l2 2"/></g></svg>'
+)
+
+
+def _icon_from_svg(svg: str, size: int = 16) -> QIcon:
+    renderer = QSvgRenderer()
+    if not renderer.load(bytes(svg, "utf-8")):
+        return QIcon()
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    renderer.render(painter)
+    painter.end()
+    return QIcon(pixmap)
+
 
 class BoardCard(QWidget):
     """A single task card rendered on the board."""
 
     edit_requested = pyqtSignal(object)
-    delete_requested = pyqtSignal(object)
     complete_requested = pyqtSignal(object)
 
     def __init__(self, task, parent=None):
@@ -94,27 +129,28 @@ class BoardCard(QWidget):
 
         actions = QHBoxLayout()
         actions.setSpacing(6)
-        self.complete_button = QPushButton(
-            "Uncomplete" if task.completed == "true" else "Complete"
-        )
-        self.complete_button.setObjectName("SecondaryButton")
-        self.complete_button.setAccessibleName(
-            "Mark task incomplete" if task.completed == "true" else "Complete task"
-        )
-        self.edit_button = QPushButton("Edit")
-        self.edit_button.setObjectName("SecondaryButton")
+        self.complete_button = QPushButton()
+        if task.completed == "true":
+            self.complete_button.setIcon(_icon_from_svg(_UNCOMPLETE_SVG))
+            self.complete_button.setToolTip("Mark task incomplete")
+            self.complete_button.setAccessibleName("Mark task incomplete")
+        else:
+            self.complete_button.setIcon(_icon_from_svg(_TICK_SVG))
+            self.complete_button.setToolTip("Complete task")
+            self.complete_button.setAccessibleName("Complete task")
+        self.complete_button.setObjectName("CardIconButton")
+        self.edit_button = QPushButton()
+        self.edit_button.setIcon(_icon_from_svg(_PENCIL_SVG))
+        self.edit_button.setToolTip("Edit task")
         self.edit_button.setAccessibleName("Edit task")
-        self.delete_button = QPushButton("Delete")
-        self.delete_button.setObjectName("DangerButton")
-        self.delete_button.setAccessibleName("Delete task")
+        self.edit_button.setObjectName("CardIconButton")
         actions.addWidget(self.complete_button)
         actions.addWidget(self.edit_button)
-        actions.addWidget(self.delete_button)
+        actions.addStretch()
         layout.addLayout(actions)
 
         self.complete_button.clicked.connect(lambda: self.complete_requested.emit(task))
         self.edit_button.clicked.connect(lambda: self.edit_requested.emit(task))
-        self.delete_button.clicked.connect(lambda: self.delete_requested.emit(task))
 
     @staticmethod
     def drag_mime(task) -> QMimeData:
@@ -158,9 +194,6 @@ class BoardCard(QWidget):
         elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             self.edit_requested.emit(self.task)
             event.accept()
-        elif key == Qt.Key.Key_Delete:
-            self.delete_requested.emit(self.task)
-            event.accept()
         else:
             super().keyPressEvent(event)
 
@@ -169,7 +202,6 @@ class BoardColumn(QWidget):
     """A single stage column holding task cards."""
 
     edit_requested = pyqtSignal(object)
-    delete_requested = pyqtSignal(object)
     complete_requested = pyqtSignal(object)
     move_requested = pyqtSignal(str, str)
 
@@ -218,11 +250,11 @@ class BoardColumn(QWidget):
                 widget.setParent(None)
                 widget.deleteLater()
         self.card_layout.addStretch()
-        for task in tasks:
+        for index, task in enumerate(tasks):
             card = BoardCard(task)
             card._column = self
+            card.setProperty("zebra", "tinted" if index % 2 else "plain")
             card.edit_requested.connect(self.edit_requested)
-            card.delete_requested.connect(self.delete_requested)
             card.complete_requested.connect(self.complete_requested)
             self.card_layout.insertWidget(self.card_layout.count() - 1, card)
         self.empty_label.setVisible(len(tasks) == 0)
@@ -254,7 +286,6 @@ class BoardView(QWidget):
 
     add_requested = pyqtSignal()
     edit_requested = pyqtSignal(object)
-    delete_requested = pyqtSignal(object)
     complete_requested = pyqtSignal(object)
     move_requested = pyqtSignal(object, str)
 
@@ -295,7 +326,6 @@ class BoardView(QWidget):
             column = BoardColumn(stage)
             column.board = self
             column.edit_requested.connect(self.edit_requested)
-            column.delete_requested.connect(self.delete_requested)
             column.complete_requested.connect(self.complete_requested)
             column.move_requested.connect(self._resolve_move)
             self.columns[stage] = column
