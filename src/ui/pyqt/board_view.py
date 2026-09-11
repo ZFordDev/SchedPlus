@@ -208,11 +208,14 @@ class BoardColumn(QWidget):
         layout.addWidget(scroll, 1)
 
     def set_tasks(self, tasks):
-        while self.card_layout.count() > 1:
-            item = self.card_layout.takeAt(1)
+        while self.card_layout.count():
+            item = self.card_layout.takeAt(0)
             widget = item.widget()
             if widget is not None:
+                widget.hide()
+                widget.setParent(None)
                 widget.deleteLater()
+        self.card_layout.addStretch()
         for task in tasks:
             card = BoardCard(task)
             card._column = self

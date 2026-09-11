@@ -407,6 +407,41 @@ def test_window_undo_reverts_board_move(app, task_database):
     assert scheduler.load_tasks()[0].board_stage == "backlog"
 
 
+def test_board_column_set_tasks_evicts_stale_cards(app):
+    column = BoardColumn("backlog")
+    column.set_tasks([Task(date="2026-09-11", time="09:00", text="Card")])
+    stale = column.card_layout.itemAt(0).widget()
+
+    column.set_tasks([])
+
+    assert not stale.isVisible()
+    assert column.card_layout.count() == 1
+    for index in range(column.card_layout.count()):
+        assert column.card_layout.itemAt(index).widget() is None
+
+
+def test_board_refresh_does_not_keep_moved_card_in_source_column(app):
+    task = Task(date="2026-09-11", time="09:00", text="Card", board_stage="backlog")
+    scheduler = MemoryScheduler([task])
+    board = BoardView(scheduler)
+    stored = scheduler.load_tasks()
+    stored[0] = Task(
+        id=task.id,
+        date=task.date,
+        time=task.time,
+        text=task.text,
+        createdAt=task.createdAt,
+        updatedAt=task.updatedAt,
+        board_stage="done",
+    )
+
+    board.refresh()
+
+    assert board.columns["done"].card_layout.count() == 2
+    assert board.columns["backlog"].card_layout.count() == 1
+    assert not board.columns["backlog"].empty_label.isHidden()
+
+
 def test_task_proxy_filters_on_board_only(app):
     model = TaskTableModel(
         [
