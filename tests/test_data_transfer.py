@@ -22,7 +22,7 @@ def data_environment(monkeypatch, tmp_path):
     return data_dir
 
 
-def _task(identifier="task-1", text="Original"):
+def _task(identifier="task-1", text="Original", board_stage="in_progress"):
     return Task(
         id=identifier,
         date="2026-08-15",
@@ -30,6 +30,7 @@ def _task(identifier="task-1", text="Original"):
         text=text,
         createdAt="2026-08-15T00:00:00",
         updatedAt="2026-08-15T00:00:00",
+        board_stage=board_stage,
     )
 
 
@@ -67,6 +68,18 @@ def test_backup_and_restore_round_trip_tasks_and_preferences(data_environment):
     assert result.safety_backup.exists()
     safety_document = json.loads(result.safety_backup.read_text(encoding="utf-8"))
     assert safety_document["tasks"][0]["id"] == "replacement"
+
+
+def test_ui_preferences_accept_board_filter_and_startup_value(data_environment):
+    prefs = _ui_preferences()
+    prefs["task_filter"] = "board"
+    prefs["startup_view"] = "board"
+    backup = data_environment / "backup.json"
+
+    data_transfer.create_backup(backup, ui_preferences=prefs)
+    result = data_transfer.restore_backup(backup)
+
+    assert result.ui_preferences == prefs
 
 
 def test_malformed_restore_does_not_change_data_or_create_safety_backup(
@@ -128,6 +141,45 @@ def test_cli_exposes_backup_restore_export_and_import(data_environment):
     assert run_command(["restore", str(backup), "--yes"], scheduler) == 0
     assert run_command(["import", str(export)], scheduler) == 0
     assert scheduler.get_tasks() == [_task()]
+
+
+def test_export_includes_board_stage(data_environment):
+    original = _task(board_stage="done")
+    sqlite_storage.create_entry(original)
+    export = data_environment / "tasks.json"
+
+    data_transfer.export_tasks(export)
+
+    document = json.loads(export.read_text(encoding="utf-8"))
+    assert document["tasks"][0]["board_stage"] == "done"
+
+
+def test_import_without_board_stage_loads_off_board(data_environment):
+    source = data_environment / "legacy.json"
+    source.write_text(
+        json.dumps(
+            {
+                "format": "schedplus-task-export",
+                "format_version": 1,
+                "tasks": [
+                    {
+                        "id": "task-1",
+                        "date": "2026-08-15",
+                        "time": "09:30",
+                        "text": "Legacy task",
+                        "createdAt": "2026-08-15T00:00:00",
+                        "updatedAt": "2026-08-15T00:00:00",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = data_transfer.import_tasks(source)
+
+    assert result == data_transfer.ImportResult(1, 0, 0)
+    assert sqlite_storage.list_entries()[0].board_stage == ""
 
 
 @pytest.mark.parametrize(

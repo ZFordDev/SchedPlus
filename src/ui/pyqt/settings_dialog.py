@@ -43,6 +43,8 @@ FILTERS = {
     "completed": "Completed",
     "today": "Today",
     "upcoming": "Upcoming",
+    "board": "On board",
+    "scheduled": "Scheduled only",
 }
 
 
@@ -204,6 +206,7 @@ class SettingsDialog(QDialog):
         self.startup_view = QComboBox()
         self.startup_view.addItem("Tasks", "tasks")
         self.startup_view.addItem("Calendar", "calendar")
+        self.startup_view.addItem("Kanban", "board")
         self.startup_view.setCurrentIndex(
             self.startup_view.findData(preferences.startup_view)
         )

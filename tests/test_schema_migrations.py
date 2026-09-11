@@ -139,6 +139,42 @@ def test_failed_migration_rolls_back_and_preserves_backup(database, monkeypatch)
         )
 
 
+def test_migration_7_keeps_existing_rows_off_board(database):
+    _create_legacy_database(database, "0.8.0")
+
+    storage.initialize_database()
+
+    with sqlite3.connect(database) as connection:
+        columns = [row[1] for row in connection.execute("PRAGMA table_info(entries)")]
+        assert "board_stage" in columns
+        assert connection.execute("SELECT board_stage FROM entries").fetchone() == ("",)
+    assert storage.get_entry("from-0.8.0").board_stage == ""
+
+
+def test_task_from_row_guards_missing_board_stage_column():
+    row = (
+        "task-1",
+        "2026-08-15",
+        "09:30",
+        "Pre-board row",
+        "2026-08-15T00:00:00",
+        "2026-08-15T00:00:00",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+    )
+
+    task = storage._task_from_row(row)
+
+    assert task.board_stage == ""
+
+
 def test_newer_schema_is_refused_without_modification_or_backup(database):
     _create_legacy_database(database, "future")
     with sqlite3.connect(database) as connection:

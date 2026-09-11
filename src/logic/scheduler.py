@@ -40,6 +40,7 @@ class Task:
     recurrence: str = ""
     recurrenceEnd: str = ""
     reminder: str = ""
+    board_stage: str = ""
 
 
 class Scheduler:
@@ -75,6 +76,7 @@ class Scheduler:
         recurrence: str = "",
         recurrenceEnd: str = "",
         reminder: str = "",
+        board_stage: str = "",
     ):
         from .storage import sqlite_storage as db
 
@@ -90,6 +92,7 @@ class Scheduler:
                 recurrence=recurrence,
                 recurrenceEnd=recurrenceEnd,
                 reminder=reminder,
+                board_stage=board_stage,
             )
         )
         db.create_entry(task)
@@ -183,6 +186,7 @@ class Scheduler:
                     completedAt="",
                     createdAt=datetime.now(timezone.utc).isoformat(),
                     updatedAt=datetime.now(timezone.utc).isoformat(),
+                    board_stage="",
                 )
                 db.create_entry(new_task)
                 self.tasks.append(new_task)

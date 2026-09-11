@@ -1,5 +1,59 @@
 # Changelog
 
+## v0.10.1 (2026-09-23)
+
+### Info
+> Rollout note: the Kanban board is new in this release. It is published to the
+> Snap `edge` channel first so the Linux community can help surface issues
+> before it is promoted to a stable channel.
+
+### Added
+- Kanban planning board with an opt-in **board stage** (backlog / in progress /
+  done): an "Add to Kanban" option in the create and edit dialogs, a board page
+  reachable from the sidebar with per-column counts and empty states, and
+  per-card Complete and Edit actions [#203].
+- Drag-and-drop card movement between board columns, saved as a normal task
+  edit so Ctrl+Z undoes a move; moving a card between stages never changes its
+  completion state [#204].
+- Board search by card text, an **On board** filter in the Tasks view,
+  arrow-key navigation across columns and cards, double-click or Enter to edit,
+  and accessible names and descriptions on cards and columns [#205].
+- **Unscheduled** tasks for deadline-independent planning: tasks can be created
+  and edited without a date and time, board cards are labelled "Unscheduled",
+  and date-less tasks are kept out of the calendar and the Today/Upcoming
+  filters [#225].
+- A **Scheduled only** task filter hides date-less tasks, and date-less tasks
+  now sort as if due now (nearest to today) in every order.
+- Board cards alternate plain/tinted backgrounds so adjacent cards read as
+  separate entries, and card actions are compact icon buttons (tick =
+  complete, pencil = edit) with tooltips. The board deliberately has **no delete
+  action**: a task can only be removed in the Tasks/Calendar views (or taken
+  off the board by clearing "Add to Kanban").
+
+### Fixed
+- Dragging a card to another column no longer leaves a stale copy behind in the
+  original column; a board rebuild now evicts every card and restores the
+  column's spacer [#192].
+- Version-derived packaging metadata (Windows version resource and Snap
+  manifest) is kept in sync with the project version so release metadata no
+  longer lags the code version.
+- The Repeat fields are disabled while a task is marked Unscheduled, since a
+  recurring task needs a due date.
+- Completing a recurring task no longer duplicates it on the board: the next
+  occurrence is created off the board, so only the completed card remains.
+
+### Docs
+- Added `docs/kanban-board-design.md`, the approved design for the Kanban board
+  covering the data model, storage layer, user interface, and delivery model
+  [#202].
+
+### Plan
+- Add a `--board` stage option to `schedplus add` and `schedplus edit`, making
+  `--date`/`--time` optional so unscheduled planning cards can also be created
+  from the CLI [#228].
+- Publish Kanban board documentation through DocsHub now that the feature's
+  shape is confirmed [#192].
+
 ## v0.9.3 (2026-09-09)
 
 ### Info

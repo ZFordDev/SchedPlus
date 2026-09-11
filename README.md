@@ -29,6 +29,10 @@ control.
 - Create, edit, delete, search, filter, and sort scheduled tasks.
 - Plan through native month, week, and day calendar views.
 - Create tasks from the calendar and drag them to reschedule.
+- Plan with a Kanban board: drag cards between Backlog, In progress, and Done
+  columns, search cards, and mark them complete (`docs/kanban-board-design.md`).
+- Create unscheduled (date-less) tasks for planning, with a "Scheduled only"
+  filter when you need just dated tasks.
 - Choose the advanced PyQt workspace, lightweight Tkinter interface, or CLI.
 - Keep task data in a platform-appropriate local SQLite database.
 - Create versioned local backups and portable JSON task exports.
