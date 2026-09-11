@@ -36,6 +36,21 @@ def validate_task(task: TaskType) -> TaskType:
     time = task.time.strip()
     text = task.text.strip()
 
+    if not date and not time:
+        # Unscheduled planning task (e.g. a Kanban card with no due date).
+        if not text:
+            raise ValidationError("Task text cannot be empty.")
+        task.board_stage = validate_board_stage(getattr(task, "board_stage", ""))
+        task.date = ""
+        task.time = ""
+        task.text = text
+        return task
+
+    if not date or not time:
+        raise ValidationError(
+            "A task must have both a date and a time, or neither (unscheduled)."
+        )
+
     try:
         parsed_date = date_value.fromisoformat(date)
     except (TypeError, ValueError) as exc:

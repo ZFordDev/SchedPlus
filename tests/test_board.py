@@ -65,6 +65,18 @@ def test_add_task_persists_board_stage(database):
     assert scheduler.load_tasks()[0].board_stage == "in_progress"
 
 
+def test_unscheduled_task_roundtrips_without_date(database):
+    storage.initialize_database()
+    scheduler = Scheduler()
+
+    task = scheduler.add_task("", "", "Brainstorm ideas", board_stage="backlog")
+
+    persisted = scheduler.load_tasks()[0]
+    assert persisted.id == task.id
+    assert (persisted.date, persisted.time) == ("", "")
+    assert persisted.board_stage == "backlog"
+
+
 def test_update_task_changes_and_clears_board_stage(database):
     storage.initialize_database()
     scheduler = Scheduler()

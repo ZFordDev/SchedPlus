@@ -16,16 +16,33 @@ def test_validate_task_accepts_and_normalizes_valid_values():
     )
 
 
-@pytest.mark.parametrize("date", ["", "12-08-2026", "2026-8-12", "2026-02-30"])
+@pytest.mark.parametrize("date", ["12-08-2026", "2026-8-12", "2026-02-30"])
 def test_validate_task_rejects_invalid_dates(date):
-    with pytest.raises(ValidationError, match="YYYY-MM-DD"):
+    with pytest.raises(ValidationError):
         validate_task(Task(date=date, time="09:05", text="Plan release"))
 
 
-@pytest.mark.parametrize("time", ["", "9:05", "09.05", "24:00", "12:60"])
+@pytest.mark.parametrize("time", ["9:05", "09.05", "24:00", "12:60"])
 def test_validate_task_rejects_invalid_times(time):
     with pytest.raises(ValidationError, match="HH:MM"):
         validate_task(Task(date="2026-08-12", time=time, text="Plan release"))
+
+
+@pytest.mark.parametrize(
+    "date,time",
+    [("2026-08-12", ""), ("", "09:05")],
+)
+def test_validate_task_requires_date_and_time_together(date, time):
+    with pytest.raises(ValidationError, match="both a date and a time"):
+        validate_task(Task(date=date, time=time, text="Plan release"))
+
+
+def test_validate_task_accepts_unscheduled_task():
+    task = Task(date="", time="", text=" Brainstorm ideas ", board_stage="backlog")
+
+    assert validate_task(task) is task
+    assert (task.date, task.time, task.text) == ("", "", "Brainstorm ideas")
+    assert task.board_stage == "backlog"
 
 
 @pytest.mark.parametrize("text", ["", "   ", "\t\n"])

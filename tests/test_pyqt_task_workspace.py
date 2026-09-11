@@ -6,7 +6,7 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PyQt6.QtCore import QMimeData, Qt
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QLabel
 
 from logic import local_time
 from logic.ical_import import ICSImportPlan, SkippedEvent
@@ -610,6 +610,58 @@ def test_edit_dialog_defaults_unchecked_for_off_board_tasks(app):
 
     assert not dialog.board_checkbox.isChecked()
     assert dialog.get_values()[10] == ""
+
+
+def test_add_dialog_unscheduled_yields_empty_date_and_time(app):
+    dialog = AddTaskDialog()
+
+    assert not dialog.unscheduled_checkbox.isChecked()
+    assert dialog.date_input.isEnabled()
+
+    dialog.unscheduled_checkbox.setChecked(True)
+
+    assert not dialog.date_input.isEnabled()
+    assert not dialog.time_input.isEnabled()
+    values = dialog.get_values()
+    assert values[0] == ""
+    assert values[1] == ""
+
+
+def test_edit_dialog_preselects_unscheduled_for_dateless_task(app):
+    task = Task(date="", time="", text="Planning card", board_stage="backlog")
+    dialog = EditTaskDialog(task)
+
+    assert dialog.unscheduled_checkbox.isChecked()
+    assert not dialog.date_input.isEnabled()
+    assert dialog.get_values()[0] == ""
+
+
+def test_board_card_marks_dateless_task_unscheduled(app):
+    task = Task(text="Planning card", board_stage="backlog")
+    column = BoardColumn("backlog")
+    column.set_tasks([task])
+    card = column.card_layout.itemAt(0).widget()
+
+    assert any(label.text() == "Unscheduled" for label in card.findChildren(QLabel))
+
+
+def test_task_proxy_filters_exclude_unscheduled_from_date_filters(app):
+    today = local_time.today().isoformat()
+    model = TaskTableModel(
+        [
+            Task(date="", time="", text="Planning card", board_stage="backlog"),
+            Task(date=today, time="09:00", text="Today task"),
+        ]
+    )
+    proxy = TaskFilterProxyModel()
+    proxy.setSourceModel(model)
+
+    proxy.set_task_filter("today")
+    assert proxy.rowCount() == 1
+    assert proxy.index(0, 0).data(Qt.ItemDataRole.UserRole).text == "Today task"
+
+    proxy.set_task_filter("upcoming")
+    assert proxy.rowCount() == 1
 
 
 def test_native_calendar_renders_month_week_and_day(app):

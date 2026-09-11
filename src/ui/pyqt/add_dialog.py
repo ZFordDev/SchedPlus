@@ -61,6 +61,12 @@ class TaskDialog(QDialog):
         self.time_input.setDisplayFormat(time_format)
         self.time_input.setAccessibleName("Due time")
 
+        self.unscheduled_checkbox = QCheckBox("Unscheduled")
+        self.unscheduled_checkbox.setAccessibleName("Mark task unscheduled")
+        self.unscheduled_checkbox.setToolTip(
+            "Planning-only task without a due date (used by the Kanban board)"
+        )
+
         self.notes_input = QLineEdit()
         self.notes_input.setPlaceholderText("Optional notes")
         self.notes_input.setClearButtonEnabled(True)
@@ -115,6 +121,7 @@ class TaskDialog(QDialog):
         form.addRow("Task", self.text_input)
         form.addRow("Date", self.date_input)
         form.addRow("Time", self.time_input)
+        form.addRow("", self.unscheduled_checkbox)
         form.addRow("Notes", self.notes_input)
         form.addRow("Priority", self.priority_input)
         form.addRow("Duration", self.duration_input)
@@ -136,8 +143,11 @@ class TaskDialog(QDialog):
 
         if task:
             self.text_input.setText(task.text)
-            self.date_input.setDate(QDate.fromString(task.date, "yyyy-MM-dd"))
-            self.time_input.setTime(QTime.fromString(task.time, "HH:mm"))
+            if task.date:
+                self.date_input.setDate(QDate.fromString(task.date, "yyyy-MM-dd"))
+                self.time_input.setTime(QTime.fromString(task.time, "HH:mm"))
+            else:
+                self.unscheduled_checkbox.setChecked(True)
             self.notes_input.setText(getattr(task, "notes", "") or "")
             priority = getattr(task, "priority", "") or ""
             idx = self.priority_input.findText(priority)
@@ -179,10 +189,17 @@ class TaskDialog(QDialog):
             self.board_combo.setCurrentIndex(0)
 
         self.board_checkbox.toggled.connect(self._sync_board_controls)
+        self.unscheduled_checkbox.toggled.connect(self._sync_schedule_controls)
+        self._sync_schedule_controls()
         self.text_input.setFocus()
 
     def _sync_board_controls(self):
         self.board_combo.setEnabled(self.board_checkbox.isChecked())
+
+    def _sync_schedule_controls(self):
+        unscheduled = self.unscheduled_checkbox.isChecked()
+        self.date_input.setEnabled(not unscheduled)
+        self.time_input.setEnabled(not unscheduled)
 
     def get_values(
         self,
@@ -193,8 +210,12 @@ class TaskDialog(QDialog):
         if recurrence:
             recurrence_end = self.recurrence_end_input.date().toString("yyyy-MM-dd")
         reminder = self.reminder_input.value()
-        date_str = self.date_input.date().toString("yyyy-MM-dd")
-        time_str = self.time_input.time().toString("HH:mm")
+        if self.unscheduled_checkbox.isChecked():
+            date_str = ""
+            time_str = ""
+        else:
+            date_str = self.date_input.date().toString("yyyy-MM-dd")
+            time_str = self.time_input.time().toString("HH:mm")
         board_stage = (
             self.board_combo.currentData() if self.board_checkbox.isChecked() else ""
         )
