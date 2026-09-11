@@ -487,7 +487,7 @@ def test_board_search_filters_cards(app):
 
     assert board.columns["backlog"].card_layout.count() == 2
     assert board.columns["in_progress"].card_layout.count() == 1
-    assert "1 of 2 tasks on the board" in board.count_label.text()
+    assert "1 of 2 tasks match on the board" in board.count_label.text()
 
     board.search_input.setText("zzz")
 
@@ -636,6 +636,19 @@ def test_edit_dialog_preselects_unscheduled_for_dateless_task(app):
     assert dialog.get_values()[0] == ""
 
 
+def test_unscheduled_dialogs_disable_repeat_controls(app):
+    task = Task(date="", time="", text="Planning card", board_stage="backlog")
+    dialog = EditTaskDialog(task)
+
+    dialog.unscheduled_checkbox.setChecked(False)
+    assert dialog.recurrence_input.isEnabled()
+    assert dialog.recurrence_end_input.isEnabled()
+
+    dialog.unscheduled_checkbox.setChecked(True)
+    assert not dialog.recurrence_input.isEnabled()
+    assert not dialog.recurrence_end_input.isEnabled()
+
+
 def test_board_card_marks_dateless_task_unscheduled(app):
     task = Task(text="Planning card", board_stage="backlog")
     column = BoardColumn("backlog")
@@ -662,6 +675,49 @@ def test_task_proxy_filters_exclude_unscheduled_from_date_filters(app):
 
     proxy.set_task_filter("upcoming")
     assert proxy.rowCount() == 1
+
+
+def test_task_proxy_scheduled_filter_excludes_unscheduled(app):
+    model = TaskTableModel(
+        [
+            Task(date="", time="", text="Planning card", board_stage="backlog"),
+            Task(date="2026-01-01", time="09:00", text="Dated task"),
+        ]
+    )
+    proxy = TaskFilterProxyModel()
+    proxy.setSourceModel(model)
+
+    proxy.set_task_filter("all")
+    assert proxy.rowCount() == 2
+
+    proxy.set_task_filter("scheduled")
+    assert proxy.rowCount() == 1
+    assert proxy.index(0, 0).data(Qt.ItemDataRole.UserRole).text == "Dated task"
+
+
+def test_task_proxy_sorts_unscheduled_as_now(app):
+    today = local_time.today()
+    yesterday = today - timedelta(days=1)
+    tomorrow = today + timedelta(days=1)
+    tasks = [
+        Task(date=tomorrow.isoformat(), time="23:59", text="Future task"),
+        Task(date="", time="", text="Planning card", board_stage="backlog"),
+        Task(date=yesterday.isoformat(), time="00:01", text="Past task"),
+        Task(date=today.isoformat(), time="12:00", text="Today task"),
+    ]
+    model = TaskTableModel(tasks)
+    proxy = TaskFilterProxyModel()
+    proxy.setSourceModel(model)
+    proxy.sort(0, Qt.SortOrder.AscendingOrder)
+
+    ordered = [
+        proxy.index(row, 0).data(Qt.ItemDataRole.UserRole).text
+        for row in range(proxy.rowCount())
+    ]
+    assert ordered.index("Planning card") > ordered.index("Past task")
+    assert ordered.index("Planning card") < ordered.index("Future task")
+    assert ordered[0] == "Past task"
+    assert ordered[-1] == "Future task"
 
 
 def test_native_calendar_renders_month_week_and_day(app):

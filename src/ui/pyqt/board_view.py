@@ -77,7 +77,7 @@ class BoardCard(QWidget):
             priority = QLabel("High priority")
             priority.setObjectName("PriorityHigh")
             meta.addWidget(priority)
-        for value, label in (("duration", "min"), ("recurrence", "")):
+        for value, label in (("duration", " min"), ("recurrence", "")):
             stored = getattr(task, value) or ""
             if not stored:
                 continue
@@ -332,7 +332,11 @@ class BoardView(QWidget):
                 "No tasks on the board.\n"
                 "Add a task and tick \u201cAdd to Kanban\u201d to start planning."
             )
-        self.count_label.setText(f"{on_board} of {len(all_tasks)} tasks on the board")
+        self.count_label.setText(
+            f"{on_board} of {len(all_tasks)} tasks match on the board"
+            if query
+            else f"{on_board} of {len(all_tasks)} tasks on the board"
+        )
 
     def _apply_search(self, text: str):
         self.search_text = text.strip().casefold()

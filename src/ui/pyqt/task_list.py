@@ -87,6 +87,24 @@ class TaskFilterProxyModel(QSortFilterProxyModel):
         self.task_filter = task_filter
         self.invalidateFilter()
 
+    def _sort_key(self, task) -> tuple[str, str]:
+        if task.date and task.time:
+            return (task.date, task.time)
+        return (local_time.today().isoformat(), local_time.now().strftime("%H:%M"))
+
+    def lessThan(self, left, right):
+        if not left.isValid() or not right.isValid():
+            return super().lessThan(left, right)
+        column = int(left.column())
+        if column not in (0, 1):
+            return super().lessThan(left, right)
+        model = self.sourceModel()
+        left_key = self._sort_key(model.tasks[left.row()])
+        right_key = self._sort_key(model.tasks[right.row()])
+        if column == 0:
+            return left_key < right_key
+        return left_key[1] < right_key[1]
+
     def filterAcceptsRow(self, source_row, source_parent):
         model = self.sourceModel()
         task = model.tasks[source_row]
@@ -106,6 +124,8 @@ class TaskFilterProxyModel(QSortFilterProxyModel):
             return task.date >= today and not is_completed
         if self.task_filter == "board":
             return bool(task.board_stage)
+        if self.task_filter == "scheduled":
+            return bool(task.date and task.time)
         return True
 
 

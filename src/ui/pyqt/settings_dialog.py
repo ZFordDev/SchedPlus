@@ -44,6 +44,7 @@ FILTERS = {
     "today": "Today",
     "upcoming": "Upcoming",
     "board": "On board",
+    "scheduled": "Scheduled only",
 }
 
 

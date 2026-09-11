@@ -93,6 +93,11 @@ def validate_board_stage(value: str) -> str:
   disagree about what a valid stage is.
 - `validate_task()` calls `validate_board_stage` on `getattr(task,
   "board_stage", "")` so every persistence path is covered.
+- Unscheduled (date-less, time-less) tasks are valid for planning; a task with
+  only one of date or time set is rejected. The create/edit dialog disables the
+  Repeat fields while `Unscheduled` is checked, since a recurring task is
+  meaningless without a due date. (Repeat values already present on a dateless
+  task are left untouched and ignored.)
 
 ## 5. Serialization (backup / restore / export / import)
 

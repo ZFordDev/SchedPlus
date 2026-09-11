@@ -21,6 +21,8 @@
   and edited without a date and time, board cards are labelled "Unscheduled",
   and date-less tasks are kept out of the calendar and the Today/Upcoming
   filters [#225].
+- A **Scheduled only** task filter hides date-less tasks, and date-less tasks
+  now sort as if due now (nearest to today) in every order.
 
 ### Fixed
 - Dragging a card to another column no longer leaves a stale copy behind in the
@@ -29,6 +31,8 @@
 - Version-derived packaging metadata (Windows version resource and Snap
   manifest) is kept in sync with the project version so release metadata no
   longer lags the code version.
+- The Repeat fields are disabled while a task is marked Unscheduled, since a
+  recurring task needs a due date.
 
 ### Docs
 - Added `docs/kanban-board-design.md`, the approved design for the Kanban board
@@ -38,7 +42,7 @@
 ### Plan
 - Add a `--board` stage option to `schedplus add` and `schedplus edit`, making
   `--date`/`--time` optional so unscheduled planning cards can also be created
-  from the CLI [#225].
+  from the CLI [#228].
 - Publish Kanban board documentation through DocsHub once the feature's final
   shape is confirmed [#192].
 - Decide the delivery outcome for the experimental branch (integrate to `main`

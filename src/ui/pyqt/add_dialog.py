@@ -200,6 +200,8 @@ class TaskDialog(QDialog):
         unscheduled = self.unscheduled_checkbox.isChecked()
         self.date_input.setEnabled(not unscheduled)
         self.time_input.setEnabled(not unscheduled)
+        self.recurrence_input.setEnabled(not unscheduled)
+        self.recurrence_end_input.setEnabled(not unscheduled)
 
     def get_values(
         self,

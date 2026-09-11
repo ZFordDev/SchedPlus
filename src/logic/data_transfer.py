@@ -201,7 +201,7 @@ def _validate_ui_preferences(value: object) -> dict[str, Any]:
     choices = {
         "sort_field": {"date", "time", "text", "status", "created"},
         "sort_order": {"ascending", "descending"},
-        "task_filter": {"all", "active", "completed", "today", "upcoming", "board"},
+        "task_filter": {"all", "active", "completed", "today", "upcoming", "board", "scheduled"},
         "startup_view": {"tasks", "calendar", "board"},
         "calendar_view": {"month", "week", "day"},
         "first_day_of_week": {"monday", "sunday"},
