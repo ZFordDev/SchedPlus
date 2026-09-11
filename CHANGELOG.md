@@ -3,20 +3,21 @@
 ## v0.10.1 (2026-09-23)
 
 ### Info
-> This branch is experimental and may never make it to production.
+> Rollout note: the Kanban board is new in this release. It is published to the
+> Snap `edge` channel first so the Linux community can help surface issues
+> before it is promoted to a stable channel.
 
 ### Added
 - Kanban planning board with an opt-in **board stage** (backlog / in progress /
   done): an "Add to Kanban" option in the create and edit dialogs, a board page
   reachable from the sidebar with per-column counts and empty states, and
-  per-card Complete, Edit, and Delete actions [#203].
+  per-card Complete and Edit actions [#203].
 - Drag-and-drop card movement between board columns, saved as a normal task
   edit so Ctrl+Z undoes a move; moving a card between stages never changes its
   completion state [#204].
 - Board search by card text, an **On board** filter in the Tasks view,
   arrow-key navigation across columns and cards, double-click or Enter to edit,
-  Delete to remove, and accessible names and descriptions on cards and columns
-  [#205].
+  and accessible names and descriptions on cards and columns [#205].
 - **Unscheduled** tasks for deadline-independent planning: tasks can be created
   and edited without a date and time, board cards are labelled "Unscheduled",
   and date-less tasks are kept out of the calendar and the Today/Upcoming
@@ -50,10 +51,8 @@
 - Add a `--board` stage option to `schedplus add` and `schedplus edit`, making
   `--date`/`--time` optional so unscheduled planning cards can also be created
   from the CLI [#228].
-- Publish Kanban board documentation through DocsHub once the feature's final
+- Publish Kanban board documentation through DocsHub now that the feature's
   shape is confirmed [#192].
-- Decide the delivery outcome for the experimental branch (integrate to `main`
-  or cut) after further hardening, per the design's delivery model [#192].
 
 ## v0.9.3 (2026-09-09)
 
