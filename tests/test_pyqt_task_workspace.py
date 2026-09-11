@@ -17,7 +17,7 @@ from ui.pyqt.board_view import BOARD_MIME_TYPE, BoardCard, BoardColumn, BoardVie
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.ics_import_dialog import IcsImportDialog
 from ui.pyqt.settings_dialog import SettingsDialog, UiPreferences
-from ui.pyqt.task_list import TaskListWidget, TaskTableModel
+from ui.pyqt.task_list import TaskFilterProxyModel, TaskListWidget, TaskTableModel
 from ui.pyqt.window import SchedPlusWindow
 from updater.config import BuildInfo
 from updater.preferences import UpdatePreferences
@@ -405,6 +405,142 @@ def test_window_undo_reverts_board_move(app, task_database):
     scheduler.undo_manager.undo()
 
     assert scheduler.load_tasks()[0].board_stage == "backlog"
+
+
+def test_task_proxy_filters_on_board_only(app):
+    model = TaskTableModel(
+        [
+            Task(date="2026-09-11", time="09:00", text="On cards", board_stage="done"),
+            Task(date="2026-09-12", time="10:00", text="Plain row"),
+        ]
+    )
+    proxy = TaskFilterProxyModel()
+    proxy.setSourceModel(model)
+    proxy.set_task_filter("board")
+
+    assert proxy.rowCount() == 1
+    assert proxy.index(0, 0).data(Qt.ItemDataRole.UserRole).text == "On cards"
+
+
+def test_settings_offer_board_filter_and_kanban_startup(app):
+    dialog = SettingsDialog(UiPreferences())
+
+    assert dialog.task_filter.findData("board") != -1
+    assert dialog.startup_view.findData("board") != -1
+
+
+def test_board_search_filters_cards(app):
+    scheduler = MemoryScheduler(
+        [
+            Task(
+                date="2026-09-11",
+                time="09:00",
+                text="Plan release",
+                board_stage="backlog",
+            ),
+            Task(
+                date="2026-09-12",
+                time="10:00",
+                text="Write tests",
+                board_stage="in_progress",
+            ),
+        ]
+    )
+    board = BoardView(scheduler)
+
+    board.search_input.setText("release")
+
+    assert board.columns["backlog"].card_layout.count() == 2
+    assert board.columns["in_progress"].card_layout.count() == 1
+    assert "1 of 2 tasks on the board" in board.count_label.text()
+
+    board.search_input.setText("zzz")
+
+    assert board.columns_widget.isHidden()
+    assert not board.empty_label.isHidden()
+    assert "No cards match the search." in board.empty_label.text()
+
+    board.search_input.clear()
+
+    assert not board.columns_widget.isHidden()
+    assert "2 of 2 tasks on the board" in board.count_label.text()
+
+
+def test_board_card_keyboard_enter_edits_and_delete_deletes(app):
+    from PyQt6.QtTest import QTest
+
+    task = Task(date="2026-09-11", time="09:00", text="Card", board_stage="backlog")
+    column = BoardColumn("backlog")
+    column.set_tasks([task])
+    card = column.card_layout.itemAt(0).widget()
+    edited = []
+    deleted = []
+    card.edit_requested.connect(edited.append)
+    card.delete_requested.connect(deleted.append)
+
+    QTest.keyClick(card, Qt.Key.Key_Return)
+    QTest.keyClick(card, Qt.Key.Key_Delete)
+
+    assert edited == [task]
+    assert deleted == [task]
+
+
+def test_board_arrow_keys_navigate_between_columns(app):
+    scheduler = MemoryScheduler(
+        [
+            Task(
+                date="2026-09-11",
+                time="09:00",
+                text="Backlog card",
+                board_stage="backlog",
+            ),
+            Task(
+                date="2026-09-11",
+                time="09:30",
+                text="Second backlog",
+                board_stage="backlog",
+            ),
+            Task(
+                date="2026-09-12",
+                time="10:00",
+                text="Doing card",
+                board_stage="in_progress",
+            ),
+            Task(
+                date="2026-09-13",
+                time="11:00",
+                text="Done card",
+                board_stage="done",
+            ),
+        ]
+    )
+    board = BoardView(scheduler)
+    backlog, backlog_two = board._cards("backlog")
+    doing = board._cards("in_progress")[0]
+    done = board._cards("done")[0]
+
+    assert board._nav_target(backlog, column_delta=1) is doing
+    assert board._nav_target(backlog, column_delta=2) is done
+    assert board._nav_target(done, column_delta=-2) is backlog
+    assert board._nav_target(backlog_two, row_delta=-1) is backlog
+    assert board._nav_target(backlog, row_delta=1) is backlog_two
+    assert board._nav_target(backlog, row_delta=-1) is backlog
+    assert board._nav_target(backlog_two, row_delta=1) is backlog_two
+
+
+def test_window_complete_reflects_on_board_and_task_list(app, task_database):
+    storage.initialize_database()
+    scheduler = Scheduler()
+    task = scheduler.add_task(
+        "2026-09-11", "09:00", "Plan release", board_stage="backlog"
+    )
+    window = SchedPlusWindow(scheduler)
+
+    window.complete_task(task)
+
+    assert scheduler.load_tasks()[0].completed == "true"
+    assert window.board_page.columns["backlog"].card_layout.count() == 2
+    assert window.task_list.model.tasks[0].completed == "true"
 
 
 def test_add_dialog_boards_task_when_checked(app):
