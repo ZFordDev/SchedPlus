@@ -1,5 +1,49 @@
 # Changelog
 
+## v0.10.1 (2026-09-23)
+
+### Info
+> This branch is experimental and may never make it to production.
+
+### Added
+- Kanban planning board with an opt-in **board stage** (backlog / in progress /
+  done): an "Add to Kanban" option in the create and edit dialogs, a board page
+  reachable from the sidebar with per-column counts and empty states, and
+  per-card Complete, Edit, and Delete actions [#203].
+- Drag-and-drop card movement between board columns, saved as a normal task
+  edit so Ctrl+Z undoes a move; moving a card between stages never changes its
+  completion state [#204].
+- Board search by card text, an **On board** filter in the Tasks view,
+  arrow-key navigation across columns and cards, double-click or Enter to edit,
+  Delete to remove, and accessible names and descriptions on cards and columns
+  [#205].
+- **Unscheduled** tasks for deadline-independent planning: tasks can be created
+  and edited without a date and time, board cards are labelled "Unscheduled",
+  and date-less tasks are kept out of the calendar and the Today/Upcoming
+  filters [#225].
+
+### Fixed
+- Dragging a card to another column no longer leaves a stale copy behind in the
+  original column; a board rebuild now evicts every card and restores the
+  column's spacer [#192].
+- Version-derived packaging metadata (Windows version resource and Snap
+  manifest) is kept in sync with the project version so release metadata no
+  longer lags the code version.
+
+### Docs
+- Added `docs/kanban-board-design.md`, the approved design for the Kanban board
+  covering the data model, storage layer, user interface, and delivery model
+  [#202].
+
+### Plan
+- Add a `--board` stage option to `schedplus add` and `schedplus edit`, making
+  `--date`/`--time` optional so unscheduled planning cards can also be created
+  from the CLI [#225].
+- Publish Kanban board documentation through DocsHub once the feature's final
+  shape is confirmed [#192].
+- Decide the delivery outcome for the experimental branch (integrate to `main`
+  or cut) after further hardening, per the design's delivery model [#192].
+
 ## v0.9.3 (2026-09-09)
 
 ### Info
