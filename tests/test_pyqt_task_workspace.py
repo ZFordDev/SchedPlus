@@ -5,13 +5,15 @@ import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+from PyQt6.QtCore import QMimeData, Qt
 from PyQt6.QtWidgets import QApplication
 
 from logic import local_time
 from logic.ical_import import ICSImportPlan, SkippedEvent
-from logic.scheduler import Task
+from logic.scheduler import Scheduler, Task
+from logic.storage import sqlite_storage as storage
 from ui.pyqt.add_dialog import AddTaskDialog, EditTaskDialog
-from ui.pyqt.board_view import BoardColumn, BoardView
+from ui.pyqt.board_view import BOARD_MIME_TYPE, BoardCard, BoardColumn, BoardView
 from ui.pyqt.calendar_view import CalendarWorkspace
 from ui.pyqt.ics_import_dialog import IcsImportDialog
 from ui.pyqt.settings_dialog import SettingsDialog, UiPreferences
@@ -36,6 +38,15 @@ class MemoryScheduler:
 def app():
     application = QApplication.instance() or QApplication([])
     yield application
+
+
+@pytest.fixture
+def task_database(monkeypatch, tmp_path):
+    path = tmp_path / "data" / "tasks.db"
+    path.parent.mkdir()
+    monkeypatch.setattr(storage, "prepare_database", lambda: path)
+    monkeypatch.setattr(storage, "_configure_logging", lambda _directory: None)
+    return path
 
 
 def test_theme_installs_brand_palette_and_covers_core_widgets(app):
@@ -272,7 +283,7 @@ def test_board_empty_state(app):
 
 def test_board_column_cards_forward_signals(app):
     task = Task(date="2026-09-11", time="09:00", text="Card", board_stage="backlog")
-    column = BoardColumn("Backlog")
+    column = BoardColumn("backlog")
     column.set_tasks([task])
     emitted = []
     column.complete_requested.connect(emitted.append)
@@ -297,6 +308,103 @@ def test_board_reflects_refreshed_scheduler(app):
     assert not board.columns_widget.isHidden()
     assert board.columns["done"].card_layout.count() == 2
     assert "1 of 1 tasks" in board.count_label.text()
+
+
+def test_board_card_mime_carries_task_id(app):
+    task = Task(date="2026-09-11", time="09:00", text="Card")
+    card = BoardCard(task)
+
+    assert card.drag_mime(task).hasFormat(BOARD_MIME_TYPE)
+    assert bytes(card.drag_mime(task).data(BOARD_MIME_TYPE)).decode("utf-8") == task.id
+
+
+def test_board_column_accepts_task_drops(app):
+    from PyQt6.QtCore import QPoint, QPointF
+    from PyQt6.QtGui import QDragEnterEvent, QDropEvent
+
+    column = BoardColumn("backlog")
+    moved = []
+    column.move_requested.connect(lambda task_id, stage: moved.append((task_id, stage)))
+
+    mime = QMimeData()
+    mime.setData(BOARD_MIME_TYPE, b"task-1")
+    enter = QDragEnterEvent(
+        QPoint(4, 4),
+        Qt.DropAction.MoveAction,
+        mime,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    column.dragEnterEvent(enter)
+    assert enter.isAccepted()
+
+    drop = QDropEvent(
+        QPointF(4, 4),
+        Qt.DropAction.MoveAction,
+        mime,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    column.dropEvent(drop)
+
+    assert drop.isAccepted()
+    assert moved == [("task-1", "backlog")]
+
+
+def test_board_view_resolves_column_move_to_task(app):
+    task = Task(date="2026-09-11", time="09:00", text="Card", board_stage="backlog")
+    board = BoardView(MemoryScheduler([task]))
+    emitted = []
+    board.move_requested.connect(lambda moved, stage: emitted.append((moved, stage)))
+
+    board.columns["backlog"].move_requested.emit(task.id, "done")
+
+    assert emitted == [(task, "done")]
+
+
+def test_window_board_move_persists_without_touching_completion(app, task_database):
+    storage.initialize_database()
+    scheduler = Scheduler()
+    task = scheduler.add_task(
+        "2026-09-11", "09:00", "Plan release", board_stage="backlog"
+    )
+    window = SchedPlusWindow(scheduler)
+
+    window.move_board_task(task, "done")
+
+    persisted = scheduler.load_tasks()[0]
+    assert persisted.board_stage == "done"
+    assert persisted.completed == task.completed
+    assert window.board_page.columns["done"].card_layout.count() == 2
+
+
+def test_window_board_move_to_same_column_is_noop(app, task_database):
+    storage.initialize_database()
+    scheduler = Scheduler()
+    task = scheduler.add_task(
+        "2026-09-11", "09:00", "Plan release", board_stage="backlog"
+    )
+    window = SchedPlusWindow(scheduler)
+
+    window.move_board_task(task, "backlog")
+
+    assert scheduler.load_tasks()[0].board_stage == "backlog"
+
+
+def test_window_undo_reverts_board_move(app, task_database):
+    storage.initialize_database()
+    scheduler = Scheduler()
+    task = scheduler.add_task(
+        "2026-09-11", "09:00", "Plan release", board_stage="backlog"
+    )
+    window = SchedPlusWindow(scheduler)
+
+    window.move_board_task(task, "done")
+    assert scheduler.load_tasks()[0].board_stage == "done"
+
+    scheduler.undo_manager.undo()
+
+    assert scheduler.load_tasks()[0].board_stage == "backlog"
 
 
 def test_add_dialog_boards_task_when_checked(app):

@@ -1,6 +1,7 @@
 """Kanban board view for planning tasks."""
 
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import QMimeData, Qt, pyqtSignal
+from PyQt6.QtGui import QDrag
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -13,13 +14,13 @@ from PyQt6.QtWidgets import (
 
 from logic.board import BOARD_STAGES, group_by_stage
 
-STAGE_LABELS = {
+BOARD_STAGE_LABELS = {
     "backlog": "Backlog",
     "in_progress": "In progress",
     "done": "Done",
 }
 
-CARD_ACTIONS = "Complete", "Edit", "Delete"
+BOARD_MIME_TYPE = "application/x-schedplus-task"
 
 
 class BoardCard(QWidget):
@@ -33,7 +34,7 @@ class BoardCard(QWidget):
         super().__init__(parent)
         self.task = task
         self.setObjectName("BoardCard")
-        self.setToolTip("Double-click to edit")
+        self.setToolTip("Drag to a column to move it; double-click to edit")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         layout = QVBoxLayout(self)
@@ -103,6 +104,26 @@ class BoardCard(QWidget):
         self.edit_button.clicked.connect(lambda: self.edit_requested.emit(task))
         self.delete_button.clicked.connect(lambda: self.delete_requested.emit(task))
 
+    @staticmethod
+    def drag_mime(task) -> QMimeData:
+        mime = QMimeData()
+        mime.setData(BOARD_MIME_TYPE, task.id.encode("utf-8"))
+        return mime
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            drag = QDrag(self)
+            drag.setMimeData(self.drag_mime(self.task))
+            drag.setPixmap(self.grab())
+            drag.setHotSpot(drag.pixmap().rect().center())
+            drag.exec(Qt.DropAction.MoveAction)
+        super().mousePressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.edit_requested.emit(self.task)
+        super().mouseDoubleClickEvent(event)
+
 
 class BoardColumn(QWidget):
     """A single stage column holding task cards."""
@@ -110,11 +131,16 @@ class BoardColumn(QWidget):
     edit_requested = pyqtSignal(object)
     delete_requested = pyqtSignal(object)
     complete_requested = pyqtSignal(object)
+    move_requested = pyqtSignal(str, str)
 
-    def __init__(self, title: str, parent=None):
+    def __init__(self, stage: str, parent=None):
         super().__init__(parent)
+        self.stage = stage
         self.setObjectName("BoardColumn")
+        self.setAcceptDrops(True)
+        self.setToolTip("Drop a card here to move it")
 
+        title = BOARD_STAGE_LABELS[stage]
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 12, 10, 12)
         layout.setSpacing(8)
@@ -155,6 +181,27 @@ class BoardColumn(QWidget):
             self.card_layout.insertWidget(self.card_layout.count() - 1, card)
         self.empty_label.setVisible(len(tasks) == 0)
 
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat(BOARD_MIME_TYPE):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat(BOARD_MIME_TYPE):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        mime = event.mimeData()
+        if not mime.hasFormat(BOARD_MIME_TYPE):
+            event.ignore()
+            return
+        task_id = bytes(mime.data(BOARD_MIME_TYPE)).decode("utf-8")
+        self.move_requested.emit(task_id, self.stage)
+        event.acceptProposedAction()
+
 
 class BoardView(QWidget):
     """Kanban planning board: one column per stage."""
@@ -163,6 +210,7 @@ class BoardView(QWidget):
     edit_requested = pyqtSignal(object)
     delete_requested = pyqtSignal(object)
     complete_requested = pyqtSignal(object)
+    move_requested = pyqtSignal(object, str)
 
     def __init__(self, scheduler, parent=None):
         super().__init__(parent)
@@ -192,10 +240,11 @@ class BoardView(QWidget):
         self.columns_row.setSpacing(14)
         self.columns: dict[str, BoardColumn] = {}
         for stage in BOARD_STAGES:
-            column = BoardColumn(STAGE_LABELS[stage])
+            column = BoardColumn(stage)
             column.edit_requested.connect(self.edit_requested)
             column.delete_requested.connect(self.delete_requested)
             column.complete_requested.connect(self.complete_requested)
+            column.move_requested.connect(self._resolve_move)
             self.columns[stage] = column
             self.columns_row.addWidget(column, 1)
         layout.addWidget(self.columns_widget, 1)
@@ -223,6 +272,12 @@ class BoardView(QWidget):
         self.count_label.setText(
             f"{total_on_board} of {len(self.scheduler.get_tasks())} tasks on the board"
         )
+
+    def _resolve_move(self, task_id: str, stage: str):
+        for task in self.scheduler.get_tasks():
+            if task.id == task_id:
+                self.move_requested.emit(task, stage)
+                return
 
     def focus_add(self):
         self.add_button.setFocus()
