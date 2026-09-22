@@ -2,7 +2,7 @@
 
 # SchedPlus
 
-### A modern, local-first scheduler for Windows and Linux
+## 🌟 Keeping you on track 🌟
 
 [Website](https://schedplus.app/) · [Documentation](https://docs.zford.dev/schedplus/) · [Downloads](https://github.com/ZFordDev/SchedPlus/releases) · [Report a bug](https://github.com/ZFordDev/SchedPlus/issues/new/choose)
 
@@ -14,14 +14,33 @@
 
 </div>
 
-SchedPlus is a focused desktop application for organising tasks and planning
-time without requiring an account or constant network connection. Task data is
-stored locally, and backup, restore, import, and export remain under the user's
-control.
+SchedPlus is a local-first task planner built around one simple idea: **your schedule should stay yours, no matter how you choose to work with it.**
+
+Keep things simple with **Basic**, dig deeper with filters and calendar views in **Advanced**, or jump into the **CLI** when typing a command is faster. All three interfaces share the same task store, so adding, editing, completing, rescheduling, or removing something in one place keeps everything else in sync.
+
+No separate schedules. No copying tasks between interfaces. Just different ways to work with the same plan.
+
+
+## See SchedPlus at work
 
 <p align="center">
-  <img src="assets/screenshots/schedplus-tkinter.png" width="48%" alt="SchedPlus Lite interface" />
-  <img src="assets/screenshots/schedplus-pyqt.png" width="48%" alt="SchedPlus Standard interface" />
+  <img src="assets/screenshots/hero-3840x2160.png" width="48%" alt="SchedPlus Advanced task view" />
+  <img src="assets/screenshots/card-640x360.png" width="48%" alt="SchedPlus CLI task management" />
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=cBp9AbrHUe8">
+    <img src="https://img.youtube.com/vi/cBp9AbrHUe8/hqdefault.jpg" width="80%" alt="Watch the SchedPlus demo on YouTube" />
+  </a>
+  <br>
+  <sub>▶️ <i>See SchedPlus at work</i></sub>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/advanced-calendar-month-2x.png" width="48%" alt="SchedPlus Advanced month calendar" />
+  <img src="assets/screenshots/advanced-calendar-week-2x.png" width="48%" alt="SchedPlus Advanced week calendar" />
+  <img src="assets/screenshots/basic-interface-2x.png" width="48%" alt="SchedPlus Basic interface" />
+  <img src="assets/screenshots/cli-2x.png" width="48%" alt="SchedPlus CLI interface" />
 </p>
 
 ## Highlights
