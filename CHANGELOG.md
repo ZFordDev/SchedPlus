@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.9.4 (2026-10-21)
+
+### Added
+
+### Fixed
+
+### Docs
+
+### Planned
+- Add PyQt theme presets and documented custom theme files [#196]
+  - Define the semantic color token system and theme settings persistence [#214]
+  - Ship release-ready Light and Dark theme presets [#215]
+  - Add Solarized, Arctic Dark, and Forest theme presets [#216]
+  - Implement documented custom theme-file import with schema validation [#217]
+  - Define theme backup/restore policy, publish docs and example theme, add tests [#218]
+- Evaluate optional live Google Calendar synchronization [#194]
+  - Evaluate OAuth client registration, token storage, and distribution for Google Calendar sync [#206]
+  - Evaluate sync semantics for Google Calendar (read-only vs two-way, conflicts, recurrence) [#207]
+  - Evaluate privacy, background polling, and platform constraints, then produce the Google Calendar recommendation [#208]
+
 ## v0.9.3 (2026-09-23)
 
 ### Info
