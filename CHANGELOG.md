@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.9.3 (2026-09-09)
+## v0.9.3 (2026-09-23)
 
 ### Info
 > **Release Cadence Update:** Planned releases are shifting from weekly to fortnightly (targeting Wednesdays) as we transition toward a monthly release cycle. Critical fixes will still be released immediately as emergency patches.
