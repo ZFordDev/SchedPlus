@@ -4,10 +4,10 @@
 
 ## 🌟 Keeping you on track 🌟
 
-[Website](https://schedplus.app/) · [Documentation](https://docs.zford.dev/schedplus/) · [Downloads](https://github.com/ZFordDev/SchedPlus/releases) · [Report a bug](https://github.com/ZFordDev/SchedPlus/issues/new/choose)
+[Website](https://schedplus.app/) · [Documentation](https://docs.zford.dev/docs/ZFordDev/SchedPlus/) · [Downloads](https://schedplus.app/downloads/) · [Report a bug](https://github.com/ZFordDev/SchedPlus/issues/new/choose)
 
 [![Status](https://img.shields.io/badge/status-active-4CAF50?style=flat-square)](https://github.com/ZFordDev/SchedPlus)
-[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-0078D4?style=flat-square)](https://docs.zford.dev/schedplus/packaging-guide/)
+![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-0078D4?style=flat-square)
 [![GitHub downloads](https://img.shields.io/github/downloads/ZFordDev/SchedPlus/total?style=flat-square)](https://github.com/ZFordDev/SchedPlus/releases)
 [![Desktop license: GPL-3.0](https://img.shields.io/badge/desktop-GPL--3.0-blue?style=flat-square)](LICENSE)
 [![Core license: Apache-2.0](https://img.shields.io/badge/core-Apache--2.0-D22128?style=flat-square)](LICENSES/Apache-2.0.txt)
@@ -16,10 +16,9 @@
 
 SchedPlus is a local-first task planner built around one simple idea: **your schedule should stay yours, no matter how you choose to work with it.**
 
-Keep things simple with **Basic**, dig deeper with filters and calendar views in **Advanced**, or jump into the **CLI** when typing a command is faster. All three interfaces share the same task store, so adding, editing, completing, rescheduling, or removing something in one place keeps everything else in sync.
+Keep things simple with **Basic**, dig deeper with filters and calendar views in **Advanced**, or jump into the **CLI** when typing a command is faster.
 
-No separate schedules. No copying tasks between interfaces. Just different ways to work with the same plan.
-
+All three interfaces share the same task store. No separate schedules, no copying tasks between interfaces. Just different ways to work with the same plan.
 
 ## See SchedPlus at work
 
@@ -43,48 +42,37 @@ No separate schedules. No copying tasks between interfaces. Just different ways 
   <img src="assets/screenshots/cli-2x.png" width="48%" alt="SchedPlus CLI interface" />
 </p>
 
-## Highlights
+## What can it do?
 
-- Create, edit, delete, search, filter, and sort scheduled tasks.
-- Plan through native month, week, and day calendar views.
-- Create tasks from the calendar and drag them to reschedule.
-- Choose the advanced PyQt workspace, lightweight Tkinter interface, or CLI.
-- Keep task data in a platform-appropriate local SQLite database.
-- Create versioned local backups and portable JSON task exports.
-- Upgrade through signed, package-aware release metadata where supported.
-- Recover from failed schema migrations, damaged databases, and managed
-  portable-update failures.
-- Track task completion history with undo support for all common actions.
-- Organize tasks with notes, priority levels, duration estimates, and categories.
-- Set recurring tasks (daily, weekly, monthly, yearly) with optional end dates.
-- Receive offline reminders via native system notifications.
-- Configure date/time formats, week numbers, and accessibility preferences.
+Quite a bit, actually!
 
-SchedPlus is offline-first. Future online accounts, synchronization, web, and
-mobile capabilities are planned as optional additions rather than requirements
-for local task management.
+- **Calendar views**: Plan your day, week, or month.
+- **Task management**: Create, edit, organise, and complete tasks.
+- **Recurring tasks**: Daily, weekly, monthly, or yearly.
+- **Reminders**: Native notifications without needing an internet connection.
+- **Three interfaces**: Advanced, Basic, and CLI.
+- **Local storage**: Your tasks stay on your device.
+- **Backups**: Export, import, and restore your task data.
+- **Personalisation**: Adjust date formats, accessibility options, and more.
 
-## Editions
+## Choose your edition
 
-| Edition | Best for | Interface |
-| --- | --- | --- |
-| **Standard** | Recommended desktop experience | Advanced PyQt workspace |
-| **Lite** | A smaller, focused desktop workflow | Tkinter interface |
-| **Full** | Choosing either desktop interface | Interface selector |
-| **CLI** | Terminals, scripts, and automation | Command line |
+| Edition | Best for |
+|---|---|
+| **Standard** | The full Advanced desktop experience |
+| **Lite** | A lightweight, straightforward task planner |
+| **Full** | Both desktop interfaces in one package |
+| **CLI** | Terminal users and automation |
 
-Packaged releases are available as Debian packages, an AppImage, a Windows
-installer, Windows portable ZIPs, a strict-confinement Snap, and a Microsoft
-Store package. Snap and Microsoft Store installations receive Store-managed
-updates.
+SchedPlus is available for **Windows and Linux**, with installers and portable options depending on your platform.
 
-See the [installation guide](https://docs.zford.dev/schedplus/packaging-guide/)
-for current package choices, checksums, platform instructions, upgrade policy,
-and data-retention behavior.
+Grab the latest version from [GitHub Releases](https://github.com/ZFordDev/SchedPlus/releases).
 
-## Quick start from source
+For installation instructions and package details, visit the [documentation](https://docs.zford.dev/docs/ZFordDev/SchedPlus/).
 
-Python 3.10 or later is required for source installations.
+## Build from source
+
+You'll need Python 3.10 or newer.
 
 ```bash
 git clone https://github.com/ZFordDev/SchedPlus.git
@@ -95,79 +83,44 @@ pip install -e ".[full]"
 schedplus
 ```
 
-On Windows, activate with `.venv\Scripts\Activate.ps1`. Some Linux systems
-also require the operating-system `python3-tk` package for Lite.
+## Prefer the terminal?
 
-Available development profiles are `lite`, `standard`, `full`, and `dev`.
-Contributor setup and project conventions are documented in
-[CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Command-line example
+SchedPlus has a CLI too!
 
 ```bash
-schedplus add "Buy milk" --date 2026-08-20 --time 14:00
+schedplus add "Buy milk" --date 2027-01-20 --time 14:00
 schedplus list
 schedplus backup SchedPlus-backup.json
 schedplus export SchedPlus-tasks.json
 ```
 
-Run `schedplus --help` or see the
-[CLI reference](https://docs.zford.dev/schedplus/cli-reference/) for
-editing, deletion, restore, import, update, sorting, and exit-code details.
+Run `schedplus --help` to explore the available commands.
 
-## Data and privacy
+## Your data stays yours
 
-SchedPlus is a local-first application. In current releases, task data, backups,
-and preferences are stored on your device and are not uploaded or synchronized.
-Supported packages may contact GitHub for signed update metadata and verified
-downloads; Store packages use their provider's update service.
+SchedPlus is designed to work offline.
 
-SchedPlus does not store tasks inside its installation directory. Package
-upgrades and ordinary uninstallation retain the user data directory. The
-desktop **Data** menu and CLI provide local backup, restore, export, and import.
-Nothing in those operations is uploaded by SchedPlus.
+Your tasks, preferences, and backups are stored locally. No accounts or cloud synchronisation are required.
 
-For the complete privacy policy, see [PRIVACY.md](PRIVACY.md).
+Some versions can check GitHub for updates, while Store installations use their respective update services.
 
-Snap and Microsoft Store packages use Store-managed updates. Supported Debian,
-AppImage, and Windows portable builds verify signed update metadata and artifact
-checksums before presenting or installing an update. Update failures never
-prevent application startup.
+Your task data isn't uploaded as part of these operations.
 
-For exact data locations, migration behavior, backup formats, updater policy,
-and offline privacy guarantees, use the
-[SchedPlus documentation](https://docs.zford.dev/schedplus/).
+For more information, see [PRIVACY.md](PRIVACY.md).
 
-## Documentation
+## Contributing
 
-- [Getting started](https://docs.zford.dev/schedplus/getting-started/)
-- [Desktop guide](https://docs.zford.dev/schedplus/desktop-guide/)
-- [CLI reference](https://docs.zford.dev/schedplus/cli-reference/)
-- [Installation and packages](https://docs.zford.dev/schedplus/packaging-guide/)
-- [Technical overview](https://docs.zford.dev/schedplus/technical-overview/)
-- [Troubleshooting](https://docs.zford.dev/schedplus/troubleshooting/)
-- [Release history](CHANGELOG.md)
+Found a bug? Have an idea? Want to help improve SchedPlus?
 
-## Project status
+Contributions are welcome!
 
-SchedPlus is under active development. The current roadmap completes the
-offline task-management experience before the 1.0 visual launch; optional
-online services follow after the local product is dependable and complete.
+Check out [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/ZFordDev/SchedPlus/issues).
 
-Track current work through the [issue tracker](https://github.com/ZFordDev/SchedPlus/issues)
-and [release notes](https://github.com/ZFordDev/SchedPlus/releases).
-
-## Support and contributing
-
-Bug reports, feature ideas, documentation improvements, and code contributions
-are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes.
-Report security vulnerabilities through [SECURITY.md](SECURITY.md), not a
-public issue.
+For security concerns, please see [SECURITY.md](SECURITY.md).
 
 ## License
 
-The complete desktop application is distributed under
-[GPL-3.0-only](LICENSE). Reusable core modules under `src/logic` are also
-available under the [Apache License 2.0](LICENSES/Apache-2.0.txt). Third-party
-dependencies retain their respective licenses. See [NOTICE](NOTICE) for the
-licensing boundary and historical attribution.
+- **Desktop application:** [GPL-3.0-only](LICENSE)
+- **Reusable core modules:** [Apache License 2.0](LICENSES/Apache-2.0.txt)
+
+See [NOTICE](NOTICE) for licensing details and attribution.
