@@ -1,185 +1,61 @@
-<!-- ========================================================= -->
-<!-- Standards Approval Badge -->
-<!-- ========================================================= -->
-<table align="right">
-  <tr>
-    <td>
-      <img src="https://raw.githubusercontent.com/ZFordDev/ZFordDev/main/assets/standards-approved.svg" width="80" alt="ZFordDev Standards Approved Badge">
-    </td>
-  </tr>
-</table>
+# Contributing to SchedPlus
 
-# Contributing to ZFordDev Projects
+Found a bug? Have an idea? Want to improve something?
 
-Thank you for your interest in contributing!  
-All ZFordDev projects follow a shared set of standards designed to keep the ecosystem consistent, maintainable, and welcoming.
+Awesome! Contributions are always welcome.
 
-This document explains how to contribute code, documentation, bug reports, and feature requests across the ecosystem.
+SchedPlus is an open-source project, and you don't need to be an expert to help out.
 
-For ecosystem‑wide expectations, please read:
+## Getting started
 
-👉 [**STANDARDS.md**](https://github.com/ZFordDev/ZFordDev/blob/main/STANDARDS.md)  
-(Clarity • Simplicity • Maintainability • Long‑term stability)
+1. Check the [open issues](https://github.com/ZFordDev/SchedPlus/issues) to see what's happening.
+2. Fork the repository and create a branch.
+3. Make your changes and test them.
+4. Open a pull request explaining what you changed and why.
 
----
+That's pretty much it!
 
-## Ways to Contribute
+## A few things to know
 
-You can contribute in many ways:
+SchedPlus has three interfaces:
 
-- Reporting bugs  
-- Suggesting new features  
-- Improving documentation  
-- Submitting pull requests  
-- Reviewing existing issues  
-- Helping refine UX or workflows  
-- Testing on different platforms  
+- **Advanced:** Built with PyQt.
+- **Basic:** Built with Tkinter.
+- **CLI:** For terminal enthusiasts.
 
-All contributions are appreciated — even small ones.
+All three share the same task data and core functionality.
 
----
+If you're changing how tasks work, remember to consider all three interfaces. We don't want a feature working in one place and breaking somewhere else. 😅
 
-## Code of Conduct
+## Keep it simple
 
-By participating in this project, you agree to follow:
+SchedPlus is designed to be local-first, practical, and easy to use.
 
-👉 [**CODE_OF_CONDUCT.md**](CODE_OF_CONDUCT.md)
+A few things worth keeping in mind:
 
-Respect, clarity, and constructive collaboration are core values of the ecosystem.
+- Keep changes focused and reasonably small.
+- Follow the existing code style.
+- Avoid unnecessary dependencies.
+- Respect offline functionality and user privacy.
+- Test your changes before submitting a PR.
 
----
+For larger features or architectural changes, open an issue first so we can discuss the approach.
 
-## Before You Start
+## Found a bug?
 
-Please check:
+Please include:
 
-- The **Issues** tab for existing reports  
-- The **Roadmap** (if present)  
-- The **Discussions** tab for ongoing ideas  
-- The **STANDARDS.md** file for ecosystem rules  
-- The **project‑specific section** below for details unique to this repository
+- What happened and what you expected.
+- Your operating system and SchedPlus version.
+- Steps to reproduce the problem.
+- Screenshots or error messages, if available.
 
-If you’re unsure whether an idea fits, open a Discussion first — it saves everyone time.
+The more information, the easier it is to investigate.
 
----
+## Need a hand?
 
-## Pull Request Guidelines
+Check out the [SchedPlus Documentation](https://docs.zford.dev/docs/ZFordDev/SchedPlus/) or open a discussion through the issue tracker.
 
-To keep contributions consistent:
+And please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
-1. **Fork the repository**  
-2. **Create a feature branch**  
-   - `feature/your-feature-name`  
-   - `fix/your-bug-name`
-3. **Keep PRs focused**  
-   - One feature or fix per PR  
-   - Avoid unrelated formatting changes
-4. **Follow the coding style of the project**  
-   - Naming conventions  
-   - File structure  
-   - Module layout  
-5. **Test your changes**  
-   - Ensure the app builds  
-   - Ensure no regressions  
-6. **Write clear commit messages**  
-   - Present tense  
-   - Short and descriptive  
-7. **Describe your PR clearly**  
-   - What changed  
-   - Why it changed  
-   - Any side effects or considerations
-
-Small, focused PRs are easier to review and merge.
-
----
-
-## Reporting Bugs
-
-When reporting a bug, please include:
-
-- OS and version  
-- App version  
-- Steps to reproduce  
-- Expected behavior  
-- Actual behavior  
-- Screenshots or logs (if helpful)
-
-Clear reports help us fix issues faster.
-
----
-
-## Suggesting Features
-
-Feature requests should:
-
-- Explain the problem, not just the solution  
-- Describe the use case  
-- Fit the project’s philosophy (see STANDARDS.md)  
-- Avoid scope creep or IDE‑level complexity  
-
-If unsure, open a Discussion first.
-
----
-
-## Project‑Specific Guidelines
-
-Each project may have additional rules, workflows, or architectural notes.
-
-### SchedPlus‑Specific Notes
-
-SchedPlus is a small, Python‑based desktop scheduler.  
-Contributions should reflect its lightweight, minimal, and predictable design:
-
-- UI changes should follow the existing layout and interaction patterns  
-- Avoid introducing heavy dependencies — keep the project simple and easy to install  
-- SQLite storage must remain safe, local, and predictable
-- Scope larger productivity features through an issue before implementation
-- PyQt‑related changes should be tested on Windows and Linux when possible  
-- Keep the codebase approachable, documented, and maintainable
-- Maintain the clean, distraction‑free feel of the interface  
-- Ensure new features align with the “simple, local‑first, predictable” philosophy  
-- Discuss background services, synchronization, or account systems before implementation
-- Follow the existing module layout in `src/`  
-
-### Local quality checks
-
-Before opening a pull request, run the same lightweight checks used by CI:
-
-```powershell
-python -m ruff check src tests
-python -m ruff format --check src tests
-python -m pytest
-```
-
-Use `python -m ruff format src tests` to apply the project formatter. Ruff is
-configured to write LF line endings so formatting is consistent across Windows
-and Linux. Fix reported lint problems in the code rather than weakening the
-shared rule set.
-
-Catch the narrowest expected exception in normal application code. A broad
-exception boundary is acceptable only where SchedPlus must keep a background
-service alive or provide a last-resort startup error report; those boundaries
-must log or report the failure and explain why the broad catch is intentional.
-Never silently discard an exception.
-
----
-
-## Licensing Contributions
-
-SchedPlus uses different licenses for clearly separated parts of the project:
-
-- Contributions under `src/logic/` are submitted under Apache-2.0.
-- Contributions to the complete desktop application and all other source areas
-  are submitted under GPL-3.0-only unless a file states otherwise.
-- Third-party code must retain its original license and attribution notices.
-
-By submitting a contribution, you confirm that you have the right to provide
-it under the license applying to the files you modify. See [NOTICE](NOTICE) for
-the licensing boundary and historical MIT attribution.
-
----
-
-## Thank You
-
-Your contributions help strengthen the entire ZFordDev ecosystem.  
-Whether you’re fixing a typo or building a major feature — you’re part of the project’s future.
+Thanks for helping make SchedPlus better!
